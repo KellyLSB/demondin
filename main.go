@@ -3,85 +3,90 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"time"
 
+	"github.com/go-macaron/pongo2"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/mvc"
+	"gopkg.in/macaron.v1"
 
-	"github.com/KellyLSB/youmacon/app/controllers"
-	"github.com/KellyLSB/youmacon/app/controllers/shop"
-	"github.com/KellyLSB/youmacon/app/controllers/shop/keeper"
-
+	"github.com/KellyLSB/demondin/models"
 	stripeClient "github.com/stripe/stripe-go/client"
 )
 
 func main() {
+	// Load .env file from repo
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	app := iris.New()
+	// Connect database
+	db, err := gorm.Open("postgres", fmt.Sprintf(
+		"host=%s port=%s user=%s dbname=%s password=%s",
+		os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_NAME"),
+		os.Getenv("POSTGRES_PASS"),
+	))
 
-	// Define templates using the std html/template engine.
-	// Parse and load all files inside "./views" folder with ".html" file extension.
-	// Reload the templates on each request (development mode).
-	app.RegisterView(iris.HTML("./app/views", ".html").Reload(true))
+	if err != nil {
+		log.Fatalf("DB Connection Failed: %s", err)
+	}
 
-	// Log request
-	app.Use(func(ctx iris.Context) {
-		ctx.Application().Logger().Infof("Begin request for path: %s", ctx.Path())
-		ctx.Next()
-	})
+	defer db.Close()
 
-	// Register custom handler for specific http errors.
-	app.OnAnyErrorCode(func(ctx iris.Context) {
-		// .Values are used to communicate between handlers, middleware.
-		errMessage := ctx.Values().GetString("error")
+	// Load a macaron daemon
+	m := macaron.Classic()
+	// Injected automatically by macaron.Classic()
+	//m.Use(macaron.Logger())
+	//m.Use(macaron.Recovery())
+	//m.Use(macaron.Static("public"))
+	m.Use(pongo2.Pongoer())
+	m.Map(db)
+	m.Map(stripeClient.New(os.Getenv("STRIPE_PRIVATE_KEY"), nil))
 
-		if errMessage != "" {
-			ctx.Writef("Internal server error: %s", errMessage)
-			ctx.Application().Logger().Errorf("Internal server error: %s", errMessage)
-			return
-		}
+	// Routes
+	m.Group("/shop", func() {
+		m.Group("/keeper", func() {
+			m.Get("/", func(
+				ctx *macaron.Context,
+				stripe *stripeClient.API,
+			) {
+				balance, _ := stripe.Balance.Get(nil)
+				ctx.JSON(200, balance)
+			})
 
-		ctx.Writef("(Unexpected) internal server error")
-		ctx.Application().Logger().Errorf("(Unexpected) internal server error")
-	})
-
-	mvc.New(app.Party("/")).Register(func(ctx iris.Context) (DB *gorm.DB) {
-		db, err := gorm.Open("postgres", fmt.Sprintf(
-			"host=%s port=%s user=%s dbname=%s password=%s",
-			os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"),
-			os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_NAME"),
-			os.Getenv("POSTGRES_PASS"),
-		))
-
-		db.LogMode(true)
-		db.SetLogger(ctx.Application().Logger())
-
-		if err != nil {
-			ctx.Application().Logger().Errorf("DB Connection Failed: %s", err)
-		}
-
-		dbMigrate(db)
-
-		iris.RegisterOnInterrupt(func() {
-			db.Close()
+			m.Get("/charges", func(
+				ctx *macaron.Context,
+				stripe *stripeClient.API,
+			) {
+				charges := stripe.Charges.List(nil)
+				ctx.JSON(200, charges)
+			})
 		})
 
-		return db
-	}).Configure(func(mvcApp *mvc.Application) {
-		mvcApp.Handle(new(controllers.Index))
-		mvcApp.Party("/shop").Register(stripeService).Handle(new(shop.Index))
-		mvcApp.Party("/shop/keeper").Register(stripeService).Handle(new(shopkeeper.Index))
+		m.Get("/badges", func(ctx *macaron.Context, db *gorm.DB) {
+			var badges []*models.Item
+
+			db.Table("items").Select("*").
+				Joins("LEFT JOIN prices ON items.id = prices.item_id").Where(
+				"prices.valid_before <= ? && prices.valid_after > ? && "+
+					"&& items.badge = ?", time.Now(), time.Now(), true,
+			).Scan(&badges)
+
+			ctx.JSON(200, badges)
+		})
 	})
 
-	app.Run(iris.Addr(os.Getenv("HOST_PORT")), iris.WithCharset("UTF-8"))
+	m.Get("/", myHandler)
+
+	// Start our macaron daemon
+	log.Println("Server is running...")
+	log.Println(http.ListenAndServe(os.Getenv("HOST_PORT"), m))
 }
 
-func stripeService(ctx iris.Context) (StripeAPI *stripeClient.API) {
-	return stripeClient.New(os.Getenv("STRIPE_KEY"), nil)
+func myHandler(ctx *macaron.Context) string {
+	return "the request path is: " + ctx.Req.RequestURI
 }
