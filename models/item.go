@@ -12,7 +12,8 @@ type Item struct {
 	Model
 
 	// Enabled for sale
-	Enabled bool
+	Enabled bool `gorm:"default:false"`
+	IsBadge bool `gorm:"default:false"`
 
 	// Information on Item
 	Name        string

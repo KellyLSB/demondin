@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -23,20 +22,6 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	// Connect database
-	db, err := gorm.Open("postgres", fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s password=%s",
-		os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_NAME"),
-		os.Getenv("POSTGRES_PASS"),
-	))
-
-	if err != nil {
-		log.Fatalf("DB Connection Failed: %s", err)
-	}
-
-	defer db.Close()
-
 	// Load a macaron daemon
 	m := macaron.Classic()
 	// Injected automatically by macaron.Classic()
@@ -44,8 +29,11 @@ func main() {
 	//m.Use(macaron.Recovery())
 	//m.Use(macaron.Static("public"))
 	m.Use(pongo2.Pongoer())
-	m.Map(db)
 	m.Map(stripeClient.New(os.Getenv("STRIPE_PRIVATE_KEY"), nil))
+	m.Use(dbInit(
+		os.Getenv("POSTGRES_HOSTPORT"), os.Getenv("POSTGRES_DATABASE"),
+		os.Getenv("POSTGRES_USERNAME"), os.Getenv("POSTGRES_PASSWORD"),
+	))
 
 	// Routes
 	m.Group("/shop", func() {
@@ -72,8 +60,8 @@ func main() {
 
 			db.Table("items").Select("*").
 				Joins("LEFT JOIN prices ON items.id = prices.item_id").Where(
-				"prices.valid_before <= ? && prices.valid_after > ? && "+
-					"&& items.badge = ?", time.Now(), time.Now(), true,
+				"(? BETWEEN prices.valid_after AND prices.valid_before) AND "+
+					"(items.is_badge AND items.enabled)", time.Now(),
 			).Scan(&badges)
 
 			ctx.JSON(200, badges)
@@ -84,7 +72,7 @@ func main() {
 
 	// Start our macaron daemon
 	log.Println("Server is running...")
-	log.Println(http.ListenAndServe(os.Getenv("HOST_PORT"), m))
+	log.Println(http.ListenAndServe(os.Getenv("HOSTPORT"), m))
 }
 
 func myHandler(ctx *macaron.Context) string {
