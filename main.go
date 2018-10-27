@@ -59,10 +59,11 @@ func main() {
 			var badges []*models.Item
 
 			db.Table("items").Select("*").
-				Joins("LEFT JOIN prices ON items.id = prices.item_id").Where(
-				"(? BETWEEN prices.valid_after AND prices.valid_before) AND "+
-					"(items.is_badge AND items.enabled)", time.Now(),
-			).Scan(&badges)
+				//Joins("LEFT JOIN prices ON items.id = prices.item_id").
+				Where("items.is_badge AND items.enabled").Preload("Prices",
+				"? BETWEEN prices.valid_after AND prices.valid_before",
+				time.Now(),
+			).Find(&badges)
 
 			ctx.JSON(200, badges)
 		})

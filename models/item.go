@@ -19,6 +19,9 @@ type Item struct {
 	Name        string
 	Description []byte
 	Options     postgres.Jsonb `gorm:"type:jsonb;"`
+
+	// HasMany
+	Prices []Price
 }
 
 // Price record should immutable (except for validity)
@@ -27,6 +30,8 @@ type Price struct {
 	Model
 
 	// BelongsTo Record
+	// perhaps turn off autopreloading for tis item (circular loading xD)
+	//Item   Item      `gorm:"foreignkey:item_id;"`
 	ItemID uuid.UUID `gorm:"type:uuid;"`
 
 	// Pricing
