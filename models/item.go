@@ -16,8 +16,8 @@ type Item struct {
 	IsBadge bool `gorm:"default:false"`
 
 	// Information on Item
-	Name        string
-	Description []byte
+	Name        string         `gorm:"type:varchar(60);"`
+	Description string         `gorm:"type:text;"`
 	Options     postgres.Jsonb `gorm:"type:jsonb;"`
 
 	// HasMany

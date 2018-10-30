@@ -1,12 +1,12 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/go-macaron/pongo2"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"gopkg.in/macaron.v1"
@@ -28,12 +28,32 @@ func main() {
 	//m.Use(macaron.Logger())
 	//m.Use(macaron.Recovery())
 	//m.Use(macaron.Static("public"))
-	m.Use(pongo2.Pongoer())
-	m.Map(stripeClient.New(os.Getenv("STRIPE_PRIVATE_KEY"), nil))
+
+	// Handle Database Connections
 	m.Use(dbInit(
 		os.Getenv("POSTGRES_HOSTPORT"), os.Getenv("POSTGRES_DATABASE"),
 		os.Getenv("POSTGRES_USERNAME"), os.Getenv("POSTGRES_PASSWORD"),
 	))
+
+	// Handle StripeAPI
+	m.Map(stripeClient.New(os.Getenv("STRIPE_PRIVATE_KEY"), nil))
+
+	// Handle Templating
+	m.Use(macaron.Renderer(macaron.RenderOptions{
+		Extensions: []string{".tmpl", ".html"},
+		Directory:  "templates/default",
+		IndentXML:  true,
+		IndentJSON: true,
+
+		Funcs: []template.FuncMap{map[string]interface{}{
+			"AppName": func() string {
+				return "DemonDin"
+			},
+			"AppVer": func() string {
+				return "0.0.1"
+			},
+		}},
+	}))
 
 	// Routes
 	m.Group("/shop", func() {
@@ -53,9 +73,23 @@ func main() {
 				charges := stripe.Charges.List(nil)
 				ctx.JSON(200, charges)
 			})
+
+			m.Get("/badges?:ext", func(ctx *macaron.Context, db *gorm.DB) {
+				var badges []*models.Item
+
+				db.Table("items").Select("*").Preload("Prices").Find(&badges)
+
+				switch ctx.Params(":ext") {
+				case ".json":
+					ctx.JSON(200, badges)
+				default:
+					ctx.Data["Badges"] = badges
+					ctx.HTML(200, "shop/keeper/badges")
+				}
+			})
 		})
 
-		m.Get("/badges", func(ctx *macaron.Context, db *gorm.DB) {
+		m.Get("/badges?:ext", func(ctx *macaron.Context, db *gorm.DB, log *log.Logger) {
 			var badges []*models.Item
 
 			db.Table("items").Select("*").
@@ -65,7 +99,13 @@ func main() {
 				time.Now(),
 			).Find(&badges)
 
-			ctx.JSON(200, badges)
+			switch ctx.Params(":ext") {
+			case ".json":
+				ctx.JSON(200, badges)
+			default:
+				// shop/badges.html template
+				ctx.HTML(200, "shop/badges")
+			}
 		})
 	})
 
