@@ -87,6 +87,11 @@ func main() {
 					ctx.HTML(200, "shop/keeper/badges")
 				}
 			})
+
+			m.Put("/badges/:id", func(ctx *macaron.Context, db *gorm.DB) {
+				// ParseJSON
+				ctx.Req.GetBody()
+			})
 		})
 
 		m.Get("/badges?:ext", func(ctx *macaron.Context, db *gorm.DB, log *log.Logger) {
