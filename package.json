@@ -1,0 +1,24 @@
+{
+  "name": "demondin",
+  "version": "1.0.0",
+  "description": "Youmacon CRM",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "browserify": "browserify -d -e script.js -t [ babelify --comments false ]"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KellyLSB/demondin.git"
+  },
+  "author": "",
+  "license": "All rights",
+  "bugs": {
+    "url": "https://github.com/KellyLSB/demondin/issues"
+  },
+  "homepage": "https://github.com/KellyLSB/demondin#readme",
+  "dependencies": {
+    "browserify": "^16.2.3",
+    "watchify": "^3.11.0"
+  }
+}
