@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -88,9 +90,27 @@ func main() {
 				}
 			})
 
-			m.Put("/badges/:id", func(ctx *macaron.Context, db *gorm.DB) {
-				// ParseJSON
-				ctx.Req.GetBody()
+			m.Put("/badges/:id:ext", func(ctx *macaron.Context, db *gorm.DB, log *log.Logger) {
+				var badge models.Item
+				db.Table("items").Select("*").Preload("Prices").
+					Find(&badge, "items.id = ?", ctx.Params(":id"))
+
+				decoder := json.NewDecoder(ctx.Req.Body().ReadCloser())
+				if err := decoder.Decode(&badge); err == io.EOF {
+					panic(err)
+				} else if err != nil {
+					panic(err)
+				}
+
+				db.Save(&badge)
+
+				switch ctx.Params(":ext") {
+				case ".json":
+					ctx.JSON(200, badge)
+				default:
+					ctx.Data["Badge"] = badge
+					ctx.HTML(200, "shop/keeper/badge")
+				}
 			})
 		})
 

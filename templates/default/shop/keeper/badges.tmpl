@@ -12,32 +12,7 @@
                 constructor(props) {
                     super(props);
                     this.state = {
-                        data: {
-                            "ID": "f31ac18e-0bb1-428e-952f-75cbc5604f3b",
-                            "CreatedAt": "2018-10-26T17:36:35.850965-07:00",
-                            "UpdatedAt": "2018-10-26T17:36:35.850965-07:00",
-                            "DeletedAt": null,
-                            "Enabled": true,
-                            "IsBadge": true,
-                            "Name": "Regular Badge",
-                            "Description": "Standard Admission",
-                            "Options": {
-                                "name": "string"
-                            },
-                            "Prices": [
-                                {
-                                    "ID": "734b8efd-c8e8-436c-88cb-dfc2cb9fc535",
-                                    "CreatedAt": "2018-10-26T17:41:46.014587-07:00",
-                                    "UpdatedAt": "2018-10-26T17:41:46.014587-07:00",
-                                    "DeletedAt": null,
-                                    "ItemID": "f31ac18e-0bb1-428e-952f-75cbc5604f3b",
-                                    "Price": 6500,
-                                    "Taxable": false,
-                                    "ValidAfter": "2010-10-10T00:00:00-07:00",
-                                    "ValidBefore": "2020-10-10T00:00:00-07:00"
-                                }
-                            ]
-                        }
+                        data: {}
                     };
 
                     if ('data' in props) {
@@ -59,7 +34,7 @@
 
                 onChangeDescription(event) {
                     var value = event.target.value
-                    this.setState(state => {
+                    this.setState((state) => {
                         state.data.Description = value
                         return state
                     })
@@ -70,10 +45,15 @@
                     alert("submitted");
                     console.log(this.state.data);
 
-                    // fetch("/shop/keeper/badges/" + this.state.data.ID, {
-                    //     method: this.state.data.ID === "new" ? "POST" : "PATCH",
-                    //     body: JSON.stringify(this.state.data)
-                    // })
+                    fetch("/shop/keeper/badges/" + this.state.data.ID, {
+                        method: this.state.data.ID === "new" ? "POST" : "PUT",
+                        body: JSON.stringify(this.state.data)
+                    }).then((response) => response.json()).then((data) => {
+                        this.setState((state) => {
+                            state.data = data
+                            return state
+                        })
+                    })
                 }
 
                 render() {
@@ -96,44 +76,27 @@
             class Items extends React.Component {
                 constructor(props) {
                     super(props);
+
                     this.state = {
-                        data: [{
-                            "ID": "f31ac18e-0bb1-428e-952f-75cbc5604f3b",
-                            "CreatedAt": "2018-10-26T17:36:35.850965-07:00",
-                            "UpdatedAt": "2018-10-26T17:36:35.850965-07:00",
-                            "DeletedAt": null,
-                            "Enabled": true,
-                            "IsBadge": true,
-                            "Name": "Regular Badge",
-                            "Description": "Standard Admission",
-                            "Options": {
-                                "name": "string"
-                            },
-                            "Prices": [
-                                {
-                                    "ID": "734b8efd-c8e8-436c-88cb-dfc2cb9fc535",
-                                    "CreatedAt": "2018-10-26T17:41:46.014587-07:00",
-                                    "UpdatedAt": "2018-10-26T17:41:46.014587-07:00",
-                                    "DeletedAt": null,
-                                    "ItemID": "f31ac18e-0bb1-428e-952f-75cbc5604f3b",
-                                    "Price": 6500,
-                                    "Taxable": false,
-                                    "ValidAfter": "2010-10-10T00:00:00-07:00",
-                                    "ValidBefore": "2020-10-10T00:00:00-07:00"
-                                }
-                            ]
-                        }]
+                        data: []
                     };
 
                     if ('data' in props) {
                         this.state.data = props.data;
+                    } else {
+                        this.fetchItems();
                     }
                 }
 
                 fetchItems() {
-                    fetch("/shop/keeper/badges.json").then((data) =>
-                        this.state.data = data
-                    )
+                    fetch("/shop/keeper/badges.json", {
+                        method: "GET"
+                    }).then((response) => response.json()).then((data) => {
+                        this.setState((state) => {
+                            state.data = data
+                            return state
+                        })
+                    })
                 }
 
                 render() {
