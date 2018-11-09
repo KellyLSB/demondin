@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "browserify": "browserify -d -e script.js -t [ babelify --comments false ]"
+    "browserify": "browserify -d -e jsx/main.jsx -o public/bundle.js --extension=.jsx -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] --plugins [ @babel/plugin-proposal-class-properties ] ]"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,16 @@
   },
   "homepage": "https://github.com/KellyLSB/demondin#readme",
   "dependencies": {
+    "@babel/core": "^7.1.5",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/preset-env": "^7.1.5",
+    "@babel/preset-react": "^7.0.0",
+    "babelify": "^10.0.0",
     "browserify": "^16.2.3",
+    "react": "^16.6.1",
     "watchify": "^3.11.0"
+  },
+  "devDependencies": {
+    "react-dom": "^16.6.1"
   }
 }

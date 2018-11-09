@@ -1,116 +1,8 @@
 <html>
     <head>
-        <!-- Move to GoLang Templater (eventually) -->
-        <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
-        <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
-        <script src="https://unpkg.com/babel-standalone@6/babel.min.js" crossorigin></script>
     </head>
     <body>
         <div id="root">Load JSX Here</div>
-        <script type="text/babel">
-            class Item extends React.Component {
-                constructor(props) {
-                    super(props);
-                    this.state = {
-                        data: {}
-                    };
-
-                    if ('data' in props) {
-                        this.state.data = props.data;
-                    }
-
-                    this.onChangeName = this.onChangeName.bind(this);
-                    this.onChangeDescription = this.onChangeDescription.bind(this);
-                    this.onSubmit = this.onSubmit.bind(this);
-                }
-
-                onChangeName(event) {
-                    var value = event.target.value
-                    this.setState((state) => {
-                        state.data.Name = value
-                        return state
-                    })
-                }
-
-                onChangeDescription(event) {
-                    var value = event.target.value
-                    this.setState((state) => {
-                        state.data.Description = value
-                        return state
-                    })
-                }
-
-                onSubmit(event) {
-                    event.preventDefault();
-                    alert("submitted");
-                    console.log(this.state.data);
-
-                    fetch("/shop/keeper/badges/" + this.state.data.ID, {
-                        method: this.state.data.ID === "new" ? "POST" : "PUT",
-                        body: JSON.stringify(this.state.data)
-                    }).then((response) => response.json()).then((data) => {
-                        this.setState((state) => {
-                            state.data = data
-                            return state
-                        })
-                    })
-                }
-
-                render() {
-                    return (
-                        <div className="item">
-                            <form onSubmit={this.onSubmit}>
-                                <input placeholder="Badge Name"
-                                    value={this.state.data.Name}
-                                    onChange={this.onChangeName} />
-                                <textarea placeholder="Description"
-                                    value={this.state.data.Description}
-                                    onChange={this.onChangeDescription}>
-                                </textarea>
-                            </form>
-                        </div>
-                    );
-                }
-            }
-
-            class Items extends React.Component {
-                constructor(props) {
-                    super(props);
-
-                    this.state = {
-                        data: []
-                    };
-
-                    if ('data' in props) {
-                        this.state.data = props.data;
-                    } else {
-                        this.fetchItems();
-                    }
-                }
-
-                fetchItems() {
-                    fetch("/shop/keeper/badges.json", {
-                        method: "GET"
-                    }).then((response) => response.json()).then((data) => {
-                        this.setState((state) => {
-                            state.data = data
-                            return state
-                        })
-                    })
-                }
-
-                render() {
-                    return this.state.data.map((item) =>
-                        <Item key={item.ID} data={item} />
-                    )
-                }
-            }
-
-            ReactDOM.render(
-                <div><h1>Hello, world!</h1><br /><Items /></div>,
-                document.getElementById('root')
-            );
-        </script>
         <section id="body" style="display:none;">
             <ol class="list">
             {{range .Badges}}
@@ -141,5 +33,6 @@
                 </div>
             </form>
         </section>
+        <script src="/bundle.js"></script>
     </body>
 </html>

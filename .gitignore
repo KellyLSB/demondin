@@ -1,4 +1,6 @@
 2018/
 2018_1/
+node_modules/
 .env
 youmacon
+*.tmp-browserify-*
