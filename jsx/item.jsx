@@ -1,4 +1,5 @@
 import React from 'react'
+import Prices from './prices'
 
 export default class Item extends React.Component {
     constructor(props) {
@@ -59,6 +60,9 @@ export default class Item extends React.Component {
                         value={this.state.data.Description}
                         onChange={this.onChangeDescription}>
                     </textarea>
+                    <Prices onChange={this.onChangePrices}
+                        item={this.state.data.ID}
+                        data={this.state.data.Prices} />
                 </form>
             </div>
         );
