@@ -38,8 +38,8 @@ export default class Item extends React.Component {
         alert("submitted");
         console.log(this.state.data);
 
-        fetch("/shop/keeper/badges/" + this.state.data.ID, {
-            method: this.state.data.ID === "new" ? "POST" : "PUT",
+        fetch(`/shop/keeper/badges/${this.state.data.ID}.json`, {
+            method: "ID" in this.state.data ? "PUT" : "POST",
             body: JSON.stringify(this.state.data)
         }).then((response) => response.json()).then((data) => {
             this.setState((state) => {
@@ -60,10 +60,10 @@ export default class Item extends React.Component {
                         value={this.state.data.Description}
                         onChange={this.onChangeDescription}>
                     </textarea>
-                    <Prices onChange={this.onChangePrices}
-                        item={this.state.data.ID}
-                        data={this.state.data.Prices} />
                 </form>
+                
+                <Prices item={this.state.data.ID}
+                        data={this.state.data.Prices} />
             </div>
         );
     }

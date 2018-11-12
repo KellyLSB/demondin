@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"gopkg.in/macaron.v1"
@@ -76,7 +77,7 @@ func main() {
 				ctx.JSON(200, charges)
 			})
 
-			m.Get("/badges?:ext", func(ctx *macaron.Context, db *gorm.DB) {
+			m.Get("/badges?:ext(\\.[\\w]+$)", func(ctx *macaron.Context, db *gorm.DB) {
 				var badges []*models.Item
 
 				db.Table("items").Select("*").Preload("Prices").Find(&badges)
@@ -86,11 +87,17 @@ func main() {
 					ctx.JSON(200, badges)
 				default:
 					ctx.Data["Badges"] = badges
+					ctx.Data["URL"] = ctx.URLFor("put_badge_price", ":item_id", "f31ac18e-0bb1-428e-952f-75cbc5604f3b", ":id", "734b8efd-c8e8-436c-88cb-dfc2cb9fc535", ":ext", ".json")
 					ctx.HTML(200, "shop/keeper/badges")
 				}
 			})
-
-			m.Put("/badges/:id:ext", func(ctx *macaron.Context, db *gorm.DB, log *log.Logger) {
+			
+			// I don't like the *.* (:path.:ext) routes option;
+			// I'm feeling a little cornered here on that one
+			m.Put("/badges/:id([\\w-]+)?:ext(\\.[\\w]+$)", func(
+				ctx *macaron.Context,
+				db *gorm.DB, log *log.Logger,
+			) {
 				var badge models.Item
 				db.Table("items").Select("*").Preload("Prices").
 					Find(&badge, "items.id = ?", ctx.Params(":id"))
@@ -103,7 +110,7 @@ func main() {
 				}
 
 				db.Save(&badge)
-
+				
 				switch ctx.Params(":ext") {
 				case ".json":
 					ctx.JSON(200, badge)
@@ -112,9 +119,57 @@ func main() {
 					ctx.HTML(200, "shop/keeper/badge")
 				}
 			})
+			
+			m.Post("/badges/:item_id([\\w-]+)/prices?:ext(\\.[\\w]+$)", func(
+				ctx *macaron.Context,
+				db *gorm.DB, log *log.Logger,
+			) {
+				var price models.Price
+				
+				decoder := json.NewDecoder(ctx.Req.Body().ReadCloser())
+				if err := decoder.Decode(&price); err == io.EOF {
+					panic(err)
+				} else if err != nil {
+					panic(err)
+				}
+				
+				// Set the ItemID
+				price.ItemID = uuid.MustParse(ctx.Params(":item_id"))
+				
+				log.Println("Created new Record:\n%+v\n", price)
+				db.Save(&price)
+			})
+			
+			m.Put("/badges/:item([\\w-]+)/prices/:id([\\w-]+)?:ext(\\.[\\w]+$)", func(
+				ctx *macaron.Context,
+				db *gorm.DB, log *log.Logger,
+			) {
+				var price models.Price
+				db.Table("prices").Select("*").
+					Where("prices.item_id = ?", ctx.Params(":item")).
+					Find(&price, "prices.id = ?", ctx.Params(":id"))
+					
+				decoder := json.NewDecoder(ctx.Req.Body().ReadCloser())
+				if err := decoder.Decode(&price); err == io.EOF {
+					panic(err)
+				} else if err != nil {
+					panic(err)
+				}
+				
+				log.Println("Updated Record:\n%+v\n", price)
+				db.Save(&price)
+				
+				switch ctx.Params(":ext") {
+				case ".json":
+					ctx.JSON(200, price)
+				default:
+					ctx.Data["Price"] = price
+					ctx.HTML(200, "shop/keeper/price")
+				}
+			}).Name("put_badge_price")
 		})
 
-		m.Get("/badges?:ext", func(ctx *macaron.Context, db *gorm.DB, log *log.Logger) {
+		m.Get("/badges?:ext(\\.[\\w]+$)", func(ctx *macaron.Context, db *gorm.DB, log *log.Logger) {
 			var badges []*models.Item
 
 			db.Table("items").Select("*").
