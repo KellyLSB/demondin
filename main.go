@@ -87,7 +87,7 @@ func main() {
 					ctx.JSON(200, badges)
 				default:
 					ctx.Data["Badges"] = badges
-					ctx.Data["URL"] = ctx.URLFor("put_badge_price", ":item_id", "f31ac18e-0bb1-428e-952f-75cbc5604f3b", ":id", "734b8efd-c8e8-436c-88cb-dfc2cb9fc535", ":ext", ".json")
+					ctx.Data["URL"] = ctx.URLFor("post_badge_price", ":item_id", "f31ac18e-0bb1-428e-952f-75cbc5604f3b", ":ext", ".json")
 					ctx.HTML(200, "shop/keeper/badges")
 				}
 			})
@@ -138,7 +138,7 @@ func main() {
 				
 				log.Println("Created new Record:\n%+v\n", price)
 				db.Save(&price)
-			})
+			}).Name("post_badge_price")
 			
 			m.Put("/badges/:item([\\w-]+)/prices/:id([\\w-]+)?:ext(\\.[\\w]+$)", func(
 				ctx *macaron.Context,
@@ -166,7 +166,7 @@ func main() {
 					ctx.Data["Price"] = price
 					ctx.HTML(200, "shop/keeper/price")
 				}
-			}).Name("put_badge_price")
+			})
 		})
 
 		m.Get("/badges?:ext(\\.[\\w]+$)", func(ctx *macaron.Context, db *gorm.DB, log *log.Logger) {

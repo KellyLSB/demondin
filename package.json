@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "browserify": "browserify -d -e jsx/main.jsx -o public/bundle.js --extension=.jsx -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] --plugins [ @babel/plugin-proposal-class-properties ] ]"
+    "browserify": "browserify -d -e jsx/main.jsx -o public/bundle.js --extension=.jsx -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] --plugins [ @babel/plugin-proposal-class-properties ] ] -t sassify"
   },
   "repository": {
     "type": "git",
@@ -22,13 +22,24 @@
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/preset-env": "^7.1.5",
     "@babel/preset-react": "^7.0.0",
-    "babelify": "^10.0.0",
-    "browserify": "^16.2.3",
     "react": "^16.6.1",
+    "react-datepicker": "^2.0.0",
     "react-number-format": "^4.0.4",
-    "watchify": "^3.11.0"
+    "semantic-ui-react": "^0.83.0"
   },
   "devDependencies": {
-    "react-dom": "^16.6.1"
+    "babel-loader": "^8.0.4",
+    "css-loader": "^1.0.1",
+    "file-loader": "^2.0.0",
+    "react-dom": "^16.6.1",
+    "semantic-ui": "^2.4.2",
+    "style-loader": "^0.23.1",
+    "url-loader": "^1.1.2",
+    "webpack": "^4.26.0",
+    "webpack-cli": "^3.1.2",
+    "browserify": "^16.2.3",
+    "babelify": "^10.0.0",
+    "watchify": "^3.11.0",
+    "cssify": "^1.0.3"
   }
 }
