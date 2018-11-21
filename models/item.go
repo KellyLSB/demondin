@@ -19,6 +19,28 @@ type Item struct {
 	Name        string         `gorm:"type:varchar(60);"`
 	Description string         `gorm:"type:text;"`
 	Options     postgres.Jsonb `gorm:"type:jsonb;"`
+	
+  // 	{
+  // 	  name: string,
+  // 	  t-shirt: {
+  // 	    type: 'select',
+  // 	    multi: [
+  // 	      'S', 'M', 'L',
+  // 	    ]
+  // 	  },
+  // 	  otherthing: {
+  // 	    type: 'multi-select',
+  // 	    multi: [
+  // 	      'One', 'Two', 'Three'
+  // 	    ]
+  // 	  },
+  // 	  something: {
+  // 	    type: 'radio',
+  // 	    multi: [
+  // 	      'One', 'Two', 'Three'
+  // 	    ]
+  // 	  }
+  // 	}
 
 	// HasMany
 	Prices []Price

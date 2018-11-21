@@ -77,7 +77,10 @@ func main() {
 				ctx.JSON(200, charges)
 			})
 
-			m.Get("/badges?:ext(\\.[\\w]+$)", func(ctx *macaron.Context, db *gorm.DB) {
+			m.Get("/items?:ext(\\.[\\w]+$)", func(
+			  ctx *macaron.Context,
+			  db *gorm.DB,
+			) {
 				var badges []*models.Item
 
 				db.Table("items").Select("*").Preload("Prices").Find(&badges)
@@ -94,7 +97,7 @@ func main() {
 			
 			// I don't like the *.* (:path.:ext) routes option;
 			// I'm feeling a little cornered here on that one
-			m.Put("/badges/:id([\\w-]+)?:ext(\\.[\\w]+$)", func(
+			m.Put("/items/:id([\\w-]+)?:ext(\\.[\\w]+$)", func(
 				ctx *macaron.Context,
 				db *gorm.DB, log *log.Logger,
 			) {
@@ -120,7 +123,7 @@ func main() {
 				}
 			})
 			
-			m.Post("/badges/:item_id([\\w-]+)/prices?:ext(\\.[\\w]+$)", func(
+			m.Post("/items/:item_id([\\w-]+)/prices?:ext(\\.[\\w]+$)", func(
 				ctx *macaron.Context,
 				db *gorm.DB, log *log.Logger,
 			) {
@@ -140,7 +143,7 @@ func main() {
 				db.Save(&price)
 			}).Name("post_badge_price")
 			
-			m.Put("/badges/:item([\\w-]+)/prices/:id([\\w-]+)?:ext(\\.[\\w]+$)", func(
+			m.Put("/items/:item([\\w-]+)/prices/:id([\\w-]+)?:ext(\\.[\\w]+$)", func(
 				ctx *macaron.Context,
 				db *gorm.DB, log *log.Logger,
 			) {
@@ -169,7 +172,10 @@ func main() {
 			})
 		})
 
-		m.Get("/badges?:ext(\\.[\\w]+$)", func(ctx *macaron.Context, db *gorm.DB, log *log.Logger) {
+		m.Get("/items?:ext(\\.[\\w]+$)", func(
+		  ctx *macaron.Context,
+		  db *gorm.DB, log *log.Logger,
+		) {
 			var badges []*models.Item
 
 			db.Table("items").Select("*").

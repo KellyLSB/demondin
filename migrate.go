@@ -49,5 +49,6 @@ func dbMigrate(db *gorm.DB) {
 	db.AutoMigrate(&models.File{})
 	db.AutoMigrate(&models.Item{})
 	db.AutoMigrate(&models.Price{})
-	db.AutoMigrate(&models.Charge{})
+	db.AutoMigrate(&models.Invoice{})
+	db.AutoMigrate(&models.Badge{})
 }

@@ -1,6 +1,10 @@
 module.exports = {
-  entry: __dirname + '/jsx/main.jsx',
-  output: { filename: 'bundle.js', path: __dirname + '/public' },
+  mode: 'development',
+  entry: {
+    checkout: `${__dirname}/jsx/checkout/main.jsx`,
+    admin:    `${__dirname}/jsx/admin/main.jsx`
+  },
+  output: { filename: '[name].js', path: `${__dirname}/public` },
   resolve: {
     extensions: [ '.wasm', '.mjs', '.js', '.jsx', '.json' ]
   },
