@@ -1,0 +1,39 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <div id="root">Load JSX Here</div>
+        <div>{{.URL}}</div>
+        <section id="body" style="display:none;">
+            <ol class="list">
+            {{range .Badges}}
+            <li class="row">
+                <h4>{{.Name}} &mdash; {{.Prices}}</h4>
+                <p>{{.Description | printf "%q"}}</p>
+            </li>
+            {{else}}
+            <li>
+                No Badges for Sale
+            </li>
+            {{end}}
+            </ol>
+            <form method="PUT">
+                <label for="badge-name">
+                    Badge Name:
+                </label>
+                <div id="badge-name">
+                    <input type="text" name="badge-name" />
+                </div>
+
+                <label for="badge-description">
+                    Badge Description:
+                </label>
+                <div id="badge-description">
+                    <textarea name="badge-description">
+                    </textarea>
+                </div>
+            </form>
+        </section>
+        <script src="/admin.js"></script>
+    </body>
+</html>

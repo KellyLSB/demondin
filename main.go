@@ -13,6 +13,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"gopkg.in/macaron.v1"
+  "github.com/go-macaron/session"
 
 	"github.com/KellyLSB/demondin/models"
 	stripeClient "github.com/stripe/stripe-go/client"
@@ -31,6 +32,32 @@ func main() {
 	//m.Use(macaron.Logger())
 	//m.Use(macaron.Recovery())
 	//m.Use(macaron.Static("public"))
+	
+	// Handle Session Cookies
+	m.Use(session.Sessioner(session.Options{
+    // Name of provider. Default is "memory".
+    Provider:       "memory",
+    // Provider configuration, it's corresponding to provider.
+    ProviderConfig: "",
+    // Cookie name to save session ID. Default is "MacaronSession".
+    CookieName:     "demondin",
+    // Cookie path to store. Default is "/".
+    CookiePath:     "/",
+    // GC interval time in seconds. Default is 3600.
+    Gclifetime:     3600,
+    // Max life time in seconds. Default is whatever GC interval time is.
+    Maxlifetime:    3600,
+    // Use HTTPS only. Default is false.
+    Secure:         false,
+    // Cookie life time. Default is 0.
+    CookieLifeTime: 0,
+    // Cookie domain name. Default is empty.
+    Domain:         "",
+    // Session ID length. Default is 16.
+    IDLength:       16,
+    // Configuration section name. Default is "session".
+    Section:        "session",
+}))
 
 	// Handle Database Connections
 	m.Use(dbInit(
@@ -91,7 +118,7 @@ func main() {
 				default:
 					ctx.Data["Badges"] = badges
 					ctx.Data["URL"] = ctx.URLFor("post_badge_price", ":item_id", "f31ac18e-0bb1-428e-952f-75cbc5604f3b", ":ext", ".json")
-					ctx.HTML(200, "shop/keeper/badges")
+					ctx.HTML(200, "shop/keeper/items")
 				}
 			})
 			
@@ -174,7 +201,7 @@ func main() {
 
 		m.Get("/items?:ext(\\.[\\w]+$)", func(
 		  ctx *macaron.Context,
-		  db *gorm.DB, log *log.Logger,
+		  log *log.Logger, db *gorm.DB,
 		) {
 			var badges []*models.Item
 
@@ -190,8 +217,29 @@ func main() {
 				ctx.JSON(200, badges)
 			default:
 				// shop/badges.html template
-				ctx.HTML(200, "shop/badges")
+				ctx.HTML(200, "shop/items")
 			}
+		})
+		
+	  // Change this to a .Post() handle in the future
+		m.Get("/", func(
+		  ctx *macaron.Context, log *log.Logger,
+		  sess session.Store, db *gorm.DB,
+		) {
+		  var invoice models.Invoice
+		  
+		  // Save Invoice as Session
+		  invoiceUUID := sess.Get("invoice_uuid")
+		  if invoiceUUID != nil && invoiceUUID != "" {
+		    db.Table("invoices").Select("*").
+		      Where("invoices.id = ?", invoiceUUID).First(&invoice)
+		  }
+		  
+		  // Save Invoice as Session
+		  db.Save(&invoice)
+		  sess.Set("invoice_uuid", invoice.ID)
+		  
+		  ctx.JSON(200, invoice)
 		})
 	})
 
