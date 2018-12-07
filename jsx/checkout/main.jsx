@@ -2,6 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Container, Grid, Segment } from 'semantic-ui-react';
 
+import Items from './items'
+
 import '../../semantic/dist/semantic.min.css';
 
 ReactDOM.render(
@@ -9,7 +11,7 @@ ReactDOM.render(
       <Grid columns={2} divided>
         <Grid.Row stretched>
           <Grid.Column width={10}>
-            <Segment>Rows of Items</Segment>
+            <Items addToCart={(id) => console.log("ID: ", id)}/>
           </Grid.Column>
           <Grid.Column width={6}>
             <Segment>Cart Data</Segment>
