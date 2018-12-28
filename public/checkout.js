@@ -86,6 +86,44 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./jsx/checkout/cart_context.jsx":
+/*!***************************************!*\
+  !*** ./jsx/checkout/cart_context.jsx ***!
+  \***************************************/
+/*! exports provided: CartContext */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CartContext", function() { return CartContext; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+var _this = undefined;
+
+ // Likely will use this to pass event callbacks down through the stack.
+
+var CartContext = react__WEBPACK_IMPORTED_MODULE_0___default.a.createContext({
+  // Handle Invoice Creation
+  cartContents: [],
+  // Request Completion of Options
+  addToCart: function addToCart(id) {
+    return function () {
+      return fetch("/shop/invoicing/addToCart.json", {
+        method: "POST",
+        body: JSON.stringify(id)
+      }).then(function (response) {
+        return response.json();
+      }).then(function (data) {
+        console.log("Need to link this process with the cart context (accept options)");
+        console.log(data);
+        console.log(_this);
+      });
+    };
+  }
+});
+
+/***/ }),
+
 /***/ "./jsx/checkout/item.jsx":
 /*!*******************************!*\
   !*** ./jsx/checkout/item.jsx ***!
@@ -99,6 +137,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! semantic-ui-react */ "./node_modules/semantic-ui-react/dist/es/index.js");
+/* harmony import */ var _cart_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cart_context */ "./jsx/checkout/cart_context.jsx");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -116,6 +155,7 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
 
 
 
@@ -174,6 +214,8 @@ function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
+      var _this2 = this;
+
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__["Segment"], null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__["Header"], {
         size: "huge"
       }, this.state.data.Name), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", null, this.state.data.Description), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__["Grid"], {
@@ -184,14 +226,16 @@ function (_React$Component) {
         tag: true
       }, this.printPrice())), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__["Grid"].Column, {
         textAlign: "right"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__["Button"], {
-        primary: true,
-        icon: true,
-        labelPosition: "left",
-        onClick: this.props.addToCart(this.state.data.ID)
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__["Icon"], {
-        name: "shop"
-      }), "Add To Cart"))));
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_cart_context__WEBPACK_IMPORTED_MODULE_2__["CartContext"].Consumer, null, function (cartContext) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__["Button"], {
+          primary: true,
+          icon: true,
+          labelPosition: "left",
+          onClick: cartContext.addToCart(_this2.state.data.ID)
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_1__["Icon"], {
+          name: "shop"
+        }), "Add To Cart");
+      }))));
     }
   }]);
 
@@ -281,13 +325,10 @@ function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
-      var _this3 = this;
-
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_2__["Grid"].Row, null, this.state.data.map(function (item) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_item__WEBPACK_IMPORTED_MODULE_1__["default"], {
           key: item.ID,
-          data: item,
-          addToCart: _this3.props.addToCart
+          data: item
         });
       }));
     }
@@ -314,9 +355,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var semantic_ui_react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! semantic-ui-react */ "./node_modules/semantic-ui-react/dist/es/index.js");
-/* harmony import */ var _items__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./items */ "./jsx/checkout/items.jsx");
-/* harmony import */ var _semantic_dist_semantic_min_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../semantic/dist/semantic.min.css */ "./semantic/dist/semantic.min.css");
-/* harmony import */ var _semantic_dist_semantic_min_css__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_semantic_dist_semantic_min_css__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _cart_context__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./cart_context */ "./jsx/checkout/cart_context.jsx");
+/* harmony import */ var _items__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./items */ "./jsx/checkout/items.jsx");
+/* harmony import */ var _semantic_dist_semantic_min_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../semantic/dist/semantic.min.css */ "./semantic/dist/semantic.min.css");
+/* harmony import */ var _semantic_dist_semantic_min_css__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_semantic_dist_semantic_min_css__WEBPACK_IMPORTED_MODULE_5__);
+
 
 
 
@@ -331,13 +374,13 @@ react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.render(react__WEBPACK_IMPORTED_
   stretched: true
 }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_2__["Grid"].Column, {
   width: 10
-}, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_items__WEBPACK_IMPORTED_MODULE_3__["default"], {
+}, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_items__WEBPACK_IMPORTED_MODULE_4__["default"], {
   addToCart: function addToCart(id) {
     return console.log("ID: ", id);
   }
 })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_2__["Grid"].Column, {
   width: 6
-}, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_2__["Segment"], null, "Cart Data"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_2__["Segment"], null, "Checkout"))))), document.getElementById('root'));
+}, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_cart_context__WEBPACK_IMPORTED_MODULE_3__["CartContext"].Provider, null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_2__["Segment"], null, "Cart Data"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(semantic_ui_react__WEBPACK_IMPORTED_MODULE_2__["Segment"], null, "Checkout")))))), document.getElementById('root'));
 
 /***/ }),
 

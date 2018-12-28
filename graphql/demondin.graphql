@@ -1,0 +1,44 @@
+scalar DateTime
+
+interface Postgresql {
+  id:           ID!
+  createdAt:    DateTime!
+  updatedAt:    DateTime!
+  deletedAt:    DateTime
+}
+
+type Item implements Postgresql {
+  id:           ID!
+  createdAt:    DateTime!
+  updatedAt:    DateTime!
+  deletedAt:    DateTime
+
+  name:         String!
+  description:  String
+  enabled:      Boolean!
+  isBadge:      Boolean!
+  
+  options:      [ItemOptionType!]!
+  prices:       [ItemPrice!]!
+}
+
+type ItemOptionType implements Postgresql {
+  id:           ID!
+  createdAt:    DateTime!
+  updatedAt:    DateTime!
+  deletedAt:    DateTime
+
+  key:          String!
+  valueType:    String!
+}
+
+type ItemPrice implements Postgresql {
+  id:           ID!
+  createdAt:    DateTime!
+  updatedAt:    DateTime!
+  deletedAt:    DateTime
+
+  price:        Int!
+  beforeDate:   DateTime!
+  afterDate:    DateTime!
+}

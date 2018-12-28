@@ -1,6 +1,8 @@
 package models
 
 import (
+  "log"
+  "sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -46,6 +48,23 @@ type Item struct {
 	Prices []Price
 }
 
+func (it Item) CurrentPrice() Price {
+  sort.Slice(it.Prices, func(i, j int) bool {
+    ip := it.Prices[i]; jp := it.Prices[j]
+    return (*ip.ValidAfter).Before(*jp.ValidAfter) &&
+           (*ip.ValidBefore).Before(*jp.ValidBefore)
+  })
+  
+  log.Printf("Prices: %+v\n", it.Prices)
+  for _, price := range it.Prices {
+    if price.ValidNow() {
+      return price
+    }
+  }
+  
+  panic("None Found")
+}
+
 // Price record should immutable (except for validity)
 // as to avoid conflicts in change
 type Price struct {
@@ -63,4 +82,10 @@ type Price struct {
 	// When this is valid
 	ValidAfter  *time.Time
 	ValidBefore *time.Time
+}
+
+func (p Price) ValidNow() bool {
+  now := time.Now()
+  return now.After(*p.ValidAfter) &&
+         now.Before(*p.ValidBefore)
 }

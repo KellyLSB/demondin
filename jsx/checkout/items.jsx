@@ -33,8 +33,7 @@ export default class Items extends React.Component {
     return (
       <Grid.Row>
         {this.state.data.map((item) =>
-          <Item key={item.ID} data={item}
-            addToCart={this.props.addToCart} />
+          <Item key={item.ID} data={item} />
         )}
       </Grid.Row>
     )

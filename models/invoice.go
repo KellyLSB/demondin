@@ -49,6 +49,14 @@ func (i Invoice) GetChargeData(stripe *stripeClient.API) {
 type Badge struct {
   Model
   
+  // Item that badge is sourced from.
+  Item   Item      `gorm:"foreignkey:ItemID;"`
+  ItemID uuid.UUID `gorm:"type:uuid;"`
+  
+  // Price item is bought at.
+  Price   Price     `gorm:"foreignkey:PriceID;"`
+  PriceID uuid.UUID `gorm:"type:uuid;"`
+  
   // Disabled due to preload looping
   // Invoice Invoice `gorm:"foreign_key:invoice_id;"`
   InvoiceID uuid.UUID `gorm:"type:uuid;"`

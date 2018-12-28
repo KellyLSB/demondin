@@ -178,7 +178,8 @@ func main() {
 				db.Table("prices").Select("*").
 					Where("prices.item_id = ?", ctx.Params(":item")).
 					Find(&price, "prices.id = ?", ctx.Params(":id"))
-					
+				
+				//JSONDecoder(ctx, &price)
 				decoder := json.NewDecoder(ctx.Req.Body().ReadCloser())
 				if err := decoder.Decode(&price); err == io.EOF {
 					panic(err)
@@ -221,26 +222,28 @@ func main() {
 			}
 		})
 		
-	  // Change this to a .Post() handle in the future
-		m.Get("/", func(
-		  ctx *macaron.Context, log *log.Logger,
-		  sess session.Store, db *gorm.DB,
-		) {
-		  var invoice models.Invoice
-		  
-		  // Save Invoice as Session
-		  invoiceUUID := sess.Get("invoice_uuid")
-		  if invoiceUUID != nil && invoiceUUID != "" {
-		    db.Table("invoices").Select("*").
-		      Where("invoices.id = ?", invoiceUUID).First(&invoice)
-		  }
-		  
-		  // Save Invoice as Session
-		  db.Save(&invoice)
-		  sess.Set("invoice_uuid", invoice.ID)
-		  
-		  ctx.JSON(200, invoice)
-		})
+		m.Group("/invoicing", func() {
+		  m.Get(".json", func(
+		    ctx *macaron.Context, log *log.Logger,
+		    sess session.Store, db *gorm.DB,
+		  ) {
+  		  invoicing := new(Invoicing)
+  		  invoicing.LoadSession(sess, db, log)
+  		  invoicing.SaveSession(sess, db, log)
+  		  ctx.JSON(200, invoicing.Invoice)
+		  })
+		
+  		m.Post("/addToCart.json", func(
+  		  ctx *macaron.Context, log *log.Logger,
+  		  sess session.Store, db *gorm.DB,
+  		) {
+  		  invoicing := new(Invoicing)
+  		  invoicing.LoadSession(sess, db, log)
+  		  invoicing.PostAddToCart(ctx, db, log)
+  		  invoicing.SaveSession(sess, db, log)
+  		  ctx.JSON(200, invoicing.Invoice)
+  		})
+	  })
 	})
 
 	m.Get("/", myHandler)
@@ -253,3 +256,13 @@ func main() {
 func myHandler(ctx *macaron.Context) string {
 	return "the request path is: " + ctx.Req.RequestURI
 }
+
+func JSONDecoder(ctx *macaron.Context, into interface{}) {
+  decoder := json.NewDecoder(ctx.Req.Body().ReadCloser())
+  if err := decoder.Decode(into); err == io.EOF {
+	  panic(err)
+  } else if err != nil {
+	  panic(err)
+  }
+}
+

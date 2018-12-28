@@ -1,6 +1,7 @@
 import React from 'react'
 import { Grid, Header, Segment, Button, Icon, Label } from 'semantic-ui-react'
 
+import { CartContext } from './cart_context'
 
 export default class Item extends React.Component {
   constructor(props) {
@@ -51,12 +52,16 @@ export default class Item extends React.Component {
             <Label tag>{this.printPrice()}</Label>
           </Grid.Column>
           <Grid.Column textAlign='right'>
-            <Button
-              primary icon labelPosition='left'
-              onClick={this.props.addToCart(this.state.data.ID)}>
-              <Icon name='shop' />
-              Add To Cart
-            </Button>
+            <CartContext.Consumer>
+              {(cartContext) => (
+                <Button
+                  primary icon labelPosition='left'
+                  onClick={cartContext.addToCart(this.state.data.ID)}>
+                  <Icon name='shop' />
+                  Add To Cart
+                </Button>
+              )}
+            </CartContext.Consumer>
           </Grid.Column>
         </Grid>
       </Segment>
