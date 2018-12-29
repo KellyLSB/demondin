@@ -1,4 +1,5 @@
 scalar DateTime
+scalar StripeObject
 
 interface Postgresql {
   id:           ID!
@@ -18,7 +19,7 @@ type Item implements Postgresql {
   enabled:      Boolean!
   isBadge:      Boolean!
   
-  options:      [ItemOptionType!]!
+  options:      [ItemOptionType!]
   prices:       [ItemPrice!]!
 }
 
@@ -32,6 +33,16 @@ type ItemOptionType implements Postgresql {
   valueType:    String!
 }
 
+type ItemOption implements Postgresql {
+  id:           ID!
+  createdAt:    DateTime!
+  updatedAt:    DateTime!
+  deletedAt:    DateTime
+
+  optionType:   ItemOptionType!
+  values:       [String!]!
+}
+
 type ItemPrice implements Postgresql {
   id:           ID!
   createdAt:    DateTime!
@@ -41,4 +52,51 @@ type ItemPrice implements Postgresql {
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!
+}
+
+type Invoice implements Postgresql {
+  id:           ID!
+  createdAt:    DateTime!
+  updatedAt:    DateTime!
+  deletedAt:    DateTime
+
+  cardToken:    String
+  chargeToken:  String
+  cardData:     StripeObject
+  chargeData:   StripeObject
+
+  items:        [InvoiceItem!]!
+}
+
+type InvoiceItem implements Postgresql {
+  id:           ID!
+  createdAt:    DateTime!
+  updatedAt:    DateTime!
+  deletedAt:    DateTime
+
+  item:         Item!
+  options:      [ItemOption!]
+  price:        ItemPrice!
+}
+
+type Query {
+  items: [Item!]!
+  invoices: [Invoice!]!
+}
+
+input NewItem {
+  name:         String!
+  description:  String
+  prices:       [NewItemPrice!]!
+}
+
+input NewItemPrice {
+  price:        Int!
+  beforeDate:   DateTime!
+  afterDate:    DateTime!
+}
+
+type Mutation {
+  createItem(input: NewItem!) : Item!
+  updateItem(id: ID!, input: NewItem!) : Item!
 }

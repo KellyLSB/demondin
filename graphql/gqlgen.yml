@@ -1,0 +1,17 @@
+schema:
+- demondin.graphql
+
+# .gqlgen.yml example
+#
+# Refer to https://gqlgen.com/config/
+# for detailed .gqlgen.yml documentation.
+model:
+  filename: model/generated.go
+  
+models:
+  DateTime:
+    model: github.com/KellyLSB/demondin/graphql/model.DateTime
+  ID:
+    model: github.com/KellyLSB/demondin/graphql/model.ID
+  Item:
+    model: github.com/KellyLSB/demondin/graphql/model.Item
