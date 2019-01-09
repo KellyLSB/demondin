@@ -80,6 +80,11 @@ type NewItemPrice struct {
 	AfterDate  time.Time `json:"afterDate"`
 }
 
+type Paging struct {
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
+}
+
 type Postgresql interface {
 	IsPostgresql()
 }

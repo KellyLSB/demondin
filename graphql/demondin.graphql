@@ -80,8 +80,8 @@ type InvoiceItem implements Postgresql {
 }
 
 type Query {
-  items: [Item!]!
-  invoices: [Invoice!]!
+  items(paging: Paging = {limit: 0, offset: 0}): [Item!]!
+  invoices(paging: Paging = {limit: 0, offst: 0}): [Invoice!]!
 }
 
 input NewItem {
@@ -94,6 +94,11 @@ input NewItemPrice {
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!
+}
+
+input Paging {
+  limit:        Int!
+  offset:       Int!
 }
 
 type Mutation {

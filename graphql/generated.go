@@ -112,8 +112,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Items    func(childComplexity int) int
-		Invoices func(childComplexity int) int
+		Items    func(childComplexity int, paging *model.Paging) int
+		Invoices func(childComplexity int, paging *model.Paging) int
 	}
 }
 
@@ -122,8 +122,8 @@ type MutationResolver interface {
 	UpdateItem(ctx context.Context, id uuid.UUID, input model.NewItem) (model.Item, error)
 }
 type QueryResolver interface {
-	Items(ctx context.Context) ([]model.Item, error)
-	Invoices(ctx context.Context) ([]model.Invoice, error)
+	Items(ctx context.Context, paging *model.Paging) ([]model.Item, error)
+	Invoices(ctx context.Context, paging *model.Paging) ([]model.Invoice, error)
 }
 
 func field_Mutation_createItem_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -161,6 +161,46 @@ func field_Mutation_updateItem_args(rawArgs map[string]interface{}) (map[string]
 		}
 	}
 	args["input"] = arg1
+	return args, nil
+
+}
+
+func field_Query_items_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 *model.Paging
+	if tmp, ok := rawArgs["paging"]; ok {
+		var err error
+		var ptr1 model.Paging
+		if tmp != nil {
+			ptr1, err = UnmarshalPaging(tmp)
+			arg0 = &ptr1
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paging"] = arg0
+	return args, nil
+
+}
+
+func field_Query_invoices_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 *model.Paging
+	if tmp, ok := rawArgs["paging"]; ok {
+		var err error
+		var ptr1 model.Paging
+		if tmp != nil {
+			ptr1, err = UnmarshalPaging(tmp)
+			arg0 = &ptr1
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paging"] = arg0
 	return args, nil
 
 }
@@ -567,14 +607,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Items(childComplexity), true
+		args, err := field_Query_items_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Items(childComplexity, args["paging"].(*model.Paging)), true
 
 	case "Query.invoices":
 		if e.complexity.Query.Invoices == nil {
 			break
 		}
 
-		return e.complexity.Query.Invoices(childComplexity), true
+		args, err := field_Query_invoices_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Invoices(childComplexity, args["paging"].(*model.Paging)), true
 
 	}
 	return 0, false
@@ -2485,16 +2535,22 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 func (ec *executionContext) _Query_items(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_items_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
 	rctx := &graphql.ResolverContext{
 		Object: "Query",
-		Args:   nil,
+		Args:   args,
 		Field:  field,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Items(rctx)
+		return ec.resolvers.Query().Items(rctx, args["paging"].(*model.Paging))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2545,16 +2601,22 @@ func (ec *executionContext) _Query_items(ctx context.Context, field graphql.Coll
 func (ec *executionContext) _Query_invoices(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_invoices_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
 	rctx := &graphql.ResolverContext{
 		Object: "Query",
-		Args:   nil,
+		Args:   args,
 		Field:  field,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Invoices(rctx)
+		return ec.resolvers.Query().Invoices(rctx, args["paging"].(*model.Paging))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -4219,6 +4281,30 @@ func UnmarshalNewItemPrice(v interface{}) (model.NewItemPrice, error) {
 	return it, nil
 }
 
+func UnmarshalPaging(v interface{}) (model.Paging, error) {
+	var it model.Paging
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "limit":
+			var err error
+			it.Limit, err = graphql.UnmarshalInt(v)
+			if err != nil {
+				return it, err
+			}
+		case "offset":
+			var err error
+			it.Offset, err = graphql.UnmarshalInt(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) FieldMiddleware(ctx context.Context, obj interface{}, next graphql.Resolver) (ret interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4331,8 +4417,8 @@ type InvoiceItem implements Postgresql {
 }
 
 type Query {
-  items: [Item!]!
-  invoices: [Invoice!]!
+  items(paging: Paging = {limit: 0, offset: 0}): [Item!]!
+  invoices(paging: Paging = {limit: 0, offst: 0}): [Invoice!]!
 }
 
 input NewItem {
@@ -4345,6 +4431,11 @@ input NewItemPrice {
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!
+}
+
+input Paging {
+  limit:        Int!
+  offset:       Int!
 }
 
 type Mutation {
