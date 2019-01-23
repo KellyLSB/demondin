@@ -4,17 +4,19 @@ import (
   //"log"
   //"sort"
 	"time"
-	"fmt"
+	//"fmt"
 	"io"
 	"strconv"
+	"encoding/json"
 
 	"github.com/google/uuid"
-	//"github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/araddon/dateparse"
+	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/99designs/gqlgen/graphql"
 )
 
 type Item struct {
-	ID          uuid.UUID        `json:"id"`
+	ID          uuid.UUID        `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	CreatedAt   time.Time        `json:"createdAt"`
 	UpdatedAt   time.Time        `json:"updatedAt"`
 	DeletedAt   *time.Time       `json:"deletedAt"`
@@ -49,8 +51,20 @@ func MarshalDateTime(t time.Time) graphql.Marshaler {
 }
 
 func UnmarshalDateTime(v interface{}) (time.Time, error) {
-  if tmpStr, ok := v.(int64); ok {
-		return time.Unix(tmpStr, 0), nil
-	}
-	return time.Time{}, fmt.Errorf("time should be a unix timestamp")
+  return dateparse.ParseAny(v.(string))
+}
+
+func MarshalJSON(v postgres.Jsonb) graphql.Marshaler {
+  return graphql.WriterFunc(func(w io.Writer) {
+    json.NewEncoder(w).Encode(v)
+  })
+}
+
+func UnmarshalJSON(v interface{}) (out postgres.Jsonb, err error) {
+  byt, err := json.Marshal(v)
+  if err != nil {
+    return
+  }
+  
+  return postgres.Jsonb{json.RawMessage(byt)}, nil
 }

@@ -1,5 +1,6 @@
 scalar DateTime
 scalar StripeObject
+scalar JSON
 
 interface Postgresql {
   id:           ID!
@@ -31,6 +32,7 @@ type ItemOptionType implements Postgresql {
 
   key:          String!
   valueType:    String!
+  values:       JSON
 }
 
 type ItemOption implements Postgresql {
@@ -40,7 +42,7 @@ type ItemOption implements Postgresql {
   deletedAt:    DateTime
 
   optionType:   ItemOptionType!
-  values:       [String!]!
+  values:       String!
 }
 
 type ItemPrice implements Postgresql {
@@ -88,12 +90,19 @@ input NewItem {
   name:         String!
   description:  String
   prices:       [NewItemPrice!]!
+  options:      [NewItemOptionType!]!
 }
 
 input NewItemPrice {
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!
+}
+
+input NewItemOptionType {
+  key:          String
+  valueType:    String
+  values:       JSON!
 }
 
 input Paging {

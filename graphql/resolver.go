@@ -1,9 +1,11 @@
 package graphql
 
 import (
+  "io"
   "os"
   "fmt"
 	"context"
+	"encoding/json"
 
 	"github.com/KellyLSB/demondin/graphql/model"
 	"github.com/google/uuid"
@@ -37,11 +39,83 @@ func (r *Resolver) Query() QueryResolver {
 
 type mutationResolver struct{ *Resolver }
 
-func (r *mutationResolver) CreateItem(ctx context.Context, input model.NewItem) (model.Item, error) {
-	panic("not implemented")
+func (r *mutationResolver) CreateItem(
+  ctx context.Context,
+  input model.NewItem,
+) (
+  item model.Item,
+  err error,
+) {
+  jReader, jWriter := io.Pipe()
+  
+  go func() {
+    err = json.NewEncoder(jWriter).Encode(&input)
+    jWriter.Close()
+  }()
+  
+  if err != nil {
+    return
+  }
+  
+  err = json.NewDecoder(jReader).Decode(&item)
+  jReader.Close()
+  
+  if err != nil {
+    return
+  }
+  
+  dbh(func(db *gorm.DB) {
+    query := db.Create(&item)
+    err = gormErrors(query)
+	  fmt.Printf("%s\n", err)
+  })
+  
+  return
 }
-func (r *mutationResolver) UpdateItem(ctx context.Context, id uuid.UUID, input model.NewItem) (model.Item, error) {
-	panic("not implemented")
+
+func (r *mutationResolver) UpdateItem(
+  ctx context.Context,
+  id uuid.UUID,
+  input model.NewItem,
+) (
+  item model.Item,
+  err error,
+) {
+	jReader, jWriter := io.Pipe()
+	
+	dbh(func(db *gorm.DB) {
+	  query := db.First(&item, id)
+	  err = gormErrors(query)
+	  fmt.Printf("%s\n", err)
+	})
+	
+	if err != nil {
+	  return
+	}
+	
+	go func() {
+	  err = json.NewEncoder(jWriter).Encode(&input)
+	  jWriter.Close()
+	}()
+	
+	if err != nil {
+	  return
+	}
+	
+	err = json.NewDecoder(jReader).Decode(&item)
+	jReader.Close()
+	
+	if err != nil {
+	  return
+	}
+	
+	dbh(func(db *gorm.DB) {
+	  query := db.Save(&item)
+	  err = gormErrors(query)
+	  fmt.Printf("%s\n", err)
+	})
+	
+	return
 }
 
 type queryResolver struct{ *Resolver }
@@ -51,8 +125,7 @@ func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]mode
   var err    error
   
 	dbh(func(db *gorm.DB) {
-	  query := db.Select("*").
-	    Table("items")
+	  query := db.Select("*").Table("items")
 	    
     if paging.Limit > 0 {
 	    query = query.Limit(paging.Limit)
@@ -61,15 +134,14 @@ func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]mode
     if paging.Offset > 0 {
       query = query.Offset(paging.Offset)
     }
+    
+    query = query.Preload("ItemPrice").Preload("ItemOptionType")
 	    
 	  query.Find(&models)
 	    
 	  fmt.Printf("%+v\n", models)
 	    
-	  for _, e := range query.GetErrors() {
-	    err = fmt.Errorf("%s\n%s", err, e)
-	  }
-	  
+	  err = gormErrors(query)
 	  fmt.Printf("%s\n", err)
 	})
 	  
@@ -78,4 +150,12 @@ func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]mode
 
 func (r *queryResolver) Invoices(ctx context.Context, paging *model.Paging) ([]model.Invoice, error) {
 	panic("not implemented")
+}
+
+func gormErrors(db *gorm.DB) (err error) {
+  for _, e := range db.GetErrors() {
+	  err = fmt.Errorf("%s\n%s", err, e)
+	}
+	
+	return
 }

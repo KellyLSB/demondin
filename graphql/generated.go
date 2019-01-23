@@ -15,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/KellyLSB/demondin/graphql/model"
 	"github.com/google/uuid"
+	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -94,6 +95,7 @@ type ComplexityRoot struct {
 		DeletedAt func(childComplexity int) int
 		Key       func(childComplexity int) int
 		ValueType func(childComplexity int) int
+		Values    func(childComplexity int) int
 	}
 
 	ItemPrice struct {
@@ -528,6 +530,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ItemOptionType.ValueType(childComplexity), true
+
+	case "ItemOptionType.values":
+		if e.complexity.ItemOptionType.Values == nil {
+			break
+		}
+
+		return e.complexity.ItemOptionType.Values(childComplexity), true
 
 	case "ItemPrice.id":
 		if e.complexity.ItemPrice.Id == nil {
@@ -1895,19 +1904,10 @@ func (ec *executionContext) _ItemOption_values(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	arr1 := make(graphql.Array, len(res))
-
-	for idx1 := range res {
-		arr1[idx1] = func() graphql.Marshaler {
-			return graphql.MarshalString(res[idx1])
-		}()
-	}
-
-	return arr1
+	return graphql.MarshalString(res)
 }
 
 var itemOptionTypeImplementors = []string{"ItemOptionType", "Postgresql"}
@@ -1951,6 +1951,8 @@ func (ec *executionContext) _ItemOptionType(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "values":
+			out.Values[i] = ec._ItemOptionType_values(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2123,6 +2125,34 @@ func (ec *executionContext) _ItemOptionType_valueType(ctx context.Context, field
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _ItemOptionType_values(ctx context.Context, field graphql.CollectedField, obj *model.ItemOptionType) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "ItemOptionType",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Values, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*postgres.Jsonb)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return model.MarshalJSON(*res)
 }
 
 var itemPriceImplementors = []string{"ItemPrice", "Postgresql"}
@@ -4245,6 +4275,63 @@ func UnmarshalNewItem(v interface{}) (model.NewItem, error) {
 			if err != nil {
 				return it, err
 			}
+		case "options":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.Options = make([]model.NewItemOptionType, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.Options[idx1], err = UnmarshalNewItemOptionType(rawIf1[idx1])
+			}
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalNewItemOptionType(v interface{}) (model.NewItemOptionType, error) {
+	var it model.NewItemOptionType
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "key":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Key = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "valueType":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.ValueType = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "values":
+			var err error
+			it.Values, err = model.UnmarshalJSON(v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -4337,6 +4424,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "demondin.graphql", Input: `scalar DateTime
 scalar StripeObject
+scalar JSON
 
 interface Postgresql {
   id:           ID!
@@ -4368,6 +4456,7 @@ type ItemOptionType implements Postgresql {
 
   key:          String!
   valueType:    String!
+  values:       JSON
 }
 
 type ItemOption implements Postgresql {
@@ -4377,7 +4466,7 @@ type ItemOption implements Postgresql {
   deletedAt:    DateTime
 
   optionType:   ItemOptionType!
-  values:       [String!]!
+  values:       String!
 }
 
 type ItemPrice implements Postgresql {
@@ -4425,12 +4514,19 @@ input NewItem {
   name:         String!
   description:  String
   prices:       [NewItemPrice!]!
+  options:      [NewItemOptionType!]!
 }
 
 input NewItemPrice {
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!
+}
+
+input NewItemOptionType {
+  key:          String
+  valueType:    String
+  values:       JSON!
 }
 
 input Paging {

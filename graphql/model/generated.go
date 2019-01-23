@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
 type Invoice struct {
-	ID          uuid.UUID     `json:"id"`
+	ID          uuid.UUID     `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	CreatedAt   time.Time     `json:"createdAt"`
 	UpdatedAt   time.Time     `json:"updatedAt"`
 	DeletedAt   *time.Time    `json:"deletedAt"`
@@ -23,7 +24,7 @@ type Invoice struct {
 func (Invoice) IsPostgresql() {}
 
 type InvoiceItem struct {
-	ID        uuid.UUID    `json:"id"`
+	ID        uuid.UUID    `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	CreatedAt time.Time    `json:"createdAt"`
 	UpdatedAt time.Time    `json:"updatedAt"`
 	DeletedAt *time.Time   `json:"deletedAt"`
@@ -35,29 +36,30 @@ type InvoiceItem struct {
 func (InvoiceItem) IsPostgresql() {}
 
 type ItemOption struct {
-	ID         uuid.UUID      `json:"id"`
+	ID         uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	CreatedAt  time.Time      `json:"createdAt"`
 	UpdatedAt  time.Time      `json:"updatedAt"`
 	DeletedAt  *time.Time     `json:"deletedAt"`
 	OptionType ItemOptionType `json:"optionType"`
-	Values     []string       `json:"values"`
+	Values     string         `json:"values"`
 }
 
 func (ItemOption) IsPostgresql() {}
 
 type ItemOptionType struct {
-	ID        uuid.UUID  `json:"id"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
-	DeletedAt *time.Time `json:"deletedAt"`
-	Key       string     `json:"key"`
-	ValueType string     `json:"valueType"`
+	ID        uuid.UUID       `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CreatedAt time.Time       `json:"createdAt"`
+	UpdatedAt time.Time       `json:"updatedAt"`
+	DeletedAt *time.Time      `json:"deletedAt"`
+	Key       string          `json:"key"`
+	ValueType string          `json:"valueType"`
+	Values    *postgres.Jsonb `json:"values"`
 }
 
 func (ItemOptionType) IsPostgresql() {}
 
 type ItemPrice struct {
-	ID         uuid.UUID  `json:"id"`
+	ID         uuid.UUID  `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	CreatedAt  time.Time  `json:"createdAt"`
 	UpdatedAt  time.Time  `json:"updatedAt"`
 	DeletedAt  *time.Time `json:"deletedAt"`
@@ -69,9 +71,16 @@ type ItemPrice struct {
 func (ItemPrice) IsPostgresql() {}
 
 type NewItem struct {
-	Name        string         `json:"name"`
-	Description *string        `json:"description"`
-	Prices      []NewItemPrice `json:"prices"`
+	Name        string              `json:"name"`
+	Description *string             `json:"description"`
+	Prices      []NewItemPrice      `json:"prices"`
+	Options     []NewItemOptionType `json:"options"`
+}
+
+type NewItemOptionType struct {
+	Key       *string        `json:"key"`
+	ValueType *string        `json:"valueType"`
+	Values    postgres.Jsonb `json:"values"`
 }
 
 type NewItemPrice struct {

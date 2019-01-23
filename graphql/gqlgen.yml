@@ -14,6 +14,8 @@ resolver:
   type: Resolver  # whats the resolver root implementation type called?
   
 models:
+  JSON:
+    model: github.com/KellyLSB/demondin/graphql/model.JSON
   DateTime:
     model: github.com/KellyLSB/demondin/graphql/model.DateTime
   ID:
