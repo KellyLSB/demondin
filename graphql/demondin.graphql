@@ -29,7 +29,8 @@ type ItemOptionType implements Postgresql {
   createdAt:    DateTime!
   updatedAt:    DateTime!
   deletedAt:    DateTime
-
+  
+  itemID:       ID!
   key:          String!
   valueType:    String!
   values:       JSON
@@ -50,7 +51,8 @@ type ItemPrice implements Postgresql {
   createdAt:    DateTime!
   updatedAt:    DateTime!
   deletedAt:    DateTime
-
+  
+  itemID:       ID!
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!

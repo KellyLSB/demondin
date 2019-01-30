@@ -93,6 +93,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
+		ItemId    func(childComplexity int) int
 		Key       func(childComplexity int) int
 		ValueType func(childComplexity int) int
 		Values    func(childComplexity int) int
@@ -103,6 +104,7 @@ type ComplexityRoot struct {
 		CreatedAt  func(childComplexity int) int
 		UpdatedAt  func(childComplexity int) int
 		DeletedAt  func(childComplexity int) int
+		ItemId     func(childComplexity int) int
 		Price      func(childComplexity int) int
 		BeforeDate func(childComplexity int) int
 		AfterDate  func(childComplexity int) int
@@ -517,6 +519,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ItemOptionType.DeletedAt(childComplexity), true
 
+	case "ItemOptionType.itemID":
+		if e.complexity.ItemOptionType.ItemId == nil {
+			break
+		}
+
+		return e.complexity.ItemOptionType.ItemId(childComplexity), true
+
 	case "ItemOptionType.key":
 		if e.complexity.ItemOptionType.Key == nil {
 			break
@@ -565,6 +574,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ItemPrice.DeletedAt(childComplexity), true
+
+	case "ItemPrice.itemID":
+		if e.complexity.ItemPrice.ItemId == nil {
+			break
+		}
+
+		return e.complexity.ItemPrice.ItemId(childComplexity), true
 
 	case "ItemPrice.price":
 		if e.complexity.ItemPrice.Price == nil {
@@ -1941,6 +1957,11 @@ func (ec *executionContext) _ItemOptionType(ctx context.Context, sel ast.Selecti
 			}
 		case "deletedAt":
 			out.Values[i] = ec._ItemOptionType_deletedAt(ctx, field, obj)
+		case "itemID":
+			out.Values[i] = ec._ItemOptionType_itemID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "key":
 			out.Values[i] = ec._ItemOptionType_key(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2074,6 +2095,33 @@ func (ec *executionContext) _ItemOptionType_deletedAt(ctx context.Context, field
 }
 
 // nolint: vetshadow
+func (ec *executionContext) _ItemOptionType_itemID(ctx context.Context, field graphql.CollectedField, obj *model.ItemOptionType) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "ItemOptionType",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ItemID, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return model.MarshalID(res)
+}
+
+// nolint: vetshadow
 func (ec *executionContext) _ItemOptionType_key(ctx context.Context, field graphql.CollectedField, obj *model.ItemOptionType) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -2186,6 +2234,11 @@ func (ec *executionContext) _ItemPrice(ctx context.Context, sel ast.SelectionSet
 			}
 		case "deletedAt":
 			out.Values[i] = ec._ItemPrice_deletedAt(ctx, field, obj)
+		case "itemID":
+			out.Values[i] = ec._ItemPrice_itemID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "price":
 			out.Values[i] = ec._ItemPrice_price(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2319,6 +2372,33 @@ func (ec *executionContext) _ItemPrice_deletedAt(ctx context.Context, field grap
 		return graphql.Null
 	}
 	return model.MarshalDateTime(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _ItemPrice_itemID(ctx context.Context, field graphql.CollectedField, obj *model.ItemPrice) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "ItemPrice",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ItemID, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return model.MarshalID(res)
 }
 
 // nolint: vetshadow
@@ -4453,7 +4533,8 @@ type ItemOptionType implements Postgresql {
   createdAt:    DateTime!
   updatedAt:    DateTime!
   deletedAt:    DateTime
-
+  
+  itemID:       ID!
   key:          String!
   valueType:    String!
   values:       JSON
@@ -4474,7 +4555,8 @@ type ItemPrice implements Postgresql {
   createdAt:    DateTime!
   updatedAt:    DateTime!
   deletedAt:    DateTime
-
+  
+  itemID:       ID!
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!

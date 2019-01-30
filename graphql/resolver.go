@@ -46,19 +46,7 @@ func (r *mutationResolver) CreateItem(
   item model.Item,
   err error,
 ) {
-  jReader, jWriter := io.Pipe()
-  
-  go func() {
-    err = json.NewEncoder(jWriter).Encode(&input)
-    jWriter.Close()
-  }()
-  
-  if err != nil {
-    return
-  }
-  
-  err = json.NewDecoder(jReader).Decode(&item)
-  jReader.Close()
+  err = pipeInput(&input, &item)
   
   if err != nil {
     return
@@ -67,7 +55,6 @@ func (r *mutationResolver) CreateItem(
   dbh(func(db *gorm.DB) {
     query := db.Create(&item)
     err = gormErrors(query)
-	  fmt.Printf("%s\n", err)
   })
   
   return
@@ -81,8 +68,6 @@ func (r *mutationResolver) UpdateItem(
   item model.Item,
   err error,
 ) {
-	jReader, jWriter := io.Pipe()
-	
 	dbh(func(db *gorm.DB) {
 	  query := db.First(&item, id)
 	  err = gormErrors(query)
@@ -93,17 +78,7 @@ func (r *mutationResolver) UpdateItem(
 	  return
 	}
 	
-	go func() {
-	  err = json.NewEncoder(jWriter).Encode(&input)
-	  jWriter.Close()
-	}()
-	
-	if err != nil {
-	  return
-	}
-	
-	err = json.NewDecoder(jReader).Decode(&item)
-	jReader.Close()
+	err = pipeInput(&input, &item)
 	
 	if err != nil {
 	  return
@@ -112,7 +87,6 @@ func (r *mutationResolver) UpdateItem(
 	dbh(func(db *gorm.DB) {
 	  query := db.Save(&item)
 	  err = gormErrors(query)
-	  fmt.Printf("%s\n", err)
 	})
 	
 	return
@@ -135,14 +109,11 @@ func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]mode
       query = query.Offset(paging.Offset)
     }
     
-    query = query.Preload("ItemPrice").Preload("ItemOptionType")
+    // Add the owner ID's in ItemPrices and ItemOptionTypes
+    query = query.Preload("Prices").Preload("Options")
 	    
 	  query.Find(&models)
-	    
-	  fmt.Printf("%+v\n", models)
-	    
 	  err = gormErrors(query)
-	  fmt.Printf("%s\n", err)
 	})
 	  
 	return models, err
@@ -158,4 +129,23 @@ func gormErrors(db *gorm.DB) (err error) {
 	}
 	
 	return
+}
+
+func pipeInput(from, to interface{}) (err error) {
+  jReader, jWriter := io.Pipe()
+  defer jReader.Close()
+  
+  fmt.Printf(">> Trace JSON Pipe\n")
+  defer fmt.Printf("<< Trace JSON Pipe\n")
+  
+  go func() {
+    defer jWriter.Close()
+	  err = json.NewEncoder(jWriter).Encode(from)
+	}()
+	
+	if err != nil {
+	  return
+	}
+	
+	return json.NewDecoder(jReader).Decode(to)
 }

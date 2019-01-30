@@ -51,6 +51,7 @@ type ItemOptionType struct {
 	CreatedAt time.Time       `json:"createdAt"`
 	UpdatedAt time.Time       `json:"updatedAt"`
 	DeletedAt *time.Time      `json:"deletedAt"`
+	ItemID    uuid.UUID       `json:"itemID" gorm:"type:uuid"`
 	Key       string          `json:"key"`
 	ValueType string          `json:"valueType"`
 	Values    *postgres.Jsonb `json:"values"`
@@ -63,6 +64,7 @@ type ItemPrice struct {
 	CreatedAt  time.Time  `json:"createdAt"`
 	UpdatedAt  time.Time  `json:"updatedAt"`
 	DeletedAt  *time.Time `json:"deletedAt"`
+	ItemID     uuid.UUID  `json:"itemID" gorm:"type:uuid"`
 	Price      int        `json:"price"`
 	BeforeDate time.Time  `json:"beforeDate"`
 	AfterDate  time.Time  `json:"afterDate"`

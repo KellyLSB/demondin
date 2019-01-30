@@ -24,29 +24,25 @@ type Item struct {
 	Description *string          `json:"description"`
 	Enabled     bool             `json:"enabled"`
 	IsBadge     bool             `json:"isBadge"`
-	Options     []ItemOptionType `json:"options"`
-	Prices      []ItemPrice      `json:"prices"`
+	Options     []ItemOptionType `json:"options" gorm:"foreignkey:ItemID"`
+	Prices      []ItemPrice      `json:"prices" gorm:"foreignkey:ItemID"`
 }
 
 func (Item) IsPostgresql() {}
 
 func MarshalID(id uuid.UUID) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
-    io.WriteString(w, id.String())
+    io.WriteString(w, strconv.Quote(id.String()))
   })
 }
 
 func UnmarshalID(v interface{}) (uuid.UUID, error) {
-  str, ok := v.(string)
-  if !ok {
-    panic("ID must be a string")
-  }
-  return uuid.Parse(str)
+  return uuid.Parse(v.(string))
 }
 
 func MarshalDateTime(t time.Time) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
-		io.WriteString(w, strconv.FormatInt(t.Unix(), 10))
+		io.WriteString(w, strconv.Quote(t.Format(time.RFC3339)))
 	})
 }
 
@@ -56,15 +52,11 @@ func UnmarshalDateTime(v interface{}) (time.Time, error) {
 
 func MarshalJSON(v postgres.Jsonb) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
-    json.NewEncoder(w).Encode(v)
+    io.WriteString(w, string(v.RawMessage))
   })
 }
 
 func UnmarshalJSON(v interface{}) (out postgres.Jsonb, err error) {
   byt, err := json.Marshal(v)
-  if err != nil {
-    return
-  }
-  
-  return postgres.Jsonb{json.RawMessage(byt)}, nil
+  return postgres.Jsonb{json.RawMessage(byt)}, err
 }
