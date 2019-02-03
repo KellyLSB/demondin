@@ -73,6 +73,7 @@ type ItemPrice struct {
 func (ItemPrice) IsPostgresql() {}
 
 type NewItem struct {
+	ID          *uuid.UUID          `json:"id"`
 	Name        string              `json:"name"`
 	Description *string             `json:"description"`
 	Prices      []NewItemPrice      `json:"prices"`
@@ -80,15 +81,17 @@ type NewItem struct {
 }
 
 type NewItemOptionType struct {
+	ID        *uuid.UUID     `json:"id"`
 	Key       *string        `json:"key"`
 	ValueType *string        `json:"valueType"`
 	Values    postgres.Jsonb `json:"values"`
 }
 
 type NewItemPrice struct {
-	Price      int       `json:"price"`
-	BeforeDate time.Time `json:"beforeDate"`
-	AfterDate  time.Time `json:"afterDate"`
+	ID         *uuid.UUID `json:"id"`
+	Price      int        `json:"price"`
+	BeforeDate time.Time  `json:"beforeDate"`
+	AfterDate  time.Time  `json:"afterDate"`
 }
 
 type Paging struct {

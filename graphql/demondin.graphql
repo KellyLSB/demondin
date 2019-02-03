@@ -89,6 +89,7 @@ type Query {
 }
 
 input NewItem {
+  id:           ID
   name:         String!
   description:  String
   prices:       [NewItemPrice!]!
@@ -96,12 +97,14 @@ input NewItem {
 }
 
 input NewItemPrice {
+  id:           ID
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!
 }
 
 input NewItemOptionType {
+  id:           ID
   key:          String
   valueType:    String
   values:       JSON!

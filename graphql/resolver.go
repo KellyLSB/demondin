@@ -46,15 +46,16 @@ func (r *mutationResolver) CreateItem(
   item model.Item,
   err error,
 ) {
+  // Copy input into the item
   err = pipeInput(&input, &item)
   
   if err != nil {
     return
   }
   
+  // Save the record in DB
   dbh(func(db *gorm.DB) {
-    query := db.Create(&item)
-    err = gormErrors(query)
+    err = gormErrors(db.Create(&item))
   })
   
   return
@@ -68,25 +69,28 @@ func (r *mutationResolver) UpdateItem(
   item model.Item,
   err error,
 ) {
+  fmt.Printf("%s\n", id)
+  
+  // Fetch first item by UUID
 	dbh(func(db *gorm.DB) {
-	  query := db.First(&item, id)
-	  err = gormErrors(query)
-	  fmt.Printf("%s\n", err)
+	  err = gormErrors(db.First(&item, "id = ?", id))
 	})
 	
 	if err != nil {
 	  return
 	}
 	
+	// Copy input into the item
+	// @TODO: verify updating with\/out associations
 	err = pipeInput(&input, &item)
 	
 	if err != nil {
 	  return
 	}
 	
+	// Save the resulting model
 	dbh(func(db *gorm.DB) {
-	  query := db.Save(&item)
-	  err = gormErrors(query)
+	  err = gormErrors(db.Save(&item))
 	})
 	
 	return
@@ -99,21 +103,10 @@ func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]mode
   var err    error
   
 	dbh(func(db *gorm.DB) {
-	  query := db.Select("*").Table("items")
-	    
-    if paging.Limit > 0 {
-	    query = query.Limit(paging.Limit)
-    }
-
-    if paging.Offset > 0 {
-      query = query.Offset(paging.Offset)
-    }
-    
-    // Add the owner ID's in ItemPrices and ItemOptionTypes
+    query := gormPaging(db.Select("*").Table("items"), paging)
     query = query.Preload("Prices").Preload("Options")
-	    
-	  query.Find(&models)
-	  err = gormErrors(query)
+    
+	  err = gormErrors(query.Find(&models))
 	})
 	  
 	return models, err
@@ -129,6 +122,18 @@ func gormErrors(db *gorm.DB) (err error) {
 	}
 	
 	return
+}
+
+func gormPaging(query *gorm.DB, paging *model.Paging) (*gorm.DB) {
+  if paging.Limit > 0 {
+    query = query.Limit(paging.Limit)
+  }
+
+  if paging.Offset > 0 {
+    query = query.Offset(paging.Offset)
+  }
+  
+  return query
 }
 
 func pipeInput(from, to interface{}) (err error) {

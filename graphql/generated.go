@@ -4321,6 +4321,17 @@ func UnmarshalNewItem(v interface{}) (model.NewItem, error) {
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+			var ptr1 uuid.UUID
+			if v != nil {
+				ptr1, err = model.UnmarshalID(v)
+				it.ID = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		case "name":
 			var err error
 			it.Name, err = graphql.UnmarshalString(v)
@@ -4384,6 +4395,17 @@ func UnmarshalNewItemOptionType(v interface{}) (model.NewItemOptionType, error) 
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+			var ptr1 uuid.UUID
+			if v != nil {
+				ptr1, err = model.UnmarshalID(v)
+				it.ID = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		case "key":
 			var err error
 			var ptr1 string
@@ -4424,6 +4446,17 @@ func UnmarshalNewItemPrice(v interface{}) (model.NewItemPrice, error) {
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+			var ptr1 uuid.UUID
+			if v != nil {
+				ptr1, err = model.UnmarshalID(v)
+				it.ID = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		case "price":
 			var err error
 			it.Price, err = graphql.UnmarshalInt(v)
@@ -4593,6 +4626,7 @@ type Query {
 }
 
 input NewItem {
+  id:           ID
   name:         String!
   description:  String
   prices:       [NewItemPrice!]!
@@ -4600,12 +4634,14 @@ input NewItem {
 }
 
 input NewItemPrice {
+  id:           ID
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!
 }
 
 input NewItemOptionType {
+  id:           ID
   key:          String
   valueType:    String
   values:       JSON!
