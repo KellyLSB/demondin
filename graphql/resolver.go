@@ -69,8 +69,6 @@ func (r *mutationResolver) UpdateItem(
   item model.Item,
   err error,
 ) {
-  fmt.Printf("%s\n", id)
-  
   // Fetch first item by UUID
 	dbh(func(db *gorm.DB) {
 	  err = gormErrors(db.First(&item, "id = ?", id))
@@ -139,9 +137,6 @@ func gormPaging(query *gorm.DB, paging *model.Paging) (*gorm.DB) {
 func pipeInput(from, to interface{}) (err error) {
   jReader, jWriter := io.Pipe()
   defer jReader.Close()
-  
-  fmt.Printf(">> Trace JSON Pipe\n")
-  defer fmt.Printf("<< Trace JSON Pipe\n")
   
   go func() {
     defer jWriter.Close()
