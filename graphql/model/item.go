@@ -42,8 +42,8 @@ func UnmarshalID(v interface{}) (uuid.UUID, error) {
 
 func MarshalDateTime(t time.Time) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
-		io.WriteString(w, strconv.Quote(t.Format(time.RFC3339)))
-	})
+    io.WriteString(w, strconv.Quote(t.Format(time.RFC3339)))
+  })
 }
 
 func UnmarshalDateTime(v interface{}) (time.Time, error) {

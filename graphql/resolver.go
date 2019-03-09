@@ -101,10 +101,18 @@ func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]mode
   var err    error
   
 	dbh(func(db *gorm.DB) {
-    query := gormPaging(db.Select("*").Table("items"), paging)
-    query = query.Preload("Prices").Preload("Options")
+		query := gormPaging(db.Select("*").Table("items"), paging)
+		query = query.Preload("Options")
     
-	  err = gormErrors(query.Find(&models))
+    // Admin Check
+		if False {
+			query = query.Preload("Prices")
+		} else {
+			query = query.Preload("Prices", 
+				"? BETWEEN prices.valid_after AND prices.valid_before", time.Now())
+		}
+                
+		err = gormErrors(query.Find(&models))
 	})
 	  
 	return models, err
