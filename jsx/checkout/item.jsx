@@ -28,24 +28,24 @@ export default class Item extends React.Component {
   }
   
   currentPrice() {
-    return this.state.data.Prices[0]
+    return this.state.data.prices[0];
   }
   
   printPrice() {
     var price = this.currentPrice()
     
-    if(price.Taxable) {
-      return this.toDollars(price.Price) + " + Tax"
+    if(price.taxable) {
+      return this.toDollars(price.price) + " + Tax"
     }
     
-    return this.toDollars(price.Price)
+    return this.toDollars(price.price)
   }
 
   render() {
     return (
       <Segment>
-        <Header size="huge">{this.state.data.Name}</Header>
-        <span>{this.state.data.Description}</span>
+        <Header size="huge">{this.state.data.name}</Header>
+        <span>{this.state.data.description}</span>
         <Grid columns={2}>
           <Grid.Column>
             <Header sub>Price</Header>

@@ -56,6 +56,7 @@ type ItemPrice implements Postgresql {
   price:        Int!
   beforeDate:   DateTime!
   afterDate:    DateTime!
+  taxable:      Boolean
 }
 
 type Invoice implements Postgresql {

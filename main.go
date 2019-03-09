@@ -9,7 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"gopkg.in/macaron.v1"
   "github.com/go-macaron/session"
-  
+
 	"github.com/99designs/gqlgen/handler"
 	"github.com/KellyLSB/demondin/graphql"
 )
@@ -27,7 +27,7 @@ func main() {
 	//m.Use(macaron.Logger())
 	//m.Use(macaron.Recovery())
 	//m.Use(macaron.Static("public"))
-	
+
 	// Handle Session Cookies
 	m.Use(session.Sessioner(session.Options{
     // Name of provider. Default is "memory".
@@ -86,10 +86,11 @@ func main() {
 	})
 
 	m.Get("/", myHandler)
-	
+
 	// Graphql
-	m.Get("/playground", handler.Playground("GraphQL playground", "/query"))
-	m.Get("/query", handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{Resolvers: &graphql.Resolver{}})))
+	m.Get("/playground", handler.Playground("GraphQL playground", "/graphql"))
+	m.Post("/graphql", handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{Resolvers: &graphql.Resolver{}})))
+
 
 	// Start our macaron daemon
 	log.Println("Server is running...")
