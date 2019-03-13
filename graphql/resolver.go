@@ -4,6 +4,7 @@ import (
   "io"
   "os"
   "fmt"
+  "time"
 	"context"
 	"encoding/json"
 
@@ -104,12 +105,14 @@ func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]mode
 		query := gormPaging(db.Select("*").Table("items"), paging)
 		query = query.Preload("Options")
     
-    // Admin Check
-		if False {
+   		// Admin Check
+		if false {
 			query = query.Preload("Prices")
 		} else {
 			query = query.Preload("Prices", 
-				"? BETWEEN prices.valid_after AND prices.valid_before", time.Now())
+				"item_prices.price > 0 AND " +
+				 "? BETWEEN item_prices.after_date" + 
+				 " AND item_prices.before_date", time.Now())
 		}
                 
 		err = gormErrors(query.Find(&models))
