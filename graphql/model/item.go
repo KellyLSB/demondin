@@ -8,6 +8,7 @@ import (
 	"io"
 	"strconv"
 	"encoding/json"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/araddon/dateparse"

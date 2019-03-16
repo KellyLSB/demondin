@@ -38,7 +38,17 @@ func (r *Resolver) Query() QueryResolver {
 	return &queryResolver{r}
 }
 
+//#  ###   #
+//#    #  #
+//###  #    #
+
+
+//#
+//# Create / Update process is near identical at the core
+//# should consider some wrapp(er|ing) function to streamline process.
+
 type mutationResolver struct{ *Resolver }
+
 
 func (r *mutationResolver) CreateItem(
   ctx context.Context,
@@ -61,6 +71,7 @@ func (r *mutationResolver) CreateItem(
   
   return
 }
+
 
 func (r *mutationResolver) UpdateItem(
   ctx context.Context,
@@ -95,20 +106,77 @@ func (r *mutationResolver) UpdateItem(
 	return
 }
 
-func (r *mutationResolver) CreateInvoice(ctx context.Context, input model.NewInvoice) (*model.Invoice, error) {
-	panic("not implemented")
+
+func (r *mutationResolver) CreateInvoice(
+	ctx context.Context, 
+	input model.NewInvoice,
+) (
+	invoice *model.Invoice, 
+	err error,
+) {
+	 // Copy input into the invoice
+  err = pipeInput(&input, &invoice)
+  
+  if err != nil {
+    return
+  }
+  
+  // Save the record in DB
+  dbh(func(db *gorm.DB) {
+    err = gormErrors(db.Create(&invoice))
+  })
+  
+  return
 }
 
-func (r *mutationResolver) UpdateInvoice(ctx context.Context, id uuid.UUID, input model.NewInvoice) (*model.Invoice, error) {
-	panic("not implemented")
+
+func (r *mutationResolver) UpdateInvoice(
+	ctx context.Context, 
+	id uuid.UUID, 
+	input model.NewInvoice,
+) (
+	invoice *model.Invoice, 
+	err error,
+) {
+	// Fetch first invoice by UUID
+	dbh(func(db *gorm.DB) {
+	  err = gormErrors(db.First(&invoice, "id = ?", id))
+	})
+	
+	if err != nil {
+	  return
+	}
+	
+	// Copy input into the invoice
+	// @TODO: verify updating with\/out associations
+	err = pipeInput(&input, &invoice)
+	
+	if err != nil {
+	  return
+	}
+	
+	// Save the resulting model
+	dbh(func(db *gorm.DB) {
+	  err = gormErrors(db.Save(&item))
+	})
+	
+	return
 }
+
+//# #    #  ##
+//##        ##
+//#  #     # #
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]model.Item, error) {
-  var models []model.Item
-  var err    error
-  
+
+func (r *queryResolver) Items(
+	ctx context.Context, 
+	paging *model.Paging,
+) (
+	items []model.Item, 
+	err error,
+) {
 	dbh(func(db *gorm.DB) {
 		query := gormPaging(db.Select("*").Table("items"), paging)
 		query = query.Preload("Options")
@@ -123,15 +191,26 @@ func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]mode
 				 " AND item_prices.before_date", time.Now())
 		}
                 
-		err = gormErrors(query.Find(&models))
+		err = gormErrors(query.Find(&items))
 	})
 	  
-	return models, err
+	return
 }
 
-func (r *queryResolver) Invoices(ctx context.Context, paging *model.Paging) ([]model.Invoice, error) {
+
+func (r *queryResolver) Invoices(
+	ctx context.Context, 
+	paging *model.Paging,
+) (
+	invoices []model.Invoice, 
+	err error,
+) {
 	panic("not implemented")
 }
+
+//#   # #  #
+//###  #
+//#  # #
 
 func gormErrors(db *gorm.DB) (err error) {
   for _, e := range db.GetErrors() {
