@@ -90,7 +90,9 @@ export default class Item extends React.Component {
 						<Grid.Row>
 							<Grid.Column columns={2}>
 								<Divider />
-								<ItemForm options={this.state.data.options} />
+								<ItemForm item={this.state.data.id} 
+                          price={this.currentPrice().id} 
+                          options={this.state.data.options} />
 							</Grid.Column>
 						</Grid.Row>
 					) }

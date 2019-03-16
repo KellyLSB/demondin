@@ -23,9 +23,9 @@ export default class ItemForm extends React.Component {
 		this.onSubmit = this.onSubmit.bind(this);
   }
 
-	onChange(e, key, data) {
+	onChange(e, option, data) {
 		this.setState((state) => {
-			state.values[key] = data.value;
+			state.values[option.id] = data.value;
 			return state
 		} );
 
@@ -33,21 +33,51 @@ export default class ItemForm extends React.Component {
 		debugger
 	}
 
-	onSubmit(e) {
+	onSubmit(e, updateInvoice) {
 		e.preventDefault()
+
+		var options = this.state.values.map((key, value) => {
+			optionTypeID: value,
+			values: value
+		})
+
+		updateInvoice({ variables: {
+			input: { options: options }
+		} })
 	}
 
   render() {
 		var option = this.props.option;
 
 		return (
-			<Form onSubmit={this.onSubmit}>
-			  {this.state.data.options.map((option) => 
-				  <ItemOption key={option.key} option={option}
-											value={this.state[option.key]}
-                      onChange={(e,d) => this.onChange(e,option.key,d)} />
-				) }
-				<Button type='submit'>Purchase</Button>
-			</Form>
+			 <Mutation mutation={gql`
+				mutation updateInvoice($id: ID!, $input: NewInvoice!) {
+					updateInvoice(id: $id, input: $input) {
+						id
+						items {
+							id
+							options {
+								id
+								optionType {
+									id									
+									key
+								}
+								values
+							}
+						}
+					}
+				}
+			`}>
+				{(updateInvoice) => (
+					<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
+						{this.state.data.options.map((option) => 
+							<ItemOption key={option.key} option={option}
+													value={this.state[option.key]}
+				                  onChange={(e, d) => this.onChange(e, option, d)} />
+						) }
+						<Button type='submit'>Purchase</Button>
+					</Form>
+				) }				
+			</Mutation>
 	) };
 }
