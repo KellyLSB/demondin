@@ -95,6 +95,14 @@ func (r *mutationResolver) UpdateItem(
 	return
 }
 
+func (r *mutationResolver) CreateInvoice(ctx context.Context, input model.NewInvoice) (*model.Invoice, error) {
+	panic("not implemented")
+}
+
+func (r *mutationResolver) UpdateInvoice(ctx context.Context, id uuid.UUID, input model.NewInvoice) (*model.Invoice, error) {
+	panic("not implemented")
+}
+
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Items(ctx context.Context, paging *model.Paging) ([]model.Item, error) {
