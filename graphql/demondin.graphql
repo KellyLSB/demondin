@@ -1,87 +1,90 @@
 scalar DateTime
-scalar StripeObject
 scalar JSON
+scalar StripeCard
+scalar StripeCharge
 
 interface Postgresql {
-  id:           ID!
-  createdAt:    DateTime!
-  updatedAt:    DateTime!
-  deletedAt:    DateTime
+  id:             ID!
+  createdAt:      DateTime!
+  updatedAt:      DateTime!
+  deletedAt:      DateTime
 }
 
 type Item implements Postgresql {
-  id:           ID!
-  createdAt:    DateTime!
-  updatedAt:    DateTime!
-  deletedAt:    DateTime
+  id:             ID!
+  createdAt:      DateTime!
+  updatedAt:      DateTime!
+  deletedAt:      DateTime
 
-  name:         String!
-  description:  String
-  enabled:      Boolean!
-  isBadge:      Boolean!
+  name:           String!
+  description:    String
+  enabled:        Boolean!
+  isBadge:        Boolean!
   
-  options:      [ItemOptionType!]
-  prices:       [ItemPrice!]!
+  options:        [ItemOptionType!]
+  prices:         [ItemPrice!]!
 }
 
 type ItemOptionType implements Postgresql {
-  id:           ID!
-  createdAt:    DateTime!
-  updatedAt:    DateTime!
-  deletedAt:    DateTime
+  id:             ID!
+  createdAt:      DateTime!
+  updatedAt:      DateTime!
+  deletedAt:      DateTime
   
-  itemID:       ID!
-  key:          String!
-  valueType:    String!
-  values:       JSON
+  itemID:         ID!
+  key:            String!
+  valueType:      String!
+  values:         JSON
 }
 
 type ItemOption implements Postgresql {
-  id:           ID!
-  createdAt:    DateTime!
-  updatedAt:    DateTime!
-  deletedAt:    DateTime
+  id:             ID!
+  createdAt:      DateTime!
+  updatedAt:      DateTime!
+  deletedAt:      DateTime
 
-  optionType:   ItemOptionType!
-  values:       String!
+  invoiceItemID:  ID!
+  optionType:     ItemOptionType!
+  values:         String!
 }
 
 type ItemPrice implements Postgresql {
-  id:           ID!
-  createdAt:    DateTime!
-  updatedAt:    DateTime!
-  deletedAt:    DateTime
+  id:             ID!
+  createdAt:      DateTime!
+  updatedAt:      DateTime!
+  deletedAt:      DateTime
   
-  itemID:       ID!
-  price:        Int!
-  beforeDate:   DateTime!
-  afterDate:    DateTime!
-  taxable:      Boolean
+  itemID:         ID!
+  price:          Int!
+  beforeDate:     DateTime!
+  afterDate:      DateTime!
+  taxable:        Boolean
 }
 
 type Invoice implements Postgresql {
-  id:           ID!
-  createdAt:    DateTime!
-  updatedAt:    DateTime!
-  deletedAt:    DateTime
+  id:             ID!
+  createdAt:      DateTime!
+  updatedAt:      DateTime!
+  deletedAt:      DateTime
 
-  cardToken:    String
-  chargeToken:  String
-  cardData:     StripeObject
-  chargeData:   StripeObject
+  cardToken:      String
+  chargeToken:    String
+  cardData:       StripeCard
+  chargeData:     StripeCharge
 
-  items:        [InvoiceItem!]!
+  items:          [InvoiceItem!]!
 }
 
 type InvoiceItem implements Postgresql {
-  id:           ID!
-  createdAt:    DateTime!
-  updatedAt:    DateTime!
-  deletedAt:    DateTime
+  id:             ID!
+  createdAt:      DateTime!
+  updatedAt:      DateTime!
+  deletedAt:      DateTime
 
-  item:         Item!
-  options:      [ItemOption!]
-  price:        ItemPrice!
+  invoiceID:      ID!
+  itemID:         ID!
+  itemPriceID:    ID!
+  options:        [ItemOption!]
 }
 
 type Query {
@@ -90,33 +93,55 @@ type Query {
 }
 
 input NewItem {
-  id:           ID
-  name:         String!
-  description:  String
-  prices:       [NewItemPrice!]!
-  options:      [NewItemOptionType!]!
+  id:             ID
+  name:           String!
+  description:    String
+  prices:         [NewItemPrice!]!
+  options:        [NewItemOptionType!]!
 }
 
 input NewItemPrice {
-  id:           ID
-  price:        Int!
-  beforeDate:   DateTime!
-  afterDate:    DateTime!
+  id:             ID
+  price:          Int!
+  beforeDate:     DateTime!
+  afterDate:      DateTime!
 }
 
 input NewItemOptionType {
-  id:           ID
-  key:          String
-  valueType:    String
-  values:       JSON!
+  id:             ID
+  key:            String
+  valueType:      String
+  values:         JSON!
+}
+
+input NewInvoice {
+  id:             ID
+  submit:         Boolean
+  items:          [NewInvoiceItem!]!
+}
+
+input NewInvoiceItem {
+  id:             ID
+  itemID:         ID!
+  itemPriceID:    ID!
+  options:        [NewItemOption!]!
+}
+
+input NewItemOption {
+  id:             ID
+  optionTypeID:   ID!
+  values:         JSON!
 }
 
 input Paging {
-  limit:        Int!
-  offset:       Int!
+  limit:          Int!
+  offset:         Int!
 }
 
 type Mutation {
   createItem(input: NewItem!) : Item!
   updateItem(id: ID!, input: NewItem!) : Item!
+
+  createInvoice(input: NewInvoice!) : Invoice!
+  updateInvoice(id: ID!, input: NewInvoice!) : Invoice!
 }

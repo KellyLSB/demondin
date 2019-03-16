@@ -1,5 +1,10 @@
 import React from 'react'
-import { Grid, Header, Segment, Button, Icon, Label } from 'semantic-ui-react'
+
+import { Divider, Grid, 
+				  Header, Segment, 
+					Button, 
+          Icon, Label 
+			 } from 'semantic-ui-react'
 
 import { CartContext } from './cart_context'
 import ItemOption from './item_option'
@@ -22,9 +27,8 @@ export default class Item extends React.Component {
 	onToggleForm() {
 		this.setState((state) => {
 			state.hideForm = !state.hideForm;
+			return state;
 		});
-
-		this.render();
 	}
   
   toDollars(cents) {
@@ -76,21 +80,28 @@ export default class Item extends React.Component {
 		                primary icon labelPosition='left'
 		                onClick={this.onToggleForm}>
 		                <Icon name='shop' />
-		                Add To Cart
+		                Customize
 		              </Button>
-		            )}
+		            ) }
 		          </CartContext.Consumer>
 		        </Grid.Column>
 					</Grid.Row>
-					{ !this.state.hideForm ? (
+					{ this.state.hideForm ? null : (
 						<Grid.Row>
 							<Grid.Column columns={2}>
-								{this.state.data.options.map((option) => 
-									<ItemOption key={option.key} option={option} />
-								)}
+								<Divider />
+								<Form onSubmit={(e) => {
+									e.preventDefault();
+									return null;
+								} }>
+									{this.state.data.options.map((option) => 
+										<ItemOption key={option.key} option={option} />
+									) }
+									<Button type='submit'>Purchase</Button>
+								</Form>
 							</Grid.Column>
 						</Grid.Row>
-					) : null }
+					) }
         </Grid>
       </Segment>
     );

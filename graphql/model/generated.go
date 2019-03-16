@@ -7,41 +7,48 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/stripe/stripe-go"
 )
 
+type Postgresql interface {
+	IsPostgresql()
+}
+
 type Invoice struct {
-	ID          uuid.UUID     `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt   time.Time     `json:"createdAt"`
-	UpdatedAt   time.Time     `json:"updatedAt"`
-	DeletedAt   *time.Time    `json:"deletedAt"`
-	CardToken   *string       `json:"cardToken"`
-	ChargeToken *string       `json:"chargeToken"`
-	CardData    *string       `json:"cardData"`
-	ChargeData  *string       `json:"chargeData"`
-	Items       []InvoiceItem `json:"items"`
+	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+	DeletedAt   *time.Time     `json:"deletedAt"`
+	CardToken   *string        `json:"cardToken"`
+	ChargeToken *string        `json:"chargeToken"`
+	CardData    *stripe.Card   `json:"cardData"`
+	ChargeData  *stripe.Charge `json:"chargeData"`
+	Items       []InvoiceItem  `json:"items"`
 }
 
 func (Invoice) IsPostgresql() {}
 
 type InvoiceItem struct {
-	ID        uuid.UUID    `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt time.Time    `json:"createdAt"`
-	UpdatedAt time.Time    `json:"updatedAt"`
-	DeletedAt *time.Time   `json:"deletedAt"`
-	Item      Item         `json:"item"`
-	Options   []ItemOption `json:"options"`
-	Price     ItemPrice    `json:"price"`
+	ID          uuid.UUID    `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CreatedAt   time.Time    `json:"createdAt"`
+	UpdatedAt   time.Time    `json:"updatedAt"`
+	DeletedAt   *time.Time   `json:"deletedAt"`
+	InvoiceID   uuid.UUID    `json:"invoiceID" gorm:"type:uuid"`
+	ItemID      uuid.UUID    `json:"itemID" gorm:"type:uuid"`
+	ItemPriceID uuid.UUID    `json:"itemPriceID" gorm:"type:uuid"`
+	Options     []ItemOption `json:"options"`
 }
 
 func (InvoiceItem) IsPostgresql() {}
 
 type ItemOption struct {
-	ID         uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt  time.Time      `json:"createdAt"`
-	UpdatedAt  time.Time      `json:"updatedAt"`
-	DeletedAt  *time.Time     `json:"deletedAt"`
-	OptionType ItemOptionType `json:"optionType"`
-	Values     string         `json:"values"`
+	ID            uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
+	DeletedAt     *time.Time     `json:"deletedAt"`
+	InvoiceItemID uuid.UUID      `json:"invoiceItemID" gorm:"type:uuid"`
+	OptionType    ItemOptionType `json:"optionType"`
+	Values        string         `json:"values"`
 }
 
 func (ItemOption) IsPostgresql() {}
@@ -68,9 +75,23 @@ type ItemPrice struct {
 	Price      int        `json:"price"`
 	BeforeDate time.Time  `json:"beforeDate"`
 	AfterDate  time.Time  `json:"afterDate"`
+	Taxable    *bool      `json:"taxable"`
 }
 
 func (ItemPrice) IsPostgresql() {}
+
+type NewInvoice struct {
+	ID     *uuid.UUID       `json:"id"`
+	Submit *bool            `json:"submit"`
+	Items  []NewInvoiceItem `json:"items"`
+}
+
+type NewInvoiceItem struct {
+	ID          *uuid.UUID      `json:"id"`
+	ItemID      uuid.UUID       `json:"itemID"`
+	ItemPriceID uuid.UUID       `json:"itemPriceID"`
+	Options     []NewItemOption `json:"options"`
+}
 
 type NewItem struct {
 	ID          *uuid.UUID          `json:"id"`
@@ -78,6 +99,12 @@ type NewItem struct {
 	Description *string             `json:"description"`
 	Prices      []NewItemPrice      `json:"prices"`
 	Options     []NewItemOptionType `json:"options"`
+}
+
+type NewItemOption struct {
+	ID           *uuid.UUID     `json:"id"`
+	OptionTypeID uuid.UUID      `json:"optionTypeID"`
+	Values       postgres.Jsonb `json:"values"`
 }
 
 type NewItemOptionType struct {
@@ -97,8 +124,4 @@ type NewItemPrice struct {
 type Paging struct {
 	Limit  int `json:"limit"`
 	Offset int `json:"offset"`
-}
-
-type Postgresql interface {
-	IsPostgresql()
 }

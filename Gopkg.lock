@@ -289,7 +289,6 @@
   input-imports = [
     "github.com/99designs/gqlgen/cmd",
     "github.com/99designs/gqlgen/graphql",
-    "github.com/99designs/gqlgen/graphql/introspection",
     "github.com/99designs/gqlgen/handler",
     "github.com/araddon/dateparse",
     "github.com/go-macaron/session",
@@ -297,9 +296,8 @@
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/postgres",
     "github.com/joho/godotenv",
+    "github.com/stripe/stripe-go",
     "github.com/stripe/stripe-go/client",
-    "github.com/vektah/gqlparser",
-    "github.com/vektah/gqlparser/ast",
     "gopkg.in/macaron.v1",
   ]
   solver-name = "gps-cdcl"
