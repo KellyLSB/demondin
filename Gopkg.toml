@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/99designs/gqlgen"
-  version = "0.7.2"
+  version = "0.8.1"
 
 [[constraint]]
   branch = "master"

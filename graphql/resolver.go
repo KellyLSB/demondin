@@ -54,11 +54,11 @@ func (r *mutationResolver) CreateItem(
   ctx context.Context,
   input model.NewItem,
 ) (
-  item model.Item,
+  item *model.Item,
   err error,
 ) {
   // Copy input into the item
-  err = pipeInput(&input, &item)
+  err = pipeInput(&input, item)
   
   if err != nil {
     return
@@ -66,7 +66,7 @@ func (r *mutationResolver) CreateItem(
   
   // Save the record in DB
   dbh(func(db *gorm.DB) {
-    err = gormErrors(db.Create(&item))
+    err = gormErrors(db.Create(item))
   })
   
   return
@@ -78,12 +78,12 @@ func (r *mutationResolver) UpdateItem(
   id uuid.UUID,
   input model.NewItem,
 ) (
-  item model.Item,
+  item *model.Item,
   err error,
 ) {
   // Fetch first item by UUID
 	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.First(&item, "id = ?", id))
+	  err = gormErrors(db.First(item, "id = ?", id))
 	})
 	
 	if err != nil {
@@ -92,7 +92,7 @@ func (r *mutationResolver) UpdateItem(
 	
 	// Copy input into the item
 	// @TODO: verify updating with\/out associations
-	err = pipeInput(&input, &item)
+	err = pipeInput(&input, item)
 	
 	if err != nil {
 	  return
@@ -100,7 +100,7 @@ func (r *mutationResolver) UpdateItem(
 	
 	// Save the resulting model
 	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.Save(&item))
+	  err = gormErrors(db.Save(item))
 	})
 	
 	return
@@ -115,7 +115,7 @@ func (r *mutationResolver) CreateInvoice(
 	err error,
 ) {
 	 // Copy input into the invoice
-  err = pipeInput(&input, &invoice)
+  err = pipeInput(&input, invoice)
   
   if err != nil {
     return
@@ -123,7 +123,7 @@ func (r *mutationResolver) CreateInvoice(
   
   // Save the record in DB
   dbh(func(db *gorm.DB) {
-    err = gormErrors(db.Create(&invoice))
+    err = gormErrors(db.Create(invoice))
   })
   
   return
@@ -140,7 +140,7 @@ func (r *mutationResolver) UpdateInvoice(
 ) {
 	// Fetch first invoice by UUID
 	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.First(&invoice, "id = ?", id))
+	  err = gormErrors(db.First(invoice, "id = ?", id))
 	})
 	
 	if err != nil {
@@ -149,7 +149,7 @@ func (r *mutationResolver) UpdateInvoice(
 	
 	// Copy input into the invoice
 	// @TODO: verify updating with\/out associations
-	err = pipeInput(&input, &invoice)
+	err = pipeInput(&input, invoice)
 	
 	if err != nil {
 	  return
@@ -157,7 +157,7 @@ func (r *mutationResolver) UpdateInvoice(
 	
 	// Save the resulting model
 	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.Save(&item))
+	  err = gormErrors(db.Save(invoice))
 	})
 	
 	return

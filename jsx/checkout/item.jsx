@@ -1,13 +1,13 @@
 import React from 'react'
 
-import { Divider, Grid, 
+import { Divider, Grid, Form,
 				  Header, Segment, 
 					Button, 
           Icon, Label 
 			 } from 'semantic-ui-react'
 
 import { CartContext } from './cart_context'
-import ItemOption from './item_option'
+import ItemForm from './item_form'
 
 export default class Item extends React.Component {
   constructor(props) {
@@ -90,15 +90,7 @@ export default class Item extends React.Component {
 						<Grid.Row>
 							<Grid.Column columns={2}>
 								<Divider />
-								<Form onSubmit={(e) => {
-									e.preventDefault();
-									return null;
-								} }>
-									{this.state.data.options.map((option) => 
-										<ItemOption key={option.key} option={option} />
-									) }
-									<Button type='submit'>Purchase</Button>
-								</Form>
+								<ItemForm options={this.state.data.options} />
 							</Grid.Column>
 						</Grid.Row>
 					) }

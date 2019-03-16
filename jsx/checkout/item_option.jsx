@@ -22,18 +22,18 @@ export default class ItemOption extends React.Component {
 
 			return (
 				<Form.Field>
-					<Form.Select name={option.key}
-											 label={option.key} 
+					<Form.Select label={option.key} 
 											 placeholder={option.key} 
-											 options={values} />
+											 options={values}
+											 onChange={this.props.onChange} />
 				</Form.Field>
 		)	};
 
 		return (
 			<Form.Field>
-				<Form.Input name={option.key}
-										label={option.key}
-										placeholder={option.key} />
+				<Form.Input label={option.key}
+										placeholder={option.key}
+										onChange={this.props.onChange} />
 			</Form.Field>
 	) };
 }

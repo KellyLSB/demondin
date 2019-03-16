@@ -2,22 +2,28 @@
 
 
 [[projects]]
-  digest = "1:e8f6639eaa399c8595b9a2dee175514a9f3842888dc080e2776360dc604150dc"
+  digest = "1:836dd0d0e0a5486b38deb23b36c324b1c8d6326845751e1979f5bdb6d7161453"
   name = "github.com/99designs/gqlgen"
   packages = [
+    "api",
     "cmd",
     "codegen",
+    "codegen/config",
     "codegen/templates",
     "complexity",
     "graphql",
     "graphql/introspection",
     "handler",
-    "internal/gopath",
+    "internal/code",
     "internal/imports",
+    "plugin",
+    "plugin/modelgen",
+    "plugin/resolvergen",
+    "plugin/servergen",
   ]
   pruneopts = "UT"
-  revision = "da1e07f5876c0fb79cbad19006f7135be08590d6"
-  version = "v0.7.2"
+  revision = "229185e45e9f411de393ee22f0daf0c30ad83812"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:b67d9fb93495f20c1650448395a35d8c8a05cc1744bdd9986f5bc69d5d114f22"
@@ -37,11 +43,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f9bb4fba309ed75573053608ea00f16c6b5764d2accbad0ce27189b8edcba934"
+  digest = "1:56b6b5d7bb076750d47a60b07ab9962f4d8c32c27d0e9e113593526c3e8c4437"
   name = "github.com/araddon/dateparse"
   packages = ["."]
   pruneopts = "UT"
-  revision = "21df004e09ca46e07ce99bbba1e8c2422ba4ecf9"
+  revision = "262228af701ebf3932b8b8488da6781b9d585c88"
 
 [[projects]]
   branch = "master"
@@ -60,12 +66,12 @@
   revision = "0a0a789bf1934e55fde19629869caa015a40c525"
 
 [[projects]]
-  digest = "1:236d7e1bdb50d8f68559af37dbcf9d142d56b431c9b2176d41e2a009b664cda8"
+  digest = "1:582b704bebaa06b48c29b0cec224a6058a09c86883aaddabde889cd1a5f73e1b"
   name = "github.com/google/uuid"
   packages = ["."]
   pruneopts = "UT"
-  revision = "9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8"
-  version = "v1.1.0"
+  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
+  version = "v1.1.1"
 
 [[projects]]
   digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
@@ -76,15 +82,15 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:8ec8d88c248041a6df5f6574b87bc00e7e0b493881dad2e7ef47b11dc69093b5"
+  digest = "1:d15ee511aa0f56baacc1eb4c6b922fa1c03b38413b6be18166b996d82a0156ea"
   name = "github.com/hashicorp/golang-lru"
   packages = [
     ".",
     "simplelru",
   ]
   pruneopts = "UT"
-  revision = "20f1fb78b0740ba8c3cb143a61e86ba5c8669768"
-  version = "v0.5.0"
+  revision = "7087cb70de9f7a8bc0a10c375cb0d2280a8edf9c"
+  version = "v0.5.1"
 
 [[projects]]
   digest = "1:7e63b12cdd7bef2c411d736cb67e28134d39f5d236aa1bfb8f3d55e3ad709eca"
@@ -213,7 +219,7 @@
   version = "v1.20.0"
 
 [[projects]]
-  digest = "1:423e2211dd73e0d7ce204191b64e7dc06da5ca93cc73e7d37254c47ee6aae62b"
+  digest = "1:b4e8aaca88f799355f4ac560bce4293fb85ff21003dd0d5741ca503f7a788e91"
   name = "github.com/vektah/gqlparser"
   packages = [
     ".",
@@ -225,8 +231,8 @@
     "validator/rules",
   ]
   pruneopts = "UT"
-  revision = "9541c8b6420ab8919446721a3d7bf1db3146a4dc"
-  version = "v1.1.1"
+  revision = "05741cdb0871330d8bc980d4afd21ab34eceee83"
+  version = "v1.1.2"
 
 [[projects]]
   branch = "master"
@@ -234,20 +240,18 @@
   name = "golang.org/x/crypto"
   packages = ["pbkdf2"]
   pruneopts = "UT"
-  revision = "74369b46fc6756741c016591724fd1cb8e26845f"
+  revision = "a1f597ede03a7bef967a422b5b3a5bd08805a01e"
 
 [[projects]]
   branch = "master"
-  digest = "1:7eee604fd833c4346b8708d184f121dc52d652cc588c18683e09b3f14c83eca4"
+  digest = "1:3d2c6f65315775cde3297e0a273c7dd8c75f450cd552504a272dc484b99c3211"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
-    "go/buildutil",
     "go/gcexportdata",
     "go/internal/cgo",
     "go/internal/gcimporter",
     "go/internal/packagesdriver",
-    "go/loader",
     "go/packages",
     "go/types/typeutil",
     "imports",
@@ -257,7 +261,7 @@
     "internal/semver",
   ]
   pruneopts = "UT"
-  revision = "8dcb7bc8c7fe0a895995c76c721cef79419ac98a"
+  revision = "f0bfdbff1f9c986484a9f02fc198b1efcfe76ebe"
 
 [[projects]]
   digest = "1:d37c61a335d13bc49b3f90e9e13c8686e4548839b69c58549e727afb2245c454"
