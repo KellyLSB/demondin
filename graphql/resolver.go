@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
 var dbh func(func(*gorm.DB))
@@ -146,6 +147,58 @@ func (r *mutationResolver) UpdateInvoice(
 	if err != nil {
 	  return
 	}
+	
+	// Copy input into the invoice
+	// @TODO: verify updating with\/out associations
+	err = pipeInput(&input, invoice)
+	
+	if err != nil {
+	  return
+	}
+	
+	// Save the resulting model
+	dbh(func(db *gorm.DB) {
+	  err = gormErrors(db.Save(invoice))
+	})
+	
+	return
+}
+
+func (r *mutationResolver) AddItemToInvoice(
+	ctx context.Context, 
+	invoiceID, itemID uuid.UUID, 
+	options postgres.Jsonb,
+) (
+	invoice *model.Invoice, 
+	err error,
+) {
+	var item 	model.Item	
+	var invoiceItem model.InvoiceItem
+	
+	dbh(func(db *gorm.DB) {
+		err = gormErrors(db.First(&item, "id = ?", itemID))
+	})
+	
+	if err != nil {
+		return
+	}
+
+	invoiceItem = models.InvoiceItem{
+		InvoiceID: invoiceID, ItemID: itemID,		
+		ItemPriceID: item.CurrentPrice().ID,		
+	}
+	
+
+	// Fetch first invoice by UUID
+	dbh(func(db *gorm.DB) {
+	  err = gormErrors(db.First(invoice, "id = ?", invoiceID))
+	})
+	
+	if err != nil {
+	  return
+	}
+
+	invoice
 	
 	// Copy input into the invoice
 	// @TODO: verify updating with\/out associations

@@ -3,6 +3,7 @@ package model
 import (
   //"log"
   //"sort"
+	"sort"
 	"time"
 	//"fmt"
 	"io"
@@ -29,6 +30,28 @@ type Item struct {
 	IsBadge     bool             `json:"isBadge"`
 	Options     []ItemOptionType `json:"options" gorm:"foreignkey:ItemID"`
 	Prices      []ItemPrice      `json:"prices" gorm:"foreignkey:ItemID"`
+}
+
+func (i *Item) CurrentPrice() *ItemPrice {
+	sort.Slice(i.Prices, func(x, y int) bool {
+		sb :=        i.Prices[x].AfterDate  > i.Prices[y].AfterDate
+		return sb && i.Prices[x].BeforeDate < i.Prices[y].BeforeDate
+	})
+
+	for _, price := range i.Prices {
+		// Activate Before Date
+		if time.Until(price.BeforeDate) < 0 {
+			continue
+		}
+		// Activate After Date
+		if time.Since(price.AfterDate) < 0 {
+			continue
+		}
+		
+		return &price
+	}
+
+	return nil
 }
 
 func (Item) IsPostgresql() {}
