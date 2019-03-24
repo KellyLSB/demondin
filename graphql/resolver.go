@@ -38,6 +38,9 @@ func (r *Resolver) Mutation() MutationResolver {
 func (r *Resolver) Query() QueryResolver {
 	return &queryResolver{r}
 }
+func (r *Resolver) Subscription() SubscriptionResolver {
+	return &subscriptionResolver{r}
+}
 
 //#  ###   #
 //#    #  #
@@ -47,6 +50,7 @@ func (r *Resolver) Query() QueryResolver {
 //#
 //# Create / Update process is near identical at the core
 //# should consider some wrapp(er|ing) function to streamline process.
+
 
 type mutationResolver struct{ *Resolver }
 
@@ -258,6 +262,12 @@ func (r *queryResolver) Invoices(
 	invoices []model.Invoice, 
 	err error,
 ) {
+	panic("not implemented")
+}
+
+type subscriptionResolver struct{ *Resolver }
+
+func (r *subscriptionResolver) InvoiceUpdated(ctx context.Context, id uuid.UUID) (<-chan *model.Invoice, error) {
 	panic("not implemented")
 }
 
