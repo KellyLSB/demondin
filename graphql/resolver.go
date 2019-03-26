@@ -8,29 +8,40 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/KellyLSB/demondin/graphql/model"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/go-macaron/session"
 )
 
 var dbh func(func(*gorm.DB))
 
 func init() {
-  // Load .env file from repo
+  	// Load .env file from repo
 	err := godotenv.Load()
 	if err != nil {
 		panic("Error loading .env file")
 	}
 	
-  dbh = dbInit(
-    os.Getenv("POSTGRES_HOSTPORT"), os.Getenv("POSTGRES_DATABASE"),
+  	dbh = dbInit(
+    		os.Getenv("POSTGRES_HOSTPORT"), os.Getenv("POSTGRES_DATABASE"),
 		os.Getenv("POSTGRES_USERNAME"), os.Getenv("POSTGRES_PASSWORD"),
 	)
 }
 
-type Resolver struct{}
+
+// Is the resolver a global constant when initiatied by NewExecutableSchema
+// or will these subscription bindings be for loss placed here.
+// Ideally I will use PG Notify...
+type Resolver struct{
+	Session *session.Store
+	Subscriptions struct {
+		Invoice []chan *model.Invoice
+	}
+}
 
 func (r *Resolver) Mutation() MutationResolver {
 	return &mutationResolver{r}
@@ -56,7 +67,7 @@ type mutationResolver struct{ *Resolver }
 
 
 func (r *mutationResolver) CreateItem(
-  ctx context.Context,
+  ctx 	context.Context,
   input model.NewItem,
 ) (
   item *model.Item,
@@ -119,19 +130,24 @@ func (r *mutationResolver) CreateInvoice(
 	invoice *model.Invoice, 
 	err error,
 ) {
-	 // Copy input into the invoice
-  err = pipeInput(&input, invoice)
+	// Copy input into the invoice
+	err = pipeInput(&input, invoice)
   
-  if err != nil {
-    return
-  }
+	if err != nil {
+		return
+	}
   
-  // Save the record in DB
-  dbh(func(db *gorm.DB) {
-    err = gormErrors(db.Create(invoice))
-  })
+	// Save the record in DB
+	dbh(func(db *gorm.DB) {
+		err = gormErrors(db.Create(invoice))
+	})
+
+	// Inform subscriptions of create
+	for _, sub := range r.Subscriptions.Invoice {
+		sub <- invoice
+	}
   
-  return
+	return
 }
 
 
@@ -164,6 +180,11 @@ func (r *mutationResolver) UpdateInvoice(
 	dbh(func(db *gorm.DB) {
 	  err = gormErrors(db.Save(invoice))
 	})
+
+	// Inform subscriptions of update
+	for _, sub := range r.Subscriptions.Invoice {
+		sub <- invoice
+	}
 	
 	return
 }
@@ -216,6 +237,11 @@ func (r *mutationResolver) AddItemToInvoice(
 	dbh(func(db *gorm.DB) {
 	  err = gormErrors(db.Save(invoice))
 	})
+
+	// Inform subscriptions of update
+	for _, sub := range r.Subscriptions.Invoice {
+		sub <- invoice
+	}
 	
 	return
 }
@@ -267,8 +293,25 @@ func (r *queryResolver) Invoices(
 
 type subscriptionResolver struct{ *Resolver }
 
-func (r *subscriptionResolver) InvoiceUpdated(ctx context.Context, id uuid.UUID) (<-chan *model.Invoice, error) {
-	panic("not implemented")
+func (r *subscriptionResolver) InvoiceUpdated(
+	ctx context.Context, 
+	id uuid.UUID,
+) (<-chan *model.Invoice, error) {
+	ch := make(chan *model.Invoice)
+	r.Subscriptions.Invoice = append(r.Subscriptions.Invoice, ch)
+
+	fmt.Println("Creating Channel for InvoiceUpdated Subscription.")
+	go func() {
+		<-ctx.Done()
+		fmt.Println("Context for InvoiceUpdated Subscription is Done?!")
+	}()
+	
+	// https://www.postgresql.org/docs/current/sql-createpublication.html
+	// https://www.apollographql.com/docs/react/advanced/subscriptions.html
+	// https://medium.freecodecamp.org/https-medium-com-anshap1719-graphql-subscriptions-with-go-gqlgen-and-mongodb-5e008fc46451
+	// https://graphql.org/blog/subscriptions-in-graphql-and-relay/
+
+	return ch, nil
 }
 
 //#   # #  #

@@ -3,40 +3,83 @@ package graphql
 import (
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/KellyLSB/demondin/graphql/model"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
 )
 
 func dbInit(
 	hostport, database,
 	username, password string,
 ) func(func(*gorm.DB)) {
-  return func(fn func(*gorm.DB)) {
-  	// Split the hostport
+	db := InitDB(hostport, database, username, password)
+  
+	return func(fn func(*gorm.DB)) {
+		db.Transact(func(_db *gorm.DB) {
+			dbMigrate(_db)
+			fn(_db)
+		})
+	}
+}
+
+type Database struct {
+	Host, Port, Database
+	Username, Password string
+
+	*gorm.DB
+}
+
+func (d Database) Listen() *pq.Listener {
+	return pq.NewListener(
+		d.ConnInfo(), 10*time.Second, time.Minute, 
+		func(ev pq.ListenerEventType, err error) {
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+	}	)
+}
+
+func (d Database) Transact(fn func(*gorm.DB)) {
+	d.Open()
+	defer d.Close()
+
+	fn(d.DB)
+}
+
+func (d Database) Open() {
+	var err error
+
+	d.DB, err = gorm.Open("postgres", d.ConnInfo())
+	defer d.DB.LogMode(true)
+	
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (d Database) ConnInfo() string {
+	return fmt.Sprintf(
+  		"host=%s port=%s user=%s dbname=%s password=%s",
+  		d.Host, d.Port, d.Username, d.Database, d.Password,
+  	)
+}
+
+func InitDB(
+	hostport, database, 
+	username, password string,
+) Database {
   	host, port, err := net.SplitHostPort(hostport)
   	if err != nil {
   		panic(err)
   	}
-  
-  	// Connect to the database
-  	db, err := gorm.Open("postgres", fmt.Sprintf(
-  		"host=%s port=%s user=%s dbname=%s password=%s",
-  		host, port, username, database, password,
-  	))
-  	if err != nil {
-  		panic(fmt.Errorf("DB Connection Failed: %s", err))
-  	}
-  
-  	// Shutdown DB after request
-  	defer db.Close()
-  
-  	// Set logger and migrate
-  	db.LogMode(true)
-  	dbMigrate(db)
-  	fn(db)
-  }
+
+	return Database {
+		host, port, database,
+		username, password,
+	}
 }
 
 func dbMigrate(db *gorm.DB) {
