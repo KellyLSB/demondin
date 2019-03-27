@@ -1,0 +1,28 @@
+mutation CreateInvoice {
+	createInvoice(input: {
+		items: [{
+			itemID: "b24cd822-99c9-4898-a3ee-c325ac309e0b",
+			itemPriceID: "a66b2485-67de-4792-b19d-43621c0c23e7",
+			options: [{
+				optionTypeID: "c0ee8847-4a0f-4d38-9b5f-215fc66a6c6a",
+				values: "Kelly Lauren Summer Becker–Neuding"
+			},{
+				optionTypeID: "24633f66-9652-4d17-8d9f-6a07126cd753",
+				values: "S"
+			}]
+		}]
+	}) {
+		id
+		items {
+			id
+			itemID
+			itemPriceID
+			options {
+				optionType {
+					key
+				}
+				values
+			}
+		}	
+	}
+}

@@ -1,0 +1,19 @@
+query {
+ 	items {
+		id
+		name
+		description
+		options {
+			id
+			key
+			valueType
+			values
+		}
+		prices {
+			id
+			price
+			afterDate
+			beforeDate
+		}		
+	}
+}

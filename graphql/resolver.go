@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/99designs/gqlgen/graphql"
+	//"github.com/99designs/gqlgen/graphql"
 	"github.com/KellyLSB/demondin/graphql/model"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
@@ -19,6 +19,8 @@ import (
 
 var dbh func(func(*gorm.DB))
 
+var _db Database
+
 func init() {
   	// Load .env file from repo
 	err := godotenv.Load()
@@ -26,21 +28,29 @@ func init() {
 		panic("Error loading .env file")
 	}
 	
-  	dbh = dbInit(
-    		os.Getenv("POSTGRES_HOSTPORT"), os.Getenv("POSTGRES_DATABASE"),
+	_db = InitDB(
+		os.Getenv("POSTGRES_HOSTPORT"), os.Getenv("POSTGRES_DATABASE"),
 		os.Getenv("POSTGRES_USERNAME"), os.Getenv("POSTGRES_PASSWORD"),
 	)
+
+  	dbh = func(fn func(db *gorm.DB)) {
+		_db.Migrate()
+		_db.Transact(fn)
+	}
 }
+
+type subscriptions struct {
+	Invoice []chan *model.Invoice
+}
+
+var Subscriptions = new(subscriptions)
 
 
 // Is the resolver a global constant when initiatied by NewExecutableSchema
 // or will these subscription bindings be for loss placed here.
 // Ideally I will use PG Notify...
 type Resolver struct{
-	Session *session.Store
-	Subscriptions struct {
-		Invoice []chan *model.Invoice
-	}
+	Session session.Store
 }
 
 func (r *Resolver) Mutation() MutationResolver {
@@ -67,59 +77,64 @@ type mutationResolver struct{ *Resolver }
 
 
 func (r *mutationResolver) CreateItem(
-  ctx 	context.Context,
-  input model.NewItem,
+	ctx context.Context,
+	input model.NewItem,
 ) (
-  item *model.Item,
-  err error,
+	*model.Item,
+	error,
 ) {
-  // Copy input into the item
-  err = pipeInput(&input, item)
+ 	var item model.Item
+	var err error
+
+  	// Copy input into the item
+	err = pipeInput(&input, &item)	
+	if err != nil {
+    		return nil, err
+ 	}
   
-  if err != nil {
-    return
-  }
+	// Save the record in DB
+	dbh(func(db *gorm.DB) {
+		err = gormErrors(db.Create(&item))
+	})
   
-  // Save the record in DB
-  dbh(func(db *gorm.DB) {
-    err = gormErrors(db.Create(item))
-  })
-  
-  return
+	return &item, err
 }
 
 
 func (r *mutationResolver) UpdateItem(
-  ctx context.Context,
-  id uuid.UUID,
-  input model.NewItem,
+	ctx context.Context,
+	id uuid.UUID,
+	input model.NewItem,
 ) (
-  item *model.Item,
-  err error,
+  	*model.Item,
+  	error,
 ) {
-  // Fetch first item by UUID
+	var item model.Item
+	var err error
+
+	// Fetch first item by UUID
 	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.First(item, "id = ?", id))
+		err = gormErrors(db.First(&item, "id = ?", id))
 	})
 	
 	if err != nil {
-	  return
+		return nil, err
 	}
 	
 	// Copy input into the item
 	// @TODO: verify updating with\/out associations
-	err = pipeInput(&input, item)
+	err = pipeInput(&input, &item)
 	
 	if err != nil {
-	  return
+		return nil, err
 	}
 	
 	// Save the resulting model
 	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.Save(item))
+		err = gormErrors(db.Save(&item))
 	})
 	
-	return
+	return &item, err
 }
 
 
@@ -127,27 +142,30 @@ func (r *mutationResolver) CreateInvoice(
 	ctx context.Context, 
 	input model.NewInvoice,
 ) (
-	invoice *model.Invoice, 
-	err error,
+	*model.Invoice, 
+	error,
 ) {
+	var invoice model.Invoice
+	var err error
+
 	// Copy input into the invoice
-	err = pipeInput(&input, invoice)
-  
+	err = pipeInput(&input, &invoice)
 	if err != nil {
-		return
+		return nil, err
 	}
   
 	// Save the record in DB
 	dbh(func(db *gorm.DB) {
-		err = gormErrors(db.Create(invoice))
+		err = gormErrors(db.Create(&invoice))
 	})
 
 	// Inform subscriptions of create
-	for _, sub := range r.Subscriptions.Invoice {
-		sub <- invoice
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
+	for _, sub := range Subscriptions.Invoice {
+		sub <- &invoice
 	}
   
-	return
+	return &invoice, err
 }
 
 
@@ -182,7 +200,8 @@ func (r *mutationResolver) UpdateInvoice(
 	})
 
 	// Inform subscriptions of update
-	for _, sub := range r.Subscriptions.Invoice {
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
+	for _, sub := range Subscriptions.Invoice {
 		sub <- invoice
 	}
 	
@@ -192,13 +211,12 @@ func (r *mutationResolver) UpdateInvoice(
 func (r *mutationResolver) AddItemToInvoice(
 	ctx context.Context, 
 	invoiceID, itemID uuid.UUID, 
-	options postgres.Jsonb,
+	input postgres.Jsonb,
 ) (
 	invoice *model.Invoice, 
 	err error,
 ) {
 	var item 	model.Item	
-	var invoiceItem model.InvoiceItem
 	
 	dbh(func(db *gorm.DB) {
 		err = gormErrors(db.First(&item, "id = ?", itemID))
@@ -208,10 +226,10 @@ func (r *mutationResolver) AddItemToInvoice(
 		return
 	}
 
-	invoiceItem = models.InvoiceItem{
-		InvoiceID: invoiceID, ItemID: itemID,		
-		ItemPriceID: item.CurrentPrice().ID,		
-	}
+	//invoiceItem := model.InvoiceItem{
+	//	InvoiceID: invoiceID, ItemID: itemID,		
+	//	ItemPriceID: item.CurrentPrice().ID,		
+	//}
 	
 
 	// Fetch first invoice by UUID
@@ -222,8 +240,6 @@ func (r *mutationResolver) AddItemToInvoice(
 	if err != nil {
 	  return
 	}
-
-	invoice
 	
 	// Copy input into the invoice
 	// @TODO: verify updating with\/out associations
@@ -239,7 +255,8 @@ func (r *mutationResolver) AddItemToInvoice(
 	})
 
 	// Inform subscriptions of update
-	for _, sub := range r.Subscriptions.Invoice {
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
+	for _, sub := range Subscriptions.Invoice {
 		sub <- invoice
 	}
 	
@@ -298,7 +315,8 @@ func (r *subscriptionResolver) InvoiceUpdated(
 	id uuid.UUID,
 ) (<-chan *model.Invoice, error) {
 	ch := make(chan *model.Invoice)
-	r.Subscriptions.Invoice = append(r.Subscriptions.Invoice, ch)
+	Subscriptions.Invoice = append(Subscriptions.Invoice, ch)
+	fmt.Printf("%d Subscriptions Created\n", len(Subscriptions.Invoice))
 
 	fmt.Println("Creating Channel for InvoiceUpdated Subscription.")
 	go func() {

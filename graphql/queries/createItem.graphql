@@ -1,0 +1,30 @@
+mutation CreateItem {
+	createItem(input: {
+		name: "New Badge",
+		description: "Pure Awesome",
+		options: [
+			{key: "Badge Name", valueType: "text"},
+			{key: "T-Shirt Size", valueType: "select", values: ["S", "M", "L"]}
+		],
+		prices: [
+			{price: 2500, afterDate: "2010-10-10", beforeDate: "2020-10-10"},
+			{price: 5000, afterDate: "2015-10-10", beforeDate: "2020-10-10"}
+		]
+	}) {
+		id
+		name
+		description
+		options {
+			id
+			key
+			valueType
+			values
+		}
+		prices {
+			id
+			price
+			afterDate
+			beforeDate
+		}			
+	}
+}

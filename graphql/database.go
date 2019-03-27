@@ -11,22 +11,8 @@ import (
 	"github.com/lib/pq"
 )
 
-func dbInit(
-	hostport, database,
-	username, password string,
-) func(func(*gorm.DB)) {
-	db := InitDB(hostport, database, username, password)
-  
-	return func(fn func(*gorm.DB)) {
-		db.Transact(func(_db *gorm.DB) {
-			dbMigrate(_db)
-			fn(_db)
-		})
-	}
-}
-
 type Database struct {
-	Host, Port, Database
+	Host, Port, Database,
 	Username, Password string
 
 	*gorm.DB
@@ -43,13 +29,13 @@ func (d Database) Listen() *pq.Listener {
 }
 
 func (d Database) Transact(fn func(*gorm.DB)) {
-	d.Open()
-	defer d.Close()
+	db := d.Open()
+	defer db.Close()
 
-	fn(d.DB)
+	fn(db)
 }
 
-func (d Database) Open() {
+func (d Database) Open() (*gorm.DB) {
 	var err error
 
 	d.DB, err = gorm.Open("postgres", d.ConnInfo())
@@ -58,6 +44,8 @@ func (d Database) Open() {
 	if err != nil {
 		panic(err)
 	}
+
+	return d.DB
 }
 
 func (d Database) ConnInfo() string {
@@ -77,16 +65,18 @@ func InitDB(
   	}
 
 	return Database {
-		host, port, database,
-		username, password,
+		Host: host, Port: port, Database: database,
+		Username: username, Password: password,
 	}
 }
 
-func dbMigrate(db *gorm.DB) {
-	db.AutoMigrate(&model.Invoice{})
-	db.AutoMigrate(&model.InvoiceItem{})
-	db.AutoMigrate(&model.Item{})
-	db.AutoMigrate(&model.ItemOption{})
-	db.AutoMigrate(&model.ItemOptionType{})
-	db.AutoMigrate(&model.ItemPrice{})
+func (d Database) Migrate() {
+	d.Transact(func(db *gorm.DB) {
+		db.AutoMigrate(&model.Invoice{})
+		db.AutoMigrate(&model.InvoiceItem{})
+		db.AutoMigrate(&model.Item{})
+		db.AutoMigrate(&model.ItemOption{})
+		db.AutoMigrate(&model.ItemOptionType{})
+		db.AutoMigrate(&model.ItemPrice{})
+	})
 }

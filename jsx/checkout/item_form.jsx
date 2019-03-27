@@ -36,10 +36,10 @@ export default class ItemForm extends React.Component {
 	onSubmit(e, updateInvoice) {
 		e.preventDefault()
 
-		var options = this.state.values.map((key, value) => {
+		var options = this.state.values.map((key, value) => ( {
 			optionTypeID: value,
-			values: value
-		})
+			values: value,
+		} ))
 
 		updateInvoice({ variables: {
 			input: { options: options }

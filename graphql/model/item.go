@@ -34,17 +34,13 @@ type Item struct {
 
 func (i *Item) CurrentPrice() *ItemPrice {
 	sort.Slice(i.Prices, func(x, y int) bool {
-		sb :=        i.Prices[x].AfterDate  > i.Prices[y].AfterDate
-		return sb && i.Prices[x].BeforeDate < i.Prices[y].BeforeDate
+		sb :=        i.Prices[x].AfterDate.After(i.Prices[y].AfterDate)
+		return sb && i.Prices[x].BeforeDate.Before(i.Prices[y].BeforeDate)
 	})
 
+	now := time.Now()
 	for _, price := range i.Prices {
-		// Activate Before Date
-		if time.Until(price.BeforeDate) < 0 {
-			continue
-		}
-		// Activate After Date
-		if time.Since(price.AfterDate) < 0 {
+		if now.Before(price.AfterDate) || now.After(price.BeforeDate) {
 			continue
 		}
 		

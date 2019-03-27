@@ -1,0 +1,10 @@
+subscription InvoiceUpdated {
+	invoiceUpdated(id: "6e4fa160-f45a-498c-8cbb-f21af4a0348e") {
+		id
+		items {
+			id
+			itemID
+			itemPriceID
+		}
+	}
+}

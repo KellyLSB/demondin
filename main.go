@@ -90,13 +90,13 @@ func main() {
 	// Graphql
 	m.Get("/playground", handler.Playground("GraphQL playground", "/graphql"))
 	
-	m.Post("/graphql", func(s session.Store, w ResponseWriter, r *Request) {
+	m.Any("/graphql", func(s session.Store, w http.ResponseWriter, r *http.Request) {
 		handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{
 			Resolvers: &graphql.Resolver{
-				Session: sess,
+				Session: s,
 			},
 		}))(w, r)
-	))
+	})
 
 
 	// Start our macaron daemon
