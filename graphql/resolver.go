@@ -178,8 +178,14 @@ func (r *mutationResolver) ActiveInvoice(
 	  err = gormErrors(db.Save(&invoice))
 	})
 
-
+	// Set session ID
 	r.Session.Set("demondin.activeInvoiceUUID", invoice.ID)
+
+	// Inform subscriptions of create/update
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
+	for _, sub := range Subscriptions.Invoice {
+		sub <- &invoice
+	}
 
 	return &invoice, err
 }
