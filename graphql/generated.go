@@ -121,6 +121,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateItem       func(childComplexity int, input model.NewItem) int
 		UpdateItem       func(childComplexity int, id uuid.UUID, input model.NewItem) int
+		ActiveInvoice    func(childComplexity int, input *model.NewInvoice) int
 		CreateInvoice    func(childComplexity int, input model.NewInvoice) int
 		UpdateInvoice    func(childComplexity int, id uuid.UUID, input model.NewInvoice) int
 		AddItemToInvoice func(childComplexity int, invoice uuid.UUID, item uuid.UUID, options postgres.Jsonb) int
@@ -132,13 +133,14 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		InvoiceUpdated func(childComplexity int, id uuid.UUID) int
+		InvoiceUpdated func(childComplexity int, id *uuid.UUID) int
 	}
 }
 
 type MutationResolver interface {
 	CreateItem(ctx context.Context, input model.NewItem) (*model.Item, error)
 	UpdateItem(ctx context.Context, id uuid.UUID, input model.NewItem) (*model.Item, error)
+	ActiveInvoice(ctx context.Context, input *model.NewInvoice) (*model.Invoice, error)
 	CreateInvoice(ctx context.Context, input model.NewInvoice) (*model.Invoice, error)
 	UpdateInvoice(ctx context.Context, id uuid.UUID, input model.NewInvoice) (*model.Invoice, error)
 	AddItemToInvoice(ctx context.Context, invoice uuid.UUID, item uuid.UUID, options postgres.Jsonb) (*model.Invoice, error)
@@ -148,7 +150,7 @@ type QueryResolver interface {
 	Invoices(ctx context.Context, paging *model.Paging) ([]model.Invoice, error)
 }
 type SubscriptionResolver interface {
-	InvoiceUpdated(ctx context.Context, id uuid.UUID) (<-chan *model.Invoice, error)
+	InvoiceUpdated(ctx context.Context, id *uuid.UUID) (<-chan *model.Invoice, error)
 }
 
 type executableSchema struct {
@@ -547,6 +549,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateItem(childComplexity, args["id"].(uuid.UUID), args["input"].(model.NewItem)), true
 
+	case "Mutation.ActiveInvoice":
+		if e.complexity.Mutation.ActiveInvoice == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_activeInvoice_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ActiveInvoice(childComplexity, args["input"].(*model.NewInvoice)), true
+
 	case "Mutation.CreateInvoice":
 		if e.complexity.Mutation.CreateInvoice == nil {
 			break
@@ -617,7 +631,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Subscription.InvoiceUpdated(childComplexity, args["id"].(uuid.UUID)), true
+		return e.complexity.Subscription.InvoiceUpdated(childComplexity, args["id"].(*uuid.UUID)), true
 
 	}
 	return 0, false
@@ -869,13 +883,14 @@ type Mutation {
   createItem(input: NewItem!)                               : Item!
   updateItem(id: ID!, input: NewItem!)                      : Item!
 
+  activeInvoice(input: NewInvoice)                         : Invoice!
   createInvoice(input: NewInvoice!)                         : Invoice!
   updateInvoice(id: ID!, input: NewInvoice!)                : Invoice!
   addItemToInvoice(invoice: ID!, item: ID!, options: JSON!) : Invoice!
 }
 
 type Subscription {
-  invoiceUpdated(id: ID!) : Invoice!
+  invoiceUpdated(id: ID)                                    : Invoice!
 }
 `},
 )
@@ -883,6 +898,20 @@ type Subscription {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_activeInvoice_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.NewInvoice
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalONewInvoice2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐNewInvoice(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_addItemToInvoice_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1031,9 +1060,9 @@ func (ec *executionContext) field_Query_items_args(ctx context.Context, rawArgs 
 func (ec *executionContext) field_Subscription_invoiceUpdated_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 uuid.UUID
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2421,6 +2450,39 @@ func (ec *executionContext) _Mutation_updateItem(ctx context.Context, field grap
 	return ec.marshalNItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_activeInvoice(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_activeInvoice_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ActiveInvoice(rctx, args["input"].(*model.NewInvoice))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Invoice)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInvoice2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoice(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createInvoice(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -2653,7 +2715,7 @@ func (ec *executionContext) _Subscription_invoiceUpdated(ctx context.Context, fi
 	// FIXME: subscriptions are missing request middleware stack https://github.com/99designs/gqlgen/issues/259
 	//          and Tracer stack
 	rctx := ctx
-	results, err := ec.resolvers.Subscription().InvoiceUpdated(rctx, args["id"].(uuid.UUID))
+	results, err := ec.resolvers.Subscription().InvoiceUpdated(rctx, args["id"].(*uuid.UUID))
 	if err != nil {
 		ec.Error(ctx, err)
 		return nil
@@ -4114,6 +4176,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "activeInvoice":
+			out.Values[i] = ec._Mutation_activeInvoice(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "createInvoice":
 			out.Values[i] = ec._Mutation_createInvoice(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -5194,6 +5261,18 @@ func (ec *executionContext) marshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondin�
 		return graphql.Null
 	}
 	return ec.marshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalONewInvoice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐNewInvoice(ctx context.Context, v interface{}) (model.NewInvoice, error) {
+	return ec.unmarshalInputNewInvoice(ctx, v)
+}
+
+func (ec *executionContext) unmarshalONewInvoice2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐNewInvoice(ctx context.Context, v interface{}) (*model.NewInvoice, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalONewInvoice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐNewInvoice(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOPaging2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐPaging(ctx context.Context, v interface{}) (model.Paging, error) {

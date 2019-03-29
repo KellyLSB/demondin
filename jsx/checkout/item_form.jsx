@@ -29,16 +29,18 @@ export default class ItemForm extends React.Component {
 			return state
 		} );
 
-		console.log(e, key, data);
-		debugger
+		console.log(e, option.key, data);
 	}
 
 	onSubmit(e, updateInvoice) {
 		e.preventDefault()
 
-		var options = this.state.values.map((key, value) => ( {
-			optionTypeID: value,
-			values: value,
+		console.log(this.state.values);	
+		debugger
+
+		var options = Object.keys(this.state.values).map((key) => ( {
+			optionTypeID: key,
+			values: this.state.values[key],
 		} ))
 
 		updateInvoice({ variables: {

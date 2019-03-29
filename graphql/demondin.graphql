@@ -142,11 +142,12 @@ type Mutation {
   createItem(input: NewItem!)                               : Item!
   updateItem(id: ID!, input: NewItem!)                      : Item!
 
+  activeInvoice(input: NewInvoice)                         : Invoice!
   createInvoice(input: NewInvoice!)                         : Invoice!
   updateInvoice(id: ID!, input: NewInvoice!)                : Invoice!
   addItemToInvoice(invoice: ID!, item: ID!, options: JSON!) : Invoice!
 }
 
 type Subscription {
-  invoiceUpdated(id: ID!) : Invoice!
+  invoiceUpdated(id: ID)                                    : Invoice!
 }

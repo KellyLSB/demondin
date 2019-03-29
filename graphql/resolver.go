@@ -138,6 +138,53 @@ func (r *mutationResolver) UpdateItem(
 }
 
 
+func (r *mutationResolver) ActiveInvoice(
+	ctx context.Context,
+	input *model.NewInvoice,
+) (
+	*model.Invoice,
+	error,
+) {
+	var invoice model.Invoice
+	var err error
+
+	dbh(func(db *gorm.DB) {
+		invoiceUUID := r.Session.Get("demondin.activeInvoiceUUID")		
+		if invoiceUUID != nil {
+			invoiceUUID = invoiceUUID.(uuid.UUID)
+		}
+
+		if input != nil && input.ID != nil && len(*input.ID) < 1 {
+			invoiceUUID = input.ID
+		}
+
+		if invoiceUUID == nil {		
+			err = gormErrors(db.Create(&invoice))
+		} else {
+			err = gormErrors(db.First(&invoice, "id = ?", invoiceUUID))
+		}	
+	})
+
+	// Copy input into the invoice
+	// @TODO: verify updating with\/out associations
+	err = pipeInput(&input, &invoice)
+	
+	if err != nil {
+	  return nil, err
+	}
+
+	// Save the resulting model
+	dbh(func(db *gorm.DB) {
+	  err = gormErrors(db.Save(&invoice))
+	})
+
+
+	r.Session.Set("demondin.activeInvoiceUUID", invoice.ID)
+
+	return &invoice, err
+}
+
+
 func (r *mutationResolver) CreateInvoice(
 	ctx context.Context, 
 	input model.NewInvoice,
@@ -312,7 +359,7 @@ type subscriptionResolver struct{ *Resolver }
 
 func (r *subscriptionResolver) InvoiceUpdated(
 	ctx context.Context, 
-	id uuid.UUID,
+	id *uuid.UUID,
 ) (<-chan *model.Invoice, error) {
 	ch := make(chan *model.Invoice)
 	Subscriptions.Invoice = append(Subscriptions.Invoice, ch)

@@ -1,0 +1,16 @@
+mutation ActiveInvoice {
+	activeInvoice() {
+		id
+		items {
+			id
+			itemID
+			itemPriceID
+			options {
+				optionType {
+          				key
+        			}
+				values
+			}
+		}	
+	}
+}
