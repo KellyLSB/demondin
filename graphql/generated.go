@@ -124,7 +124,7 @@ type ComplexityRoot struct {
 		ActiveInvoice    func(childComplexity int, input *model.NewInvoice) int
 		CreateInvoice    func(childComplexity int, input model.NewInvoice) int
 		UpdateInvoice    func(childComplexity int, id uuid.UUID, input model.NewInvoice) int
-		AddItemToInvoice func(childComplexity int, invoice uuid.UUID, item uuid.UUID, options postgres.Jsonb) int
+		AddItemToInvoice func(childComplexity int, invoice uuid.UUID, item uuid.UUID, options *postgres.Jsonb) int
 	}
 
 	Query struct {
@@ -143,7 +143,7 @@ type MutationResolver interface {
 	ActiveInvoice(ctx context.Context, input *model.NewInvoice) (*model.Invoice, error)
 	CreateInvoice(ctx context.Context, input model.NewInvoice) (*model.Invoice, error)
 	UpdateInvoice(ctx context.Context, id uuid.UUID, input model.NewInvoice) (*model.Invoice, error)
-	AddItemToInvoice(ctx context.Context, invoice uuid.UUID, item uuid.UUID, options postgres.Jsonb) (*model.Invoice, error)
+	AddItemToInvoice(ctx context.Context, invoice uuid.UUID, item uuid.UUID, options *postgres.Jsonb) (*model.Invoice, error)
 }
 type QueryResolver interface {
 	Items(ctx context.Context, paging *model.Paging) ([]model.Item, error)
@@ -595,7 +595,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddItemToInvoice(childComplexity, args["invoice"].(uuid.UUID), args["item"].(uuid.UUID), args["options"].(postgres.Jsonb)), true
+		return e.complexity.Mutation.AddItemToInvoice(childComplexity, args["invoice"].(uuid.UUID), args["item"].(uuid.UUID), args["options"].(*postgres.Jsonb)), true
 
 	case "Query.Items":
 		if e.complexity.Query.Items == nil {
@@ -886,7 +886,7 @@ type Mutation {
   activeInvoice(input: NewInvoice)                         : Invoice!
   createInvoice(input: NewInvoice!)                         : Invoice!
   updateInvoice(id: ID!, input: NewInvoice!)                : Invoice!
-  addItemToInvoice(invoice: ID!, item: ID!, options: JSON!) : Invoice!
+  addItemToInvoice(invoice: ID!, item: ID!, options: JSON) : Invoice!
 }
 
 type Subscription {
@@ -932,9 +932,9 @@ func (ec *executionContext) field_Mutation_addItemToInvoice_args(ctx context.Con
 		}
 	}
 	args["item"] = arg1
-	var arg2 postgres.Jsonb
+	var arg2 *postgres.Jsonb
 	if tmp, ok := rawArgs["options"]; ok {
-		arg2, err = ec.unmarshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, tmp)
+		arg2, err = ec.unmarshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2568,7 +2568,7 @@ func (ec *executionContext) _Mutation_addItemToInvoice(ctx context.Context, fiel
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddItemToInvoice(rctx, args["invoice"].(uuid.UUID), args["item"].(uuid.UUID), args["options"].(postgres.Jsonb))
+		return ec.resolvers.Mutation().AddItemToInvoice(rctx, args["invoice"].(uuid.UUID), args["item"].(uuid.UUID), args["options"].(*postgres.Jsonb))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {

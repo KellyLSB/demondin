@@ -1,0 +1,16 @@
+mutation AddItemToInvoice {
+	addItemToInvoice(invoice: "517ee333-300b-4ec0-a278-0885961bd3f5", item: "b24cd822-99c9-4898-a3ee-c325ac309e0b") {
+		id
+		items {
+			id
+			itemID
+			itemPriceID
+			options {
+				optionType {
+          				key
+        			}
+				values
+			}
+		}	
+	}
+}

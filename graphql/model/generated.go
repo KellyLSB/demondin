@@ -7,26 +7,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/stripe/stripe-go"
 )
 
 type Postgresql interface {
 	IsPostgresql()
 }
 
-type Invoice struct {
-	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt   time.Time      `json:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt"`
-	DeletedAt   *time.Time     `json:"deletedAt"`
-	CardToken   *string        `json:"cardToken"`
-	ChargeToken *string        `json:"chargeToken"`
-	CardData    *stripe.Card   `json:"cardData"`
-	ChargeData  *stripe.Charge `json:"chargeData"`
-	Items       []InvoiceItem  `json:"items"`
-}
 
-func (Invoice) IsPostgresql() {}
 
 type InvoiceItem struct {
 	ID          uuid.UUID    `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`

@@ -263,57 +263,29 @@ func (r *mutationResolver) UpdateInvoice(
 
 func (r *mutationResolver) AddItemToInvoice(
 	ctx context.Context, 
-	invoiceID, itemID uuid.UUID, 
-	input postgres.Jsonb,
+	invoiceUUID, itemUUID uuid.UUID, 
+	input *postgres.Jsonb,
 ) (
 	invoice *model.Invoice, 
 	err error,
 ) {
-	var item 	model.Item	
-	
 	dbh(func(db *gorm.DB) {
-		err = gormErrors(db.First(&item, "id = ?", itemID))
-	})
-	
-	if err != nil {
-		return
-	}
+		// Fetch first invoice by UUID
+		invoice = model.FetchInvoice(db, invoiceUUID)
 
-	//invoiceItem := model.InvoiceItem{
-	//	InvoiceID: invoiceID, ItemID: itemID,		
-	//	ItemPriceID: item.CurrentPrice().ID,		
-	//}
-	
+		// Add Item By UUID
+		invoice.AddItemByUUID(db, itemUUID)
+	})
 
-	// Fetch first invoice by UUID
-	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.First(invoice, "id = ?", invoiceID))
-	})
-	
-	if err != nil {
-	  return
-	}
-	
-	// Copy input into the invoice
-	// @TODO: verify updating with\/out associations
-	err = pipeInput(&input, invoice)
-	
-	if err != nil {
-	  return
-	}
-	
-	// Save the resulting model
-	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.Save(invoice))
-	})
+	fmt.Printf("%+v\n", input)
 
 	// Inform subscriptions of update
 	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
 	for _, sub := range Subscriptions.Invoice {
 		sub <- invoice
 	}
-	
-	return
+
+	return invoice, err
 }
 
 //# #    #  ##
@@ -390,8 +362,8 @@ func (r *subscriptionResolver) InvoiceUpdated(
 //#  # #
 
 func gormErrors(db *gorm.DB) (err error) {
-  for _, e := range db.GetErrors() {
-	  err = fmt.Errorf("%s\n%s", err, e)
+	for _, e := range db.GetErrors() {
+		err = fmt.Errorf("%s\n%s", err, e)
 	}
 	
 	return

@@ -5,7 +5,7 @@ import (
   //"sort"
 	"sort"
 	"time"
-	//"fmt"
+	"fmt"
 	"io"
 	"strconv"
 	"encoding/json"
@@ -15,6 +15,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/99designs/gqlgen/graphql"
+"github.com/jinzhu/gorm"
 
 "github.com/stripe/stripe-go"
 )
@@ -32,11 +33,29 @@ type Item struct {
 	Prices      []ItemPrice      `json:"prices" gorm:"foreignkey:ItemID"`
 }
 
+func FetchItem(tx *gorm.DB, uuid uuid.UUID) (*Item) {
+	var item Item	
+	tx.First(&item, "id = ?", uuid)
+	return &item
+}
+
+func (i *Item) LoadOptions(tx *gorm.DB) *Item {
+	tx.Model(i).Association("Options").Find(&i.Options)
+	return i
+}
+
+func (i *Item) LoadPrices(tx *gorm.DB) *Item {
+	tx.Model(i).Association("Prices").Find(&i.Prices)
+	return i
+}
+
 func (i *Item) CurrentPrice() *ItemPrice {
 	sort.Slice(i.Prices, func(x, y int) bool {
 		sb :=        i.Prices[x].AfterDate.After(i.Prices[y].AfterDate)
 		return sb && i.Prices[x].BeforeDate.Before(i.Prices[y].BeforeDate)
 	})
+
+	fmt.Printf("%+v\n", i)
 
 	now := time.Now()
 	for _, price := range i.Prices {
