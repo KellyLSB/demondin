@@ -27,9 +27,12 @@ func FetchInvoice(tx *gorm.DB, uuid uuid.UUID) (*Invoice) {
 	return &invoice
 }
 
+func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
+	tx.Model(i).Association("Items").Find(&i.Items)
+	return i
+}
+
 func (i *Invoice) AddItem(tx *gorm.DB, item *Item) (*Item) {
-	fmt.Printf("\n%+v\n", item.CurrentPrice())
-	
 	tx.Model(i).Association("Items").Append(&InvoiceItem{
 		InvoiceID: i.ID, ItemID: item.ID,		
 		ItemPriceID: item.LoadPrices(tx).CurrentPrice().ID,

@@ -13,21 +13,6 @@ type Postgresql interface {
 	IsPostgresql()
 }
 
-
-
-type InvoiceItem struct {
-	ID          uuid.UUID    `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt   time.Time    `json:"createdAt"`
-	UpdatedAt   time.Time    `json:"updatedAt"`
-	DeletedAt   *time.Time   `json:"deletedAt"`
-	InvoiceID   uuid.UUID    `json:"invoiceID" gorm:"type:uuid"`
-	ItemID      uuid.UUID    `json:"itemID" gorm:"type:uuid"`
-	ItemPriceID uuid.UUID    `json:"itemPriceID" gorm:"type:uuid"`
-	Options     []ItemOption `json:"options"`
-}
-
-func (InvoiceItem) IsPostgresql() {}
-
 type ItemOption struct {
 	ID            uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	CreatedAt     time.Time      `json:"createdAt"`

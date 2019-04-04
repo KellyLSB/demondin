@@ -31,6 +31,7 @@ type ItemOptionType implements Postgresql {
   updatedAt:      DateTime!
   deletedAt:      DateTime
   
+  item:           Item
   itemID:         ID!
   key:            String!
   valueType:      String!
@@ -43,6 +44,7 @@ type ItemOption implements Postgresql {
   updatedAt:      DateTime!
   deletedAt:      DateTime
 
+  invoiceItem:    InvoiceItem
   invoiceItemID:  ID!
   optionType:     ItemOptionType!
   values:         String!
@@ -54,6 +56,7 @@ type ItemPrice implements Postgresql {
   updatedAt:      DateTime!
   deletedAt:      DateTime
   
+  item:           Item
   itemID:         ID!
   price:          Int!
   beforeDate:     DateTime!
@@ -81,8 +84,11 @@ type InvoiceItem implements Postgresql {
   updatedAt:      DateTime!
   deletedAt:      DateTime
 
+  invoice:        Invoice
   invoiceID:      ID!
+  item:           Item
   itemID:         ID!
+  itemPrice:      ItemPrice
   itemPriceID:    ID!
   options:        [ItemOption!]
 }
