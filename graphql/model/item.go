@@ -15,9 +15,9 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/99designs/gqlgen/graphql"
-"github.com/jinzhu/gorm"
+	"github.com/jinzhu/gorm"
 
-"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go"
 )
 
 type Item struct {

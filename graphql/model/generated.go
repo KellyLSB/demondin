@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/stripe/stripe-go"
 )
 
 type Postgresql interface {
