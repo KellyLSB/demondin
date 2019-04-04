@@ -66,8 +66,11 @@ type ComplexityRoot struct {
 		CreatedAt   func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 		DeletedAt   func(childComplexity int) int
+		Invoice     func(childComplexity int) int
 		InvoiceID   func(childComplexity int) int
+		Item        func(childComplexity int) int
 		ItemID      func(childComplexity int) int
+		ItemPrice   func(childComplexity int) int
 		ItemPriceID func(childComplexity int) int
 		Options     func(childComplexity int) int
 	}
@@ -90,6 +93,7 @@ type ComplexityRoot struct {
 		CreatedAt     func(childComplexity int) int
 		UpdatedAt     func(childComplexity int) int
 		DeletedAt     func(childComplexity int) int
+		InvoiceItem   func(childComplexity int) int
 		InvoiceItemID func(childComplexity int) int
 		OptionType    func(childComplexity int) int
 		Values        func(childComplexity int) int
@@ -100,6 +104,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
+		Item      func(childComplexity int) int
 		ItemID    func(childComplexity int) int
 		Key       func(childComplexity int) int
 		ValueType func(childComplexity int) int
@@ -111,6 +116,7 @@ type ComplexityRoot struct {
 		CreatedAt  func(childComplexity int) int
 		UpdatedAt  func(childComplexity int) int
 		DeletedAt  func(childComplexity int) int
+		Item       func(childComplexity int) int
 		ItemID     func(childComplexity int) int
 		Price      func(childComplexity int) int
 		BeforeDate func(childComplexity int) int
@@ -259,6 +265,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InvoiceItem.DeletedAt(childComplexity), true
 
+	case "InvoiceItem.Invoice":
+		if e.complexity.InvoiceItem.Invoice == nil {
+			break
+		}
+
+		return e.complexity.InvoiceItem.Invoice(childComplexity), true
+
 	case "InvoiceItem.InvoiceID":
 		if e.complexity.InvoiceItem.InvoiceID == nil {
 			break
@@ -266,12 +279,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InvoiceItem.InvoiceID(childComplexity), true
 
+	case "InvoiceItem.Item":
+		if e.complexity.InvoiceItem.Item == nil {
+			break
+		}
+
+		return e.complexity.InvoiceItem.Item(childComplexity), true
+
 	case "InvoiceItem.ItemID":
 		if e.complexity.InvoiceItem.ItemID == nil {
 			break
 		}
 
 		return e.complexity.InvoiceItem.ItemID(childComplexity), true
+
+	case "InvoiceItem.ItemPrice":
+		if e.complexity.InvoiceItem.ItemPrice == nil {
+			break
+		}
+
+		return e.complexity.InvoiceItem.ItemPrice(childComplexity), true
 
 	case "InvoiceItem.ItemPriceID":
 		if e.complexity.InvoiceItem.ItemPriceID == nil {
@@ -385,6 +412,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ItemOption.DeletedAt(childComplexity), true
 
+	case "ItemOption.InvoiceItem":
+		if e.complexity.ItemOption.InvoiceItem == nil {
+			break
+		}
+
+		return e.complexity.ItemOption.InvoiceItem(childComplexity), true
+
 	case "ItemOption.InvoiceItemID":
 		if e.complexity.ItemOption.InvoiceItemID == nil {
 			break
@@ -433,6 +467,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ItemOptionType.DeletedAt(childComplexity), true
+
+	case "ItemOptionType.Item":
+		if e.complexity.ItemOptionType.Item == nil {
+			break
+		}
+
+		return e.complexity.ItemOptionType.Item(childComplexity), true
 
 	case "ItemOptionType.ItemID":
 		if e.complexity.ItemOptionType.ItemID == nil {
@@ -489,6 +530,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ItemPrice.DeletedAt(childComplexity), true
+
+	case "ItemPrice.Item":
+		if e.complexity.ItemPrice.Item == nil {
+			break
+		}
+
+		return e.complexity.ItemPrice.Item(childComplexity), true
 
 	case "ItemPrice.ItemID":
 		if e.complexity.ItemPrice.ItemID == nil {
@@ -772,6 +820,7 @@ type ItemOptionType implements Postgresql {
   updatedAt:      DateTime!
   deletedAt:      DateTime
   
+  item:           Item
   itemID:         ID!
   key:            String!
   valueType:      String!
@@ -784,6 +833,7 @@ type ItemOption implements Postgresql {
   updatedAt:      DateTime!
   deletedAt:      DateTime
 
+  invoiceItem:    InvoiceItem
   invoiceItemID:  ID!
   optionType:     ItemOptionType!
   values:         String!
@@ -795,6 +845,7 @@ type ItemPrice implements Postgresql {
   updatedAt:      DateTime!
   deletedAt:      DateTime
   
+  item:           Item
   itemID:         ID!
   price:          Int!
   beforeDate:     DateTime!
@@ -822,8 +873,11 @@ type InvoiceItem implements Postgresql {
   updatedAt:      DateTime!
   deletedAt:      DateTime
 
+  invoice:        Invoice
   invoiceID:      ID!
+  item:           Item
   itemID:         ID!
+  itemPrice:      ItemPrice
   itemPriceID:    ID!
   options:        [ItemOption!]
 }
@@ -1423,6 +1477,29 @@ func (ec *executionContext) _InvoiceItem_deletedAt(ctx context.Context, field gr
 	return ec.marshalODateTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _InvoiceItem_invoice(ctx context.Context, field graphql.CollectedField, obj *model.InvoiceItem) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "InvoiceItem",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Invoice, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Invoice)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOInvoice2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoice(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _InvoiceItem_invoiceID(ctx context.Context, field graphql.CollectedField, obj *model.InvoiceItem) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -1449,6 +1526,29 @@ func (ec *executionContext) _InvoiceItem_invoiceID(ctx context.Context, field gr
 	return ec.marshalNID2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _InvoiceItem_item(ctx context.Context, field graphql.CollectedField, obj *model.InvoiceItem) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "InvoiceItem",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Item, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Item)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItem(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _InvoiceItem_itemID(ctx context.Context, field graphql.CollectedField, obj *model.InvoiceItem) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -1473,6 +1573,29 @@ func (ec *executionContext) _InvoiceItem_itemID(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNID2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InvoiceItem_itemPrice(ctx context.Context, field graphql.CollectedField, obj *model.InvoiceItem) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "InvoiceItem",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ItemPrice, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ItemPrice)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOItemPrice2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemPrice(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _InvoiceItem_itemPriceID(ctx context.Context, field graphql.CollectedField, obj *model.InvoiceItem) graphql.Marshaler {
@@ -1876,6 +1999,29 @@ func (ec *executionContext) _ItemOption_deletedAt(ctx context.Context, field gra
 	return ec.marshalODateTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ItemOption_invoiceItem(ctx context.Context, field graphql.CollectedField, obj *model.ItemOption) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "ItemOption",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InvoiceItem, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.InvoiceItem)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOInvoiceItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ItemOption_invoiceItemID(ctx context.Context, field graphql.CollectedField, obj *model.ItemOption) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -2053,6 +2199,29 @@ func (ec *executionContext) _ItemOptionType_deletedAt(ctx context.Context, field
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalODateTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemOptionType_item(ctx context.Context, field graphql.CollectedField, obj *model.ItemOptionType) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "ItemOptionType",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Item, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Item)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemOptionType_itemID(ctx context.Context, field graphql.CollectedField, obj *model.ItemOptionType) graphql.Marshaler {
@@ -2255,6 +2424,29 @@ func (ec *executionContext) _ItemPrice_deletedAt(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalODateTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemPrice_item(ctx context.Context, field graphql.CollectedField, obj *model.ItemPrice) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "ItemPrice",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Item, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Item)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemPrice_itemID(ctx context.Context, field graphql.CollectedField, obj *model.ItemPrice) graphql.Marshaler {
@@ -3889,16 +4081,22 @@ func (ec *executionContext) _InvoiceItem(ctx context.Context, sel ast.SelectionS
 			}
 		case "deletedAt":
 			out.Values[i] = ec._InvoiceItem_deletedAt(ctx, field, obj)
+		case "invoice":
+			out.Values[i] = ec._InvoiceItem_invoice(ctx, field, obj)
 		case "invoiceID":
 			out.Values[i] = ec._InvoiceItem_invoiceID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "item":
+			out.Values[i] = ec._InvoiceItem_item(ctx, field, obj)
 		case "itemID":
 			out.Values[i] = ec._InvoiceItem_itemID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "itemPrice":
+			out.Values[i] = ec._InvoiceItem_itemPrice(ctx, field, obj)
 		case "itemPriceID":
 			out.Values[i] = ec._InvoiceItem_itemPriceID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4008,6 +4206,8 @@ func (ec *executionContext) _ItemOption(ctx context.Context, sel ast.SelectionSe
 			}
 		case "deletedAt":
 			out.Values[i] = ec._ItemOption_deletedAt(ctx, field, obj)
+		case "invoiceItem":
+			out.Values[i] = ec._ItemOption_invoiceItem(ctx, field, obj)
 		case "invoiceItemID":
 			out.Values[i] = ec._ItemOption_invoiceItemID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4062,6 +4262,8 @@ func (ec *executionContext) _ItemOptionType(ctx context.Context, sel ast.Selecti
 			}
 		case "deletedAt":
 			out.Values[i] = ec._ItemOptionType_deletedAt(ctx, field, obj)
+		case "item":
+			out.Values[i] = ec._ItemOptionType_item(ctx, field, obj)
 		case "itemID":
 			out.Values[i] = ec._ItemOptionType_itemID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4118,6 +4320,8 @@ func (ec *executionContext) _ItemPrice(ctx context.Context, sel ast.SelectionSet
 			}
 		case "deletedAt":
 			out.Values[i] = ec._ItemPrice_deletedAt(ctx, field, obj)
+		case "item":
+			out.Values[i] = ec._ItemPrice_item(ctx, field, obj)
 		case "itemID":
 			out.Values[i] = ec._ItemPrice_itemID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -5166,6 +5370,39 @@ func (ec *executionContext) marshalOID2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋv
 	return ec.marshalOID2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, sel, *v)
 }
 
+func (ec *executionContext) marshalOInvoice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v model.Invoice) graphql.Marshaler {
+	return ec._Invoice(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOInvoice2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v *model.Invoice) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Invoice(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOInvoiceItem2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx context.Context, sel ast.SelectionSet, v model.InvoiceItem) graphql.Marshaler {
+	return ec._InvoiceItem(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOInvoiceItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceItem) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._InvoiceItem(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOItem2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v model.Item) graphql.Marshaler {
+	return ec._Item(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v *model.Item) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Item(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOItemOption2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx context.Context, sel ast.SelectionSet, v []model.ItemOption) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -5238,6 +5475,17 @@ func (ec *executionContext) marshalOItemOptionType2ᚕgithubᚗcomᚋKellyLSBᚋ
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalOItemPrice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemPrice(ctx context.Context, sel ast.SelectionSet, v model.ItemPrice) graphql.Marshaler {
+	return ec._ItemPrice(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOItemPrice2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemPrice(ctx context.Context, sel ast.SelectionSet, v *model.ItemPrice) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ItemPrice(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx context.Context, v interface{}) (postgres.Jsonb, error) {

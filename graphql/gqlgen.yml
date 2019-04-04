@@ -20,10 +20,9 @@ models:
     model: github.com/KellyLSB/demondin/graphql/model.DateTime
   ID:
     model: github.com/KellyLSB/demondin/graphql/model.ID
-  Item:
-    model: github.com/KellyLSB/demondin/graphql/model.Item
   StripeCard:
     model: github.com/KellyLSB/demondin/graphql/model.StripeCard
   StripeCharge:
     model: github.com/KellyLSB/demondin/graphql/model.StripeCharge
-  
+  Item:
+    model: github.com/KellyLSB/demondin/graphql/model.Item
