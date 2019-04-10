@@ -17,7 +17,7 @@ export default class Cart extends React.Component {
         <Header>Badges</Header>
 					<Subscription subscription={gql`
 					subscription InvoiceUpdated {
-						invoiceUpdated() {
+						invoiceUpdated {
 							id
 							items {
 								id
@@ -25,16 +25,21 @@ export default class Cart extends React.Component {
 								itemPriceID
 							}
 						}
-	 				}
-					`}>
-						{({ data: { invoice }, loading }) => (
-							<React.Fragment>
-								{loading ? "Loading" : invoice.id}
-								{invoice.items.map((item) =>
-									<span>{item.id}</span>
-								)}
-							</React.Fragment>
-    				)}
+	 				}`}>
+						{({ data, loading }) => {
+							var invoice = data ? data.invoice : false;
+							
+							if (!loading && invoice) return (
+								<React.Fragment>
+									{invoice.id}
+									{invoice.items.map((item) =>
+										<span>{item.id}</span>
+									)}
+								</React.Fragment>
+    					)
+
+							return (<span>Loading</span>);
+						}	}
 					</Subscription>
  	     </Grid.Row>
  	   )
