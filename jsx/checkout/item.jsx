@@ -6,7 +6,6 @@ import { Divider, Grid, Form,
           Icon, Label 
 			 } from 'semantic-ui-react'
 
-import { CartContext } from './cart_context'
 import ItemForm from './item_form'
 
 export default class Item extends React.Component {
@@ -48,18 +47,18 @@ export default class Item extends React.Component {
   }
   
   printPrice() {
-    var price = this.currentPrice();
+	var price = this.currentPrice();
 
-		if (price) {		
-			console.log(price);
-    	if('taxable' in price && price.taxable) {
-    	  return this.toDollars(price.price) + " + Tax"
-    	}
+	if (price) {		
+		console.log(price);
+    		if('taxable' in price && price.taxable) {
+    			return this.toDollars(price.price) + " + Tax"
+    		}
     
-    	return this.toDollars(price.price)
-		}
+	    	return this.toDollars(price.price)
+	}
 
-		return "Undefined"
+	return "Undefined"
   }
 
   render() {
@@ -74,16 +73,12 @@ export default class Item extends React.Component {
 		          <Label tag>{this.printPrice()}</Label>
 		        </Grid.Column>
 		        <Grid.Column textAlign='right'>
-		          <CartContext.Consumer>
-		            {(cartContext) => (
-		              <Button
+		          <Button
 		                primary icon labelPosition='left'
 		                onClick={this.onToggleForm}>
 		                <Icon name='shop' />
 		                Customize
 		              </Button>
-		            ) }
-		          </CartContext.Consumer>
 		        </Grid.Column>
 					</Grid.Row>
 					{ this.state.hideForm ? null : (

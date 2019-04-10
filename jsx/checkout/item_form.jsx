@@ -72,6 +72,7 @@ export default class ItemForm extends React.Component {
 			`}>
 				{(updateInvoice) => (
 					<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
+						//No need to subscribe to activeSessionInvoice (it's the session :P)
 						{this.state.data.options.map((option) => 
 							<ItemOption key={option.key} option={option}
 													value={this.state[option.key]}

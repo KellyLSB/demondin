@@ -8,7 +8,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"gopkg.in/macaron.v1"
-  "github.com/go-macaron/session"
+  	"github.com/go-macaron/session"
+	"github.com/gorilla/websocket"
 
 	"github.com/99designs/gqlgen/handler"
 	"github.com/KellyLSB/demondin/graphql"
@@ -91,11 +92,18 @@ func main() {
 	m.Get("/playground", handler.Playground("GraphQL playground", "/graphql"))
 	
 	m.Any("/graphql", func(s session.Store, w http.ResponseWriter, r *http.Request) {
-		handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{
-			Resolvers: &graphql.Resolver{
-				Session: s,
-			},
-		}))(w, r)
+		handler.GraphQL(
+			graphql.NewExecutableSchema(graphql.Config{
+				Resolvers: &graphql.Resolver{
+					Session: s,
+				},
+			}),
+			handler.WebsocketUpgrader(websocket.Upgrader{
+				CheckOrigin: func(r *http.Request) bool {
+					return true
+				},
+			}),
+		)(w, r)
 	})
 
 
