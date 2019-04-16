@@ -49,7 +49,7 @@ const link = ApolloLink.from([
 
 // using the ability to split links, you can send data to each link
 // depending on what kind of operation is being sent
-const client = new ApolloClient({ link, cache: new InMemoryCache() });
+const client = new ApolloClient({ link: link, cache: new InMemoryCache() });
 
 // Style and Elements
 import { Container, Grid, Segment } from 'semantic-ui-react';

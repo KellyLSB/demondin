@@ -30,6 +30,7 @@ export default class ItemForm extends React.Component {
 		} );
 
 		console.log(e, option.key, data);
+		console.log(this.state);
 	}
 
 	onSubmit(e, updateInvoice) {
@@ -44,7 +45,13 @@ export default class ItemForm extends React.Component {
 		} ))
 
 		updateInvoice({ variables: {
-			input: { options: options }
+			input: { 
+				items: [{
+					itemID: this.props.item,
+					itemPriceID: this.props.price,
+					options: options
+				}] 
+			}
 		} })
 	}
 
@@ -53,8 +60,8 @@ export default class ItemForm extends React.Component {
 
 		return (
 			 <Mutation mutation={gql`
-				mutation updateInvoice($id: ID!, $input: NewInvoice!) {
-					updateInvoice(id: $id, input: $input) {
+				mutation activeInvoice($input: NewInvoice!) {
+					activeInvoice(input: $input) {
 						id
 						items {
 							id

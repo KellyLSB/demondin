@@ -27,13 +27,14 @@ export default class Cart extends React.Component {
 						}
 	 				}`}>
 						{({ data, loading }) => {
-							var invoice = data ? data.invoice : false;
+							var invoice = data ? data.invoiceUpdated : false;
+							console.log(invoice);
 							
 							if (!loading && invoice) return (
 								<React.Fragment>
 									{invoice.id}
 									{invoice.items.map((item) =>
-										<span>{item.id}</span>
+										<span key={item.id} style={{border: "underline #000 solid"}}>{item.id}</span>
 									)}
 								</React.Fragment>
     					)
