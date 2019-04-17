@@ -47,18 +47,18 @@ export default class Item extends React.Component {
   }
   
   printPrice() {
-	var price = this.currentPrice();
+		var price = this.currentPrice();
 
-	if (price) {		
-		console.log(price);
-    		if('taxable' in price && price.taxable) {
-    			return this.toDollars(price.price) + " + Tax"
-    		}
-    
-	    	return this.toDollars(price.price)
-	}
+		if (price) {		
+			console.log(price);
+		  		if('taxable' in price && price.taxable) {
+		  			return this.toDollars(price.price) + " + Tax"
+		  		}
+		  
+			  	return this.toDollars(price.price)
+		}
 
-	return "Undefined"
+		return "Undefined"
   }
 
   render() {
@@ -73,12 +73,11 @@ export default class Item extends React.Component {
 		          <Label tag>{this.printPrice()}</Label>
 		        </Grid.Column>
 		        <Grid.Column textAlign='right'>
-		          <Button
-		                primary icon labelPosition='left'
-		                onClick={this.onToggleForm}>
-		                <Icon name='shop' />
-		                Customize
-		              </Button>
+		          <Button primary icon labelPosition='left'
+		          	      onClick={this.onToggleForm}>
+		            <Icon name='shop' />
+		            Customize
+		          </Button>
 		        </Grid.Column>
 					</Grid.Row>
 					{ this.state.hideForm ? null : (

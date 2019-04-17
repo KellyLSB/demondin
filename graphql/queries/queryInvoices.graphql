@@ -1,0 +1,22 @@
+query {
+ 	invoices {
+		id
+    items {
+      item {
+        id
+        name
+      }
+      itemPrice {
+        id
+        price
+      }
+      options {
+        id
+        optionType {
+          key
+        }
+        values
+      }
+    }
+	}
+}

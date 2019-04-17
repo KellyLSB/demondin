@@ -52,6 +52,7 @@ type ItemOption struct {
 	InvoiceItem   *InvoiceItem   `json:"invoiceItem"`
 	InvoiceItemID uuid.UUID      `json:"invoiceItemID" gorm:"type:uuid"`
 	OptionType    ItemOptionType `json:"optionType"`
+	OptionTypeID  uuid.UUID      `json:"optionTypeID" gorm:"type:uuid"`
 	Values        string         `json:"values"`
 }
 

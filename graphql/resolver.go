@@ -330,7 +330,16 @@ func (r *queryResolver) Invoices(
 	invoices []model.Invoice, 
 	err error,
 ) {
-	panic("not implemented")
+	dbh(func(db *gorm.DB) {
+		query := gormPaging(db.Select("*").Table("invoices"), paging)
+		query = query.Preload("Items").Preload("Items.Item").
+			Preload("Items.ItemPrice").Preload("Items.Options").
+			Preload("Items.Options.OptionType")
+                
+		err = gormErrors(query.Find(&invoices))
+	})
+	  
+	return
 }
 
 type subscriptionResolver struct{ *Resolver }

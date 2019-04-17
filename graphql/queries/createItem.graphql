@@ -3,7 +3,7 @@ mutation CreateItem {
 		name: "New Badge",
 		description: "Pure Awesome",
 		options: [
-			{key: "Badge Name", valueType: "text"},
+			{key: "Badge Name", valueType: "text", values: ""},
 			{key: "T-Shirt Size", valueType: "select", values: ["S", "M", "L"]}
 		],
 		prices: [

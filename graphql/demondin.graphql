@@ -47,6 +47,7 @@ type ItemOption implements Postgresql {
   invoiceItem:    InvoiceItem
   invoiceItemID:  ID!
   optionType:     ItemOptionType!
+  optionTypeID:   ID!
   values:         String!
 }
 

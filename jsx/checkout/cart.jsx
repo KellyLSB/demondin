@@ -21,7 +21,9 @@ export default class Cart extends React.Component {
 							id
 							items {
 								id
+								item
 								itemID
+								itemPrice
 								itemPriceID
 							}
 						}
