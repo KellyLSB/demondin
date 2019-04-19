@@ -1,10 +1,10 @@
 package model
 
 import (
-	//"fmt"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
-	//"github.com/kr/pretty"
+	"github.com/kr/pretty"
 )
 
 func FetchInvoice(tx *gorm.DB, uuid uuid.UUID) (*Invoice) {
@@ -22,7 +22,7 @@ func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
 		it.LoadOptions(tx)
 	}
 
-	//fmt.Printf("%# v", pretty.Formatter(i))
+	fmt.Printf("%# v", pretty.Formatter(i))
 
 	return i
 }

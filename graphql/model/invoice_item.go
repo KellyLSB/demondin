@@ -1,9 +1,9 @@
 package model
 
 import (
-	"fmt"
+	//"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/kr/pretty"
+	//"github.com/kr/pretty"
 )
 
 func (i *InvoiceItem) LoadItem(tx *gorm.DB) *InvoiceItem {
@@ -25,7 +25,7 @@ func (i *InvoiceItem) LoadOptions(tx *gorm.DB) *InvoiceItem {
 		o.LoadOptionType(tx)
 	}
 
-	fmt.Printf("%# v", pretty.Formatter(i))
+	//fmt.Printf("%# v", pretty.Formatter(i))
 
 	return i
 }

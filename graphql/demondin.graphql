@@ -21,8 +21,8 @@ type Item implements Postgresql {
   enabled:        Boolean!
   isBadge:        Boolean!
   
-  options:        [ItemOptionType!]
-  prices:         [ItemPrice!]!
+  options:        [ItemOptionType]
+  prices:         [ItemPrice]!
 }
 
 type ItemOptionType implements Postgresql {
@@ -46,7 +46,7 @@ type ItemOption implements Postgresql {
 
   invoiceItem:    InvoiceItem
   invoiceItemID:  ID!
-  optionType:     ItemOptionType!
+  optionType:     ItemOptionType
   optionTypeID:   ID!
   values:         String!
 }
@@ -76,7 +76,7 @@ type Invoice implements Postgresql {
   cardData:       StripeCard
   chargeData:     StripeCharge
 
-  items:          [InvoiceItem!]!
+  items:          [InvoiceItem]!
 }
 
 type InvoiceItem implements Postgresql {
@@ -91,7 +91,7 @@ type InvoiceItem implements Postgresql {
   itemID:         ID!
   itemPrice:      ItemPrice
   itemPriceID:    ID!
-  options:        [ItemOption!]
+  options:        [ItemOption]!
 }
 
 type Query {

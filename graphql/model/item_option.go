@@ -5,7 +5,7 @@ import (
 )
 
 func (o *ItemOption) LoadOptionType(tx *gorm.DB) *ItemOption {
-	//o.OptionType = new(ItemOptionType)
+	o.OptionType = new(ItemOptionType)
 	tx.Model(o).Related(o.OptionType)
 	return o
 }

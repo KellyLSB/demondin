@@ -96,6 +96,7 @@ type ComplexityRoot struct {
 		InvoiceItem   func(childComplexity int) int
 		InvoiceItemID func(childComplexity int) int
 		OptionType    func(childComplexity int) int
+		OptionTypeID  func(childComplexity int) int
 		Values        func(childComplexity int) int
 	}
 
@@ -432,6 +433,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ItemOption.OptionType(childComplexity), true
+
+	case "ItemOption.OptionTypeID":
+		if e.complexity.ItemOption.OptionTypeID == nil {
+			break
+		}
+
+		return e.complexity.ItemOption.OptionTypeID(childComplexity), true
 
 	case "ItemOption.Values":
 		if e.complexity.ItemOption.Values == nil {
@@ -810,8 +818,8 @@ type Item implements Postgresql {
   enabled:        Boolean!
   isBadge:        Boolean!
   
-  options:        [ItemOptionType!]
-  prices:         [ItemPrice!]!
+  options:        [ItemOptionType]
+  prices:         [ItemPrice]!
 }
 
 type ItemOptionType implements Postgresql {
@@ -835,7 +843,8 @@ type ItemOption implements Postgresql {
 
   invoiceItem:    InvoiceItem
   invoiceItemID:  ID!
-  optionType:     ItemOptionType!
+  optionType:     ItemOptionType
+  optionTypeID:   ID!
   values:         String!
 }
 
@@ -864,7 +873,7 @@ type Invoice implements Postgresql {
   cardData:       StripeCard
   chargeData:     StripeCharge
 
-  items:          [InvoiceItem!]!
+  items:          [InvoiceItem]!
 }
 
 type InvoiceItem implements Postgresql {
@@ -879,7 +888,7 @@ type InvoiceItem implements Postgresql {
   itemID:         ID!
   itemPrice:      ItemPrice
   itemPriceID:    ID!
-  options:        [ItemOption!]
+  options:        [ItemOption]!
 }
 
 type Query {
@@ -934,17 +943,17 @@ input Paging {
 }
 
 type Mutation {
-  createItem(input: NewItem!)                               : Item!
-  updateItem(id: ID!, input: NewItem!)                      : Item!
+  createItem(input: NewItem!)                              : Item!
+  updateItem(id: ID!, input: NewItem!)                     : Item!
 
   activeInvoice(input: NewInvoice)                         : Invoice!
-  createInvoice(input: NewInvoice!)                         : Invoice!
-  updateInvoice(id: ID!, input: NewInvoice!)                : Invoice!
+  createInvoice(input: NewInvoice!)                        : Invoice!
+  updateInvoice(id: ID!, input: NewInvoice!)               : Invoice!
   addItemToInvoice(invoice: ID!, item: ID!, options: JSON) : Invoice!
 }
 
 type Subscription {
-  invoiceUpdated(id: ID)                                    : Invoice!
+  invoiceUpdated(id: ID)                                   : Invoice!
 }
 `},
 )
@@ -1370,10 +1379,10 @@ func (ec *executionContext) _Invoice_items(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.InvoiceItem)
+	res := resTmp.([]*model.InvoiceItem)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInvoiceItem2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx, field.Selections, res)
+	return ec.marshalNInvoiceItem2ᚕᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _InvoiceItem_id(ctx context.Context, field graphql.CollectedField, obj *model.InvoiceItem) graphql.Marshaler {
@@ -1639,12 +1648,15 @@ func (ec *executionContext) _InvoiceItem_options(ctx context.Context, field grap
 		return obj.Options, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.ItemOption)
+	res := resTmp.([]*model.ItemOption)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOItemOption2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx, field.Selections, res)
+	return ec.marshalNItemOption2ᚕᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Item_id(ctx context.Context, field graphql.CollectedField, obj *model.Item) graphql.Marshaler {
@@ -2063,15 +2075,38 @@ func (ec *executionContext) _ItemOption_optionType(ctx context.Context, field gr
 		return obj.OptionType, nil
 	})
 	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ItemOptionType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOItemOptionType2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemOption_optionTypeID(ctx context.Context, field graphql.CollectedField, obj *model.ItemOption) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "ItemOption",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OptionTypeID, nil
+	})
+	if resTmp == nil {
 		if !ec.HasError(rctx) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.ItemOptionType)
+	res := resTmp.(uuid.UUID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItemOptionType2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemOption_values(ctx context.Context, field graphql.CollectedField, obj *model.ItemOption) graphql.Marshaler {
@@ -4104,6 +4139,9 @@ func (ec *executionContext) _InvoiceItem(ctx context.Context, sel ast.SelectionS
 			}
 		case "options":
 			out.Values[i] = ec._InvoiceItem_options(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4215,6 +4253,8 @@ func (ec *executionContext) _ItemOption(ctx context.Context, sel ast.SelectionSe
 			}
 		case "optionType":
 			out.Values[i] = ec._ItemOption_optionType(ctx, field, obj)
+		case "optionTypeID":
+			out.Values[i] = ec._ItemOption_optionTypeID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -4823,11 +4863,7 @@ func (ec *executionContext) marshalNInvoice2ᚖgithubᚗcomᚋKellyLSBᚋdemondi
 	return ec._Invoice(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNInvoiceItem2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx context.Context, sel ast.SelectionSet, v model.InvoiceItem) graphql.Marshaler {
-	return ec._InvoiceItem(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNInvoiceItem2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx context.Context, sel ast.SelectionSet, v []model.InvoiceItem) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceItem2ᚕᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx context.Context, sel ast.SelectionSet, v []*model.InvoiceItem) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4851,7 +4887,7 @@ func (ec *executionContext) marshalNInvoiceItem2ᚕgithubᚗcomᚋKellyLSBᚋdem
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNInvoiceItem2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx, sel, v[i])
+			ret[i] = ec.marshalOInvoiceItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoiceItem(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4915,16 +4951,41 @@ func (ec *executionContext) marshalNItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondin�
 	return ec._Item(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNItemOption2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx context.Context, sel ast.SelectionSet, v model.ItemOption) graphql.Marshaler {
-	return ec._ItemOption(ctx, sel, &v)
-}
+func (ec *executionContext) marshalNItemOption2ᚕᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx context.Context, sel ast.SelectionSet, v []*model.ItemOption) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOItemOption2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
 
-func (ec *executionContext) marshalNItemOptionType2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx context.Context, sel ast.SelectionSet, v model.ItemOptionType) graphql.Marshaler {
-	return ec._ItemOptionType(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNItemPrice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemPrice(ctx context.Context, sel ast.SelectionSet, v model.ItemPrice) graphql.Marshaler {
-	return ec._ItemPrice(ctx, sel, &v)
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNItemPrice2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemPrice(ctx context.Context, sel ast.SelectionSet, v []model.ItemPrice) graphql.Marshaler {
@@ -4951,7 +5012,7 @@ func (ec *executionContext) marshalNItemPrice2ᚕgithubᚗcomᚋKellyLSBᚋdemon
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNItemPrice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemPrice(ctx, sel, v[i])
+			ret[i] = ec.marshalOItemPrice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemPrice(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5403,41 +5464,19 @@ func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋKellyLSBᚋdemondin�
 	return ec._Item(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOItemOption2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx context.Context, sel ast.SelectionSet, v []model.ItemOption) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNItemOption2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+func (ec *executionContext) marshalOItemOption2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx context.Context, sel ast.SelectionSet, v model.ItemOption) graphql.Marshaler {
+	return ec._ItemOption(ctx, sel, &v)
+}
 
+func (ec *executionContext) marshalOItemOption2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOption(ctx context.Context, sel ast.SelectionSet, v *model.ItemOption) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
 	}
-	wg.Wait()
-	return ret
+	return ec._ItemOption(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOItemOptionType2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx context.Context, sel ast.SelectionSet, v model.ItemOptionType) graphql.Marshaler {
+	return ec._ItemOptionType(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOItemOptionType2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx context.Context, sel ast.SelectionSet, v []model.ItemOptionType) graphql.Marshaler {
@@ -5464,7 +5503,7 @@ func (ec *executionContext) marshalOItemOptionType2ᚕgithubᚗcomᚋKellyLSBᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNItemOptionType2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx, sel, v[i])
+			ret[i] = ec.marshalOItemOptionType2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5475,6 +5514,13 @@ func (ec *executionContext) marshalOItemOptionType2ᚕgithubᚗcomᚋKellyLSBᚋ
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalOItemOptionType2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx context.Context, sel ast.SelectionSet, v *model.ItemOptionType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ItemOptionType(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOItemPrice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemPrice(ctx context.Context, sel ast.SelectionSet, v model.ItemPrice) graphql.Marshaler {

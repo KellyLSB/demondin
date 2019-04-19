@@ -23,37 +23,37 @@ type Invoice struct {
 	ChargeToken *string        `json:"chargeToken"`
 	CardData    *stripe.Card   `json:"cardData"`
 	ChargeData  *stripe.Charge `json:"chargeData"`
-	Items       []InvoiceItem  `json:"items"`
+	Items       []*InvoiceItem `json:"items"`
 }
 
 func (Invoice) IsPostgresql() {}
 
 type InvoiceItem struct {
-	ID          uuid.UUID    `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt   time.Time    `json:"createdAt"`
-	UpdatedAt   time.Time    `json:"updatedAt"`
-	DeletedAt   *time.Time   `json:"deletedAt"`
-	Invoice     *Invoice     `json:"invoice"`
-	InvoiceID   uuid.UUID    `json:"invoiceID" gorm:"type:uuid"`
-	Item        *Item        `json:"item"`
-	ItemID      uuid.UUID    `json:"itemID" gorm:"type:uuid"`
-	ItemPrice   *ItemPrice   `json:"itemPrice"`
-	ItemPriceID uuid.UUID    `json:"itemPriceID" gorm:"type:uuid"`
-	Options     []ItemOption `json:"options"`
+	ID          uuid.UUID     `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CreatedAt   time.Time     `json:"createdAt"`
+	UpdatedAt   time.Time     `json:"updatedAt"`
+	DeletedAt   *time.Time    `json:"deletedAt"`
+	Invoice     *Invoice      `json:"invoice"`
+	InvoiceID   uuid.UUID     `json:"invoiceID" gorm:"type:uuid;"`
+	Item        *Item         `json:"item"`
+	ItemID      uuid.UUID     `json:"itemID" gorm:"type:uuid;"`
+	ItemPrice   *ItemPrice    `json:"itemPrice"`
+	ItemPriceID uuid.UUID     `json:"itemPriceID" gorm:"type:uuid;"`
+	Options     []*ItemOption `json:"options"`
 }
 
 func (InvoiceItem) IsPostgresql() {}
 
 type ItemOption struct {
-	ID            uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt     time.Time      `json:"createdAt"`
-	UpdatedAt     time.Time      `json:"updatedAt"`
-	DeletedAt     *time.Time     `json:"deletedAt"`
-	InvoiceItem   *InvoiceItem   `json:"invoiceItem"`
-	InvoiceItemID uuid.UUID      `json:"invoiceItemID" gorm:"type:uuid"`
-	OptionType    ItemOptionType `json:"optionType"`
-	OptionTypeID  uuid.UUID      `json:"optionTypeID" gorm:"type:uuid"`
-	Values        string         `json:"values"`
+	ID            uuid.UUID       `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
+	DeletedAt     *time.Time      `json:"deletedAt"`
+	InvoiceItem   *InvoiceItem    `json:"invoiceItem"`
+	InvoiceItemID uuid.UUID       `json:"invoiceItemID" gorm:"type:uuid;"`
+	OptionType    *ItemOptionType `json:"optionType"`
+	OptionTypeID  uuid.UUID       `json:"optionTypeID" gorm:"type:uuid;foreignkey:OptionTypeID;"`
+	Values        string          `json:"values"`
 }
 
 func (ItemOption) IsPostgresql() {}
@@ -64,7 +64,7 @@ type ItemOptionType struct {
 	UpdatedAt time.Time       `json:"updatedAt"`
 	DeletedAt *time.Time      `json:"deletedAt"`
 	Item      *Item           `json:"item"`
-	ItemID    uuid.UUID       `json:"itemID" gorm:"type:uuid"`
+	ItemID    uuid.UUID       `json:"itemID" gorm:"type:uuid;"`
 	Key       string          `json:"key"`
 	ValueType string          `json:"valueType"`
 	Values    *postgres.Jsonb `json:"values"`
@@ -78,7 +78,7 @@ type ItemPrice struct {
 	UpdatedAt  time.Time  `json:"updatedAt"`
 	DeletedAt  *time.Time `json:"deletedAt"`
 	Item       *Item      `json:"item"`
-	ItemID     uuid.UUID  `json:"itemID" gorm:"type:uuid"`
+	ItemID     uuid.UUID  `json:"itemID" gorm:"type:uuid;"`
 	Price      int        `json:"price"`
 	BeforeDate time.Time  `json:"beforeDate"`
 	AfterDate  time.Time  `json:"afterDate"`
