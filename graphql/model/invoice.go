@@ -1,8 +1,10 @@
 package model
 
 import (
+	//"fmt"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
+	//"github.com/kr/pretty"
 )
 
 func FetchInvoice(tx *gorm.DB, uuid uuid.UUID) (*Invoice) {
@@ -12,7 +14,16 @@ func FetchInvoice(tx *gorm.DB, uuid uuid.UUID) (*Invoice) {
 }
 
 func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
-	tx.Model(i).Association("Items").Find(&i.Items)
+	tx.Model(i).Related(&i.Items)
+
+	for _, it := range i.Items {
+		it.LoadItem(tx)
+		it.LoadPrice(tx)
+		it.LoadOptions(tx)
+	}
+
+	//fmt.Printf("%# v", pretty.Formatter(i))
+
 	return i
 }
 

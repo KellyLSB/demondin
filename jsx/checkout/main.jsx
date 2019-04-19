@@ -34,6 +34,7 @@ const link = ApolloLink.from([
 				),
 			);
    	if (networkError) console.log(`[Network error]: ${networkError}`);
+		if (networkError) console.log(networkError);
   }),
 	split(
 		// split based on operation type

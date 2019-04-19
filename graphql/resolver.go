@@ -15,6 +15,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/go-macaron/session"
+	//"github.com/kr/pretty"
 )
 
 var dbh func(func(*gorm.DB))
@@ -176,6 +177,9 @@ func (r *mutationResolver) ActiveInvoice(
 	// Save the resulting model
 	dbh(func(db *gorm.DB) {
 	  err = gormErrors(db.Save(&invoice))
+	
+	  invoice.LoadItems(db)
+	  //fmt.Printf("%# v", pretty.Formatter(invoice))
 	})
 
 	// Set session ID
