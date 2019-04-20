@@ -338,7 +338,7 @@ func (r *queryResolver) Invoices(
 		query := gormPaging(db.Select("*").Table("invoices"), paging)
 		query = query.Preload("Items").Preload("Items.Item").
 			Preload("Items.ItemPrice").Preload("Items.Options").
-			Preload("Items.Options.OptionType")
+			Preload("Items.Options.ItemOptionType")
                 
 		err = gormErrors(query.Find(&invoices))
 	})

@@ -22,7 +22,7 @@ func (i *InvoiceItem) LoadOptions(tx *gorm.DB) *InvoiceItem {
 	tx.Model(i).Related(&i.Options)
 
 	for _, o := range i.Options {
-		o.LoadOptionType(tx)
+		o.LoadItemOptionType(tx)
 	}
 
 	//fmt.Printf("%# v", pretty.Formatter(i))

@@ -89,15 +89,15 @@ type ComplexityRoot struct {
 	}
 
 	ItemOption struct {
-		ID            func(childComplexity int) int
-		CreatedAt     func(childComplexity int) int
-		UpdatedAt     func(childComplexity int) int
-		DeletedAt     func(childComplexity int) int
-		InvoiceItem   func(childComplexity int) int
-		InvoiceItemID func(childComplexity int) int
-		OptionType    func(childComplexity int) int
-		OptionTypeID  func(childComplexity int) int
-		Values        func(childComplexity int) int
+		ID               func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
+		DeletedAt        func(childComplexity int) int
+		InvoiceItem      func(childComplexity int) int
+		InvoiceItemID    func(childComplexity int) int
+		ItemOptionType   func(childComplexity int) int
+		ItemOptionTypeID func(childComplexity int) int
+		Values           func(childComplexity int) int
 	}
 
 	ItemOptionType struct {
@@ -427,19 +427,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ItemOption.InvoiceItemID(childComplexity), true
 
-	case "ItemOption.OptionType":
-		if e.complexity.ItemOption.OptionType == nil {
+	case "ItemOption.ItemOptionType":
+		if e.complexity.ItemOption.ItemOptionType == nil {
 			break
 		}
 
-		return e.complexity.ItemOption.OptionType(childComplexity), true
+		return e.complexity.ItemOption.ItemOptionType(childComplexity), true
 
-	case "ItemOption.OptionTypeID":
-		if e.complexity.ItemOption.OptionTypeID == nil {
+	case "ItemOption.ItemOptionTypeID":
+		if e.complexity.ItemOption.ItemOptionTypeID == nil {
 			break
 		}
 
-		return e.complexity.ItemOption.OptionTypeID(childComplexity), true
+		return e.complexity.ItemOption.ItemOptionTypeID(childComplexity), true
 
 	case "ItemOption.Values":
 		if e.complexity.ItemOption.Values == nil {
@@ -801,94 +801,94 @@ scalar StripeCard
 scalar StripeCharge
 
 interface Postgresql {
-  id:             ID!
-  createdAt:      DateTime!
-  updatedAt:      DateTime!
-  deletedAt:      DateTime
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
 }
 
 type Item implements Postgresql {
-  id:             ID!
-  createdAt:      DateTime!
-  updatedAt:      DateTime!
-  deletedAt:      DateTime
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
 
-  name:           String!
-  description:    String
-  enabled:        Boolean!
-  isBadge:        Boolean!
+  name:             String!
+  description:      String
+  enabled:          Boolean!
+  isBadge:          Boolean!
   
-  options:        [ItemOptionType]
-  prices:         [ItemPrice]!
+  options:          [ItemOptionType]
+  prices:           [ItemPrice]!
 }
 
 type ItemOptionType implements Postgresql {
-  id:             ID!
-  createdAt:      DateTime!
-  updatedAt:      DateTime!
-  deletedAt:      DateTime
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
   
-  item:           Item
-  itemID:         ID!
-  key:            String!
-  valueType:      String!
-  values:         JSON
+  item:             Item
+  itemID:           ID!
+  key:              String!
+  valueType:        String!
+  values:           JSON
 }
 
 type ItemOption implements Postgresql {
-  id:             ID!
-  createdAt:      DateTime!
-  updatedAt:      DateTime!
-  deletedAt:      DateTime
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
 
-  invoiceItem:    InvoiceItem
-  invoiceItemID:  ID!
-  optionType:     ItemOptionType
-  optionTypeID:   ID!
-  values:         String!
+  invoiceItem:      InvoiceItem
+  invoiceItemID:    ID!
+  itemOptionType:   ItemOptionType
+  itemOptionTypeID: ID!
+  values:           String!
 }
 
 type ItemPrice implements Postgresql {
-  id:             ID!
-  createdAt:      DateTime!
-  updatedAt:      DateTime!
-  deletedAt:      DateTime
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
   
-  item:           Item
-  itemID:         ID!
-  price:          Int!
-  beforeDate:     DateTime!
-  afterDate:      DateTime!
-  taxable:        Boolean
+  item:             Item
+  itemID:           ID!
+  price:            Int!
+  beforeDate:       DateTime!
+  afterDate:        DateTime!
+  taxable:          Boolean
 }
 
 type Invoice implements Postgresql {
-  id:             ID!
-  createdAt:      DateTime!
-  updatedAt:      DateTime!
-  deletedAt:      DateTime
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
 
-  cardToken:      String
-  chargeToken:    String
-  cardData:       StripeCard
-  chargeData:     StripeCharge
+  cardToken:        String
+  chargeToken:      String
+  cardData:         StripeCard
+  chargeData:       StripeCharge
 
-  items:          [InvoiceItem]!
+  items:            [InvoiceItem]!
 }
 
 type InvoiceItem implements Postgresql {
-  id:             ID!
-  createdAt:      DateTime!
-  updatedAt:      DateTime!
-  deletedAt:      DateTime
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
 
-  invoice:        Invoice
-  invoiceID:      ID!
-  item:           Item
-  itemID:         ID!
-  itemPrice:      ItemPrice
-  itemPriceID:    ID!
-  options:        [ItemOption]!
+  invoice:          Invoice
+  invoiceID:        ID!
+  item:             Item
+  itemID:           ID!
+  itemPrice:        ItemPrice
+  itemPriceID:      ID!
+  options:          [ItemOption]!
 }
 
 type Query {
@@ -897,50 +897,50 @@ type Query {
 }
 
 input NewItem {
-  id:             ID
-  name:           String!
-  description:    String
-  prices:         [NewItemPrice!]!
-  options:        [NewItemOptionType!]!
+  id:               ID
+  name:             String!
+  description:      String
+  prices:           [NewItemPrice!]!
+  options:          [NewItemOptionType!]!
 }
 
 input NewItemPrice {
-  id:             ID
-  price:          Int!
-  beforeDate:     DateTime!
-  afterDate:      DateTime!
+  id:               ID
+  price:            Int!
+  beforeDate:       DateTime!
+  afterDate:        DateTime!
 }
 
 input NewItemOptionType {
-  id:             ID
-  key:            String
-  valueType:      String
-  values:         JSON!
+  id:               ID
+  key:              String
+  valueType:        String
+  values:           JSON!
 }
 
 input NewInvoice {
-  id:             ID
-  submit:         Boolean
-  items:          [NewInvoiceItem!]!
+  id:               ID
+  submit:           Boolean
+  items:            [NewInvoiceItem!]!
 }
 
 input NewInvoiceItem {
-  id:             ID
-  itemID:         ID!
-  itemPriceID:    ID!
-  options:        [NewItemOption!]!
+  id:               ID
+  itemID:           ID!
+  itemPriceID:      ID!
+  options:          [NewItemOption!]!
 }
 
 input NewItemOption {
-  id:             ID
-  optionTypeID:   ID!
-  values:         JSON!
+  id:               ID
+  itemOptionTypeID: ID!
+  values:           JSON!
 }
 
 input Paging {
-  limit:          Int!
-  offset:         Int!
-}
+  limit:            Int!
+  offset:           Int!
+} 
 
 type Mutation {
   createItem(input: NewItem!)                              : Item!
@@ -2060,7 +2060,7 @@ func (ec *executionContext) _ItemOption_invoiceItemID(ctx context.Context, field
 	return ec.marshalNID2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemOption_optionType(ctx context.Context, field graphql.CollectedField, obj *model.ItemOption) graphql.Marshaler {
+func (ec *executionContext) _ItemOption_itemOptionType(ctx context.Context, field graphql.CollectedField, obj *model.ItemOption) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2072,7 +2072,7 @@ func (ec *executionContext) _ItemOption_optionType(ctx context.Context, field gr
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OptionType, nil
+		return obj.ItemOptionType, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -2083,7 +2083,7 @@ func (ec *executionContext) _ItemOption_optionType(ctx context.Context, field gr
 	return ec.marshalOItemOptionType2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐItemOptionType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemOption_optionTypeID(ctx context.Context, field graphql.CollectedField, obj *model.ItemOption) graphql.Marshaler {
+func (ec *executionContext) _ItemOption_itemOptionTypeID(ctx context.Context, field graphql.CollectedField, obj *model.ItemOption) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2095,7 +2095,7 @@ func (ec *executionContext) _ItemOption_optionTypeID(ctx context.Context, field 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OptionTypeID, nil
+		return obj.ItemOptionTypeID, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -3881,9 +3881,9 @@ func (ec *executionContext) unmarshalInputNewItemOption(ctx context.Context, v i
 			if err != nil {
 				return it, err
 			}
-		case "optionTypeID":
+		case "itemOptionTypeID":
 			var err error
-			it.OptionTypeID, err = ec.unmarshalNID2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.ItemOptionTypeID, err = ec.unmarshalNID2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4251,10 +4251,10 @@ func (ec *executionContext) _ItemOption(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "optionType":
-			out.Values[i] = ec._ItemOption_optionType(ctx, field, obj)
-		case "optionTypeID":
-			out.Values[i] = ec._ItemOption_optionTypeID(ctx, field, obj)
+		case "itemOptionType":
+			out.Values[i] = ec._ItemOption_itemOptionType(ctx, field, obj)
+		case "itemOptionTypeID":
+			out.Values[i] = ec._ItemOption_itemOptionTypeID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
