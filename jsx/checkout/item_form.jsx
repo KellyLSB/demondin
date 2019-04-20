@@ -34,7 +34,7 @@ export default class ItemForm extends React.Component {
 		e.preventDefault()
 
 		var options = Object.keys(this.state.values).map((key) => ( {
-			optionTypeID: key,
+			itemOptionTypeID: key,
 			values: this.state.values[key],
 		} ))
 
@@ -61,7 +61,7 @@ export default class ItemForm extends React.Component {
 							id
 							options {
 								id
-								optionType {
+								itemOptionType {
 									id									
 									key
 								}

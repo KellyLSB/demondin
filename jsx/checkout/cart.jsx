@@ -20,6 +20,7 @@ export default class Cart extends React.Component {
 						invoiceUpdated {
 							id
 							items {
+								id
 								item {
 									name
 								}
@@ -27,7 +28,8 @@ export default class Cart extends React.Component {
 									price
 								}
 								options {
-        					optionType {
+        					itemOptionType {
+										id
 										key
         					}
         					values
@@ -47,9 +49,11 @@ export default class Cart extends React.Component {
 									{invoice.items.map((item) =>
 										<div key={item.id} style={{border: "underline #000 solid"}}>
 											<h3>{item.name}</h3>
-											<span>{item.itemPrice.price}</span>
+											<span style={{display: "inline-block"}}>{item.itemPrice.price}</span>
 											{item.options.map((option) =>
-												<span>{option.optionType.key}: {option.values}</span>
+												<div key={option.itemOptionType.id} style={{display: "block"}}>
+													<span>[{option.itemOptionType.key}]: {option.values}</span>
+												</div>
 											)}
 										</div>
 									)}
