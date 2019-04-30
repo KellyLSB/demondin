@@ -52,6 +52,19 @@ const link = ApolloLink.from([
 // depending on what kind of operation is being sent
 const client = new ApolloClient({ link: link, cache: new InMemoryCache() });
 
+// Extend some global class prototypes
+String.prototype.toCents = function() {
+	return Math.round(100 * parseFloat(
+		this.replace(/[$,]/g, '')
+	))
+}
+
+Number.prototype.toDollars = function() {
+	return (this / 100).toLocaleString("en-US", {
+		style: "currency", currency: "USD"
+	})
+}
+
 // Style and Elements
 import { Container, Grid, Segment } from 'semantic-ui-react';
 import '../../semantic/dist/semantic.min.css';
@@ -68,10 +81,8 @@ ReactDOM.render(
             <Items addToCart={(id) => console.log("ID: ", id)} />
           </Grid.Column>
           <Grid.Column width={6}>
-						<Segment>
-							<Cart />
-						</Segment>
-            <Segment>Cart Data</Segment>
+						<Cart />
+						<Segment>Cart Data</Segment>
             <Segment>Checkout</Segment>
           </Grid.Column>
         </Grid.Row>

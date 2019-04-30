@@ -4,7 +4,7 @@ import gql from "graphql-tag";
 
 import Item from './item'
 
-import { Header, Grid } from 'semantic-ui-react'
+import { List, Button, Header, Icon, Grid, Segment } from 'semantic-ui-react'
 
 export default class Cart extends React.Component {
   constructor(props) {
@@ -14,8 +14,11 @@ export default class Cart extends React.Component {
   render() {
     return (
       <Grid.Row>
-        <Header>Badges</Header>
-					<Subscription subscription={gql`
+        <Header attached='top'>
+					<Icon name='shopping cart' />
+					<Header.Content>Cart</Header.Content>
+				</Header>
+				<Subscription subscription={gql`
 					subscription InvoiceUpdated {
 						invoiceUpdated {
 							id
@@ -28,42 +31,53 @@ export default class Cart extends React.Component {
 									price
 								}
 								options {
-        					itemOptionType {
+									itemOptionType {
 										id
 										key
-        					}
-        					values
-      					}
+									}
+									values
+								}
 							}
 						}
-	 				}`}>
+					}`}>
 						{({ data, loading }) => {
 							var invoice = data ? data.invoiceUpdated : false;
 
-							console.log(loading);
-							console.log(invoice);
-							
+							//console.log(loading);
+							//console.log(invoice);
+						
 							if (!loading && invoice) return (
 								<React.Fragment>
-									{invoice.id}
+									<Segment attached>
+										<Header as='h3'>
+											Invoice ID: {invoice.id}
+										</Header>
+									</Segment>
 									{invoice.items.map((item) =>
-										<div key={item.id} style={{border: "underline #000 solid"}}>
-											<h3>{item.name}</h3>
-											<span style={{display: "inline-block"}}>{item.itemPrice.price}</span>
-											{item.options.map((option) =>
-												<div key={option.itemOptionType.id} style={{display: "block"}}>
-													<span>[{option.itemOptionType.key}]: {option.values}</span>
-												</div>
-											)}
-										</div>
-									)}
+										<Segment key={item.id} attached>
+											<Header as='h4' dividing>{item.item.name}</Header>
+											<span>{item.itemPrice.price.toDollars()}</span>
+											<List>
+												{item.options.map((option) =>
+													<List.Item key={option.itemOptionType.id}>
+														<List.Header>{option.itemOptionType.key}</List.Header>
+														{option.values}
+													</List.Item>
+												)}
+											</List>
+										</Segment>											
+									)}									
 								</React.Fragment>
-    					);
+							);
 
-							return (<span>Loading</span>);
-						}	}
-					</Subscription>
- 	     </Grid.Row>
- 	   )
-  }
+							return (<Segment attached>Empty Cart</Segment>);
+						}	
+					}
+				</Subscription>
+				<Segment attached>
+					<Button primary>Checkout</Button>
+				</Segment>
+			</Grid.Row>
+		)
+	}
 }

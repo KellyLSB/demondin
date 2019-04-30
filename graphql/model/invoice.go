@@ -7,10 +7,69 @@ import (
 	"github.com/kr/pretty"
 )
 
-func FetchInvoice(tx *gorm.DB, uuid uuid.UUID) (*Invoice) {
-	var invoice Invoice
-	tx.Preload("Items").First(&invoice, "id = ?", uuid)	
-	return &invoice
+func FetchInvoice(tx *gorm.DB, inputs ...interface{}) (*Invoice) {
+	var invoice *Invoice = new(Invoice)
+	var invUUID uuid.UUID
+
+	if len(inputs) < 1 {
+		panic("Missing ID Input: FetchInvoice(*gorm.DB, uuid.UUID|string)")
+	}
+
+	for _, input := range inputs {
+		switch input := input.(type) {
+		case Invoice:
+			invoice = &input
+		case *Invoice:
+			invoice = input
+		case uuid.UUID:
+			invUUID = input
+		case string:
+			invUUID = uuid.MustParse(input)
+		default:
+			fmt.Printf("%# v\n", pretty.Formatter(input))
+		}
+	}
+	
+	tx.Preload("Items").First(invoice, "id = ?", invUUID)	
+	return invoice
+}
+
+func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) (*Invoice) {
+	var invoice *Invoice = new(Invoice)
+	var invUUID uuid.UUID
+
+	if len(inputs) < 1 {
+		goto CreateInvoice
+	}
+
+	// Seems like duplication of effort except
+	// the variable assignments... think this over
+	for _, input := range inputs {
+		switch input := input.(type) {
+		case Invoice:
+			invoice = &input
+		case *Invoice:
+			invoice = input
+		case uuid.UUID:
+			invUUID = input
+		case string:
+			invUUID = uuid.MustParse(input)
+		default:
+			fmt.Printf("%# v\n", pretty.Formatter(input))
+		}
+	}
+
+	FetchInvoice(tx, invoice, invUUID)
+
+	if invoice.ID == uuid.Nil {
+		goto CreateInvoice
+	}
+	
+	return invoice
+
+CreateInvoice:
+	tx.Create(invoice)
+	return invoice
 }
 
 func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
@@ -22,7 +81,7 @@ func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
 		it.LoadOptions(tx)
 	}
 
-	fmt.Printf("%# v", pretty.Formatter(i))
+	//fmt.Printf("%# v", pretty.Formatter(i))
 
 	return i
 }

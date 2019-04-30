@@ -38,10 +38,12 @@ func init() {
 		_db.Migrate()
 		_db.Transact(fn)
 	}
+
+	Subscriptions.Invoice = make(map[uuid.UUID][]chan *model.Invoice)
 }
 
 type subscriptions struct {
-	Invoice []chan *model.Invoice
+	Invoice map[uuid.UUID][]chan *model.Invoice
 }
 
 var Subscriptions = new(subscriptions)
@@ -150,7 +152,7 @@ func (r *mutationResolver) ActiveInvoice(
 	var err error
 
 	dbh(func(db *gorm.DB) {
-		invoiceUUID := r.Session.Get("demondin.activeInvoiceUUID")		
+		invoiceUUID := r.Session.Get("activeInvoiceUUID")		
 		if invoiceUUID != nil {
 			invoiceUUID = invoiceUUID.(uuid.UUID)
 		}
@@ -183,11 +185,11 @@ func (r *mutationResolver) ActiveInvoice(
 	})
 
 	// Set session ID
-	r.Session.Set("demondin.activeInvoiceUUID", invoice.ID)
+	r.Session.Set("activeInvoiceUUID", invoice.ID)
 
 	// Inform subscriptions of create/update
-	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
-	for _, sub := range Subscriptions.Invoice {
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice[invoice.ID]))
+	for _, sub := range Subscriptions.Invoice[invoice.ID] {
 		sub <- &invoice
 	}
 
@@ -217,8 +219,8 @@ func (r *mutationResolver) CreateInvoice(
 	})
 
 	// Inform subscriptions of create
-	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
-	for _, sub := range Subscriptions.Invoice {
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice[invoice.ID]))
+	for _, sub := range Subscriptions.Invoice[invoice.ID] {
 		sub <- &invoice
 	}
   
@@ -257,8 +259,8 @@ func (r *mutationResolver) UpdateInvoice(
 	})
 
 	// Inform subscriptions of update
-	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
-	for _, sub := range Subscriptions.Invoice {
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice[invoice.ID]))
+	for _, sub := range Subscriptions.Invoice[invoice.ID] {
 		sub <- invoice
 	}
 	
@@ -284,8 +286,8 @@ func (r *mutationResolver) AddItemToInvoice(
 	fmt.Printf("%+v\n", input)
 
 	// Inform subscriptions of update
-	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice))
-	for _, sub := range Subscriptions.Invoice {
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice[invoice.ID]))
+	for _, sub := range Subscriptions.Invoice[invoice.ID] {
 		sub <- invoice
 	}
 
@@ -310,7 +312,7 @@ func (r *queryResolver) Items(
 		query := gormPaging(db.Select("*").Table("items"), paging)
 		query = query.Preload("Options")
     
-   		// Admin Check
+   	// Admin Check
 		if false {
 			query = query.Preload("Prices")
 		} else {
@@ -352,22 +354,50 @@ func (r *subscriptionResolver) InvoiceUpdated(
 	ctx context.Context, 
 	id *uuid.UUID,
 ) (<-chan *model.Invoice, error) {
-	ch := make(chan *model.Invoice)
-	Subscriptions.Invoice = append(Subscriptions.Invoice, ch)
-	fmt.Printf("%d Subscriptions Created\n", len(Subscriptions.Invoice))
+	var sessionInvoice model.Invoice	
+	
+	ch := make(chan *model.Invoice)	
+	fmt.Println("Creating Channel for InvoiceUpdated Subscription.")		
+		
+	// Load Session Invoice & Create Channel
+	dbh(func(db *gorm.DB) {
+		activeSessionInvoice(db, r.Session, &sessionInvoice)
+		Subscriptions.Invoice[sessionInvoice.ID] = append(
+			Subscriptions.Invoice[sessionInvoice.ID], ch,
+		)
 
-	fmt.Println("Creating Channel for InvoiceUpdated Subscription.")
+		fmt.Printf("%d Subscriptions Created\n", len(
+			Subscriptions.Invoice[sessionInvoice.ID],
+		))
+	})
+
+	// Send the currently active invoice.
+	go func() {
+		dbh(func(db *gorm.DB) {
+			sessionInvoice.LoadItems(db)
+			ch <- &sessionInvoice
+		})
+	}()
+	
+	// On Unsubscribe
 	go func() {
 		<-ctx.Done()
 		fmt.Println("Context for InvoiceUpdated Subscription is Done?!")
 	}()
 	
-	// https://www.postgresql.org/docs/current/sql-createpublication.html
-	// https://www.apollographql.com/docs/react/advanced/subscriptions.html
-	// https://medium.freecodecamp.org/https-medium-com-anshap1719-graphql-subscriptions-with-go-gqlgen-and-mongodb-5e008fc46451
-	// https://graphql.org/blog/subscriptions-in-graphql-and-relay/
+	// @NOTES:
+	// => https://www.postgresql.org/docs/current/sql-createpublication.html
+	// => https://www.apollographql.com/docs/react/advanced/subscriptions.html
+	// => https://medium.freecodecamp.org/https-medium-com-anshap1719-graphql-subscriptions-with-go-gqlgen-and-mongodb-5e008fc46451
+	// => https://graphql.org/blog/subscriptions-in-graphql-and-relay/
 
 	return ch, nil
+}
+
+func activeSessionInvoice(db *gorm.DB, sess session.Store, invoice *model.Invoice) {
+	invoiceUUID := sess.Get("activeInvoiceUUID")
+	model.FetchOrCreateInvoice(db, invoice, invoiceUUID)
+	sess.Set("activeInvoiceUUID", invoice.ID)
 }
 
 //#   # #  #
