@@ -62,7 +62,7 @@ type ItemPrice implements Postgresql {
   price:            Int!
   beforeDate:       DateTime!
   afterDate:        DateTime!
-  taxable:          Boolean
+  taxable:          Boolean!
 }
 
 type Invoice implements Postgresql {
@@ -75,6 +75,11 @@ type Invoice implements Postgresql {
   chargeToken:      String
   cardData:         StripeCard
   chargeData:       StripeCharge
+
+  subTotal:         Int!
+  demonDin:         Int!
+  taxes:            Int!
+  total:            Int!
 
   items:            [InvoiceItem]!
 }

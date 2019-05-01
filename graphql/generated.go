@@ -58,6 +58,10 @@ type ComplexityRoot struct {
 		ChargeToken func(childComplexity int) int
 		CardData    func(childComplexity int) int
 		ChargeData  func(childComplexity int) int
+		SubTotal    func(childComplexity int) int
+		DemonDin    func(childComplexity int) int
+		Taxes       func(childComplexity int) int
+		Total       func(childComplexity int) int
 		Items       func(childComplexity int) int
 	}
 
@@ -230,6 +234,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Invoice.ChargeData(childComplexity), true
+
+	case "Invoice.SubTotal":
+		if e.complexity.Invoice.SubTotal == nil {
+			break
+		}
+
+		return e.complexity.Invoice.SubTotal(childComplexity), true
+
+	case "Invoice.DemonDin":
+		if e.complexity.Invoice.DemonDin == nil {
+			break
+		}
+
+		return e.complexity.Invoice.DemonDin(childComplexity), true
+
+	case "Invoice.Taxes":
+		if e.complexity.Invoice.Taxes == nil {
+			break
+		}
+
+		return e.complexity.Invoice.Taxes(childComplexity), true
+
+	case "Invoice.Total":
+		if e.complexity.Invoice.Total == nil {
+			break
+		}
+
+		return e.complexity.Invoice.Total(childComplexity), true
 
 	case "Invoice.Items":
 		if e.complexity.Invoice.Items == nil {
@@ -859,7 +891,7 @@ type ItemPrice implements Postgresql {
   price:            Int!
   beforeDate:       DateTime!
   afterDate:        DateTime!
-  taxable:          Boolean
+  taxable:          Boolean!
 }
 
 type Invoice implements Postgresql {
@@ -872,6 +904,11 @@ type Invoice implements Postgresql {
   chargeToken:      String
   cardData:         StripeCard
   chargeData:       StripeCharge
+
+  subTotal:         Int!
+  demonDin:         Int!
+  taxes:            Int!
+  total:            Int!
 
   items:            [InvoiceItem]!
 }
@@ -1357,6 +1394,110 @@ func (ec *executionContext) _Invoice_chargeData(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_subTotal(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Invoice",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SubTotal, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_demonDin(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Invoice",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DemonDin, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_taxes(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Invoice",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Taxes, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_total(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Invoice",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Total, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Invoice_items(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
@@ -2603,12 +2744,15 @@ func (ec *executionContext) _ItemPrice_taxable(ctx context.Context, field graphq
 		return obj.Taxable, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(bool)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createItem(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -4072,6 +4216,26 @@ func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Invoice_cardData(ctx, field, obj)
 		case "chargeData":
 			out.Values[i] = ec._Invoice_chargeData(ctx, field, obj)
+		case "subTotal":
+			out.Values[i] = ec._Invoice_subTotal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "demonDin":
+			out.Values[i] = ec._Invoice_demonDin(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "taxes":
+			out.Values[i] = ec._Invoice_taxes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "total":
+			out.Values[i] = ec._Invoice_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "items":
 			out.Values[i] = ec._Invoice_items(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4384,6 +4548,9 @@ func (ec *executionContext) _ItemPrice(ctx context.Context, sel ast.SelectionSet
 			}
 		case "taxable":
 			out.Values[i] = ec._ItemPrice_taxable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

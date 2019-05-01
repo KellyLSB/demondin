@@ -1,15 +1,27 @@
 import React from 'react'
-import { Subscription } from "react-apollo";
+import { Subscription, Mutation } from "react-apollo";
 import gql from "graphql-tag";
 
 import Item from './item'
 
-import { List, Button, Header, Icon, Grid, Segment } from 'semantic-ui-react'
+import { Form, List, Button, Header, Icon, Grid, Segment } from 'semantic-ui-react'
 
 export default class Cart extends React.Component {
   constructor(props) {
     super(props);
+
+		this.onSubmit = this.onSubmit.bind(this);
   }
+
+	onSubmit(e, updateInvoice) {
+		e.preventDefault()
+
+		updateInvoice({ variables: {
+			input: { 
+				submit: true
+			}
+		} })
+	}
 
   render() {
     return (
@@ -22,6 +34,10 @@ export default class Cart extends React.Component {
 					subscription InvoiceUpdated {
 						invoiceUpdated {
 							id
+							subTotal
+							demonDin
+							taxes
+							total
 							items {
 								id
 								item {
@@ -66,7 +82,29 @@ export default class Cart extends React.Component {
 												)}
 											</List>
 										</Segment>											
-									)}									
+									)}
+									{invoice.total > 0 ? (
+										<Segment attached>
+											<List>
+												<List.Item>
+													<List.Header>SubTotal</List.Header>
+													{invoice.subTotal.toDollars()}
+												</List.Item>
+												<List.Item>
+													<List.Header>DemonDin</List.Header>
+													{invoice.demonDin.toDollars()}
+												</List.Item>
+												<List.Item>
+													<List.Header>Taxes</List.Header>
+													{invoice.taxes.toDollars()}
+												</List.Item>
+												<List.Item>
+													<List.Header>Total</List.Header>
+													{invoice.total.toDollars()}
+												</List.Item>
+											</List>
+										</Segment>
+									) : null }					
 								</React.Fragment>
 							);
 
@@ -75,7 +113,19 @@ export default class Cart extends React.Component {
 					}
 				</Subscription>
 				<Segment attached>
-					<Button primary>Checkout</Button>
+					<Mutation mutation={gql`
+						mutation activeInvoice($input: NewInvoice!) {
+							activeInvoice(input: $input) {
+								id
+							}
+						}
+					`}>
+						{(updateInvoice) => (
+							<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
+								<Button type='submit'>Checkout</Button>
+							</Form>
+						) }				
+					</Mutation>
 				</Segment>
 			</Grid.Row>
 		)

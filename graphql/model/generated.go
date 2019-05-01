@@ -23,6 +23,10 @@ type Invoice struct {
 	ChargeToken *string        `json:"chargeToken"`
 	CardData    *stripe.Card   `json:"cardData"`
 	ChargeData  *stripe.Charge `json:"chargeData"`
+	SubTotal    int            `json:"subTotal"`
+	DemonDin    int            `json:"demonDin"`
+	Taxes       int            `json:"taxes"`
+	Total       int            `json:"total"`
 	Items       []*InvoiceItem `json:"items"`
 }
 
@@ -82,7 +86,7 @@ type ItemPrice struct {
 	Price      int        `json:"price"`
 	BeforeDate time.Time  `json:"beforeDate"`
 	AfterDate  time.Time  `json:"afterDate"`
-	Taxable    *bool      `json:"taxable"`
+	Taxable    bool       `json:"taxable"`
 }
 
 func (ItemPrice) IsPostgresql() {}

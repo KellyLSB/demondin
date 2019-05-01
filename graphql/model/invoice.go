@@ -22,7 +22,13 @@ func FetchInvoice(tx *gorm.DB, inputs ...interface{}) (*Invoice) {
 		case *Invoice:
 			invoice = input
 		case uuid.UUID:
-			invUUID = input
+			if input != uuid.Nil {
+				invUUID = input
+			}
+		case *uuid.UUID:
+			if input != nil {
+				invUUID = *input
+			}
 		case string:
 			invUUID = uuid.MustParse(input)
 		default:
@@ -51,13 +57,22 @@ func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) (*Invoice) {
 		case *Invoice:
 			invoice = input
 		case uuid.UUID:
-			invUUID = input
+			if input != uuid.Nil {
+	fmt.Printf("%# v\n", pretty.Formatter(input))
+				invUUID = input
+			}
+		case *uuid.UUID:
+			if input != nil {
+				invUUID = *input
+			}
 		case string:
 			invUUID = uuid.MustParse(input)
 		default:
 			fmt.Printf("%# v\n", pretty.Formatter(input))
 		}
 	}
+
+	fmt.Printf("%# v\n", pretty.Formatter(invUUID))
 
 	FetchInvoice(tx, invoice, invUUID)
 
@@ -99,4 +114,27 @@ func (i *Invoice) AddItemByUUID(tx *gorm.DB, itemUUID uuid.UUID) (*Item) {
 	var item Item
 	tx.First(&item, "id = ?", itemUUID)
 	return i.AddItem(tx, &item)
+}
+
+func (i *Invoice) Calculate(tx *gorm.DB) {
+	var subTotal, taxable int 
+	i.LoadItems(tx)
+
+	for _, item := range i.Items {
+		subTotal += item.ItemPrice.Price
+		
+		if item.ItemPrice.Taxable == true {
+			taxable += item.ItemPrice.Price
+		}
+	}
+
+	// DemonDin Cut
+	i.SubTotal = subTotal
+	i.Taxes = int(float32(taxable) * 0.00)
+	i.DemonDin = int(float32(subTotal) * 0.03)
+	i.Total = i.SubTotal + i.Taxes + i.DemonDin
+}
+
+func (i *Invoice) Submit() {
+	
 }

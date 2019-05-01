@@ -151,21 +151,14 @@ func (r *mutationResolver) ActiveInvoice(
 	var invoice model.Invoice
 	var err error
 
+	// Load the requested invoice or session
 	dbh(func(db *gorm.DB) {
-		invoiceUUID := r.Session.Get("activeInvoiceUUID")		
-		if invoiceUUID != nil {
-			invoiceUUID = invoiceUUID.(uuid.UUID)
-		}
-
+		var invoiceUUID uuid.UUID
 		if input != nil && input.ID != nil && len(*input.ID) < 1 {
-			invoiceUUID = input.ID
+			invoiceUUID = *input.ID
 		}
 
-		if invoiceUUID == nil {		
-			err = gormErrors(db.Create(&invoice))
-		} else {
-			err = gormErrors(db.First(&invoice, "id = ?", invoiceUUID))
-		}	
+		activeSessionInvoice(db, r.Session, &invoice, invoiceUUID)
 	})
 
 	// Copy input into the invoice
@@ -179,8 +172,8 @@ func (r *mutationResolver) ActiveInvoice(
 	// Save the resulting model
 	dbh(func(db *gorm.DB) {
 	  err = gormErrors(db.Save(&invoice))
-	
 	  invoice.LoadItems(db)
+	  //invoice.Calculate(db)
 	  //fmt.Printf("%# v", pretty.Formatter(invoice))
 	})
 
@@ -361,7 +354,7 @@ func (r *subscriptionResolver) InvoiceUpdated(
 		
 	// Load Session Invoice & Create Channel
 	dbh(func(db *gorm.DB) {
-		activeSessionInvoice(db, r.Session, &sessionInvoice)
+		activeSessionInvoice(db, r.Session, &sessionInvoice, uuid.Nil)
 		Subscriptions.Invoice[sessionInvoice.ID] = append(
 			Subscriptions.Invoice[sessionInvoice.ID], ch,
 		)
@@ -394,13 +387,23 @@ func (r *subscriptionResolver) InvoiceUpdated(
 	return ch, nil
 }
 
-func activeSessionInvoice(db *gorm.DB, sess session.Store, invoice *model.Invoice) {
+// activeSessionInvoice()
+// Provided UUID's as variable `inputs` are priority
+func activeSessionInvoice(
+	db *gorm.DB, sess session.Store, 
+	invoice *model.Invoice, altUUID uuid.UUID,
+) {
 	invoiceUUID := sess.Get("activeInvoiceUUID")
-	model.FetchOrCreateInvoice(db, invoice, invoiceUUID)
-	sess.Set("activeInvoiceUUID", invoice.ID)
+	model.FetchOrCreateInvoice(
+		db, invoice, invoiceUUID, altUUID,
+	)
+
+	if altUUID == uuid.Nil {
+		sess.Set("activeInvoiceUUID", invoice.ID)
+	}
 }
 
-//#   # #  #
+//#   # #  #sess.Get("activeInvoiceUUID")
 //###  #
 //#  # #
 
