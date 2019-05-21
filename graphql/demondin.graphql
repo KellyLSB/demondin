@@ -48,7 +48,7 @@ type ItemOption implements Postgresql {
   invoiceItemID:    ID!
   itemOptionType:   ItemOptionType
   itemOptionTypeID: ID!
-  values:           String!
+  values:           JSON
 }
 
 type ItemPrice implements Postgresql {
@@ -142,7 +142,7 @@ input NewInvoiceItem {
 input NewItemOption {
   id:               ID
   itemOptionTypeID: ID!
-  values:           JSON!
+  values:           JSON
 }
 
 input Paging {

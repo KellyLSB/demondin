@@ -5,9 +5,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/kr/pretty"
+	"github.com/KellyLSB/demondin/graphql/utils"
 )
 
-func FetchInvoice(tx *gorm.DB, inputs ...interface{}) (*Invoice) {
+func FetchInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 	var invoice *Invoice = new(Invoice)
 	var invUUID uuid.UUID
 
@@ -40,7 +41,7 @@ func FetchInvoice(tx *gorm.DB, inputs ...interface{}) (*Invoice) {
 	return invoice
 }
 
-func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) (*Invoice) {
+func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 	var invoice *Invoice = new(Invoice)
 	var invUUID uuid.UUID
 
@@ -101,24 +102,45 @@ func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
 	return i
 }
 
-func (i *Invoice) AddItem(tx *gorm.DB, item *Item) (*Item) {
-	tx.Model(i).Association("Items").Append(&InvoiceItem{
-		InvoiceID: i.ID, ItemID: item.ID,		
-		ItemPriceID: item.LoadPrices(tx).CurrentPrice().ID,
+func (i *Invoice) AddInvoiceItem(
+	tx *gorm.DB, invoiceItem *InvoiceItem,
+) *InvoiceItem {
+	tx.Model(i).Association("Items").Append(invoiceItem)
+	invoiceItem.LoadOptions(tx)	
+	invoiceItem.LoadPrice(tx)
+	invoiceItem.LoadItem(tx)	
+	return invoiceItem
+} 
+
+func (i *Invoice) AddItemWithPrice(
+	tx *gorm.DB, item *Item, 
+	itemPrice *ItemPrice,
+) *InvoiceItem {
+	return i.AddInvoiceItem(tx, &InvoiceItem{
+		InvoiceID: i.ID, ItemID: item.ID,
+		ItemPriceID: itemPrice.ID,
 	})
+}	
 
-	return item
+func (i *Invoice) AddItem(
+	tx *gorm.DB, item *Item,
+) *InvoiceItem {
+	return i.AddItemWithPrice(
+		tx, item, item.LoadPrices(tx).CurrentPrice(),
+	)
 }
 
-func (i *Invoice) AddItemByUUID(tx *gorm.DB, itemUUID uuid.UUID) (*Item) {
-	var item Item
-	tx.First(&item, "id = ?", itemUUID)
-	return i.AddItem(tx, &item)
+func (i *Invoice) AddItemByUUID(tx *gorm.DB, uuid uuid.UUID) *InvoiceItem {
+	return i.AddItem(tx, FetchItem(tx, uuid))
 }
 
-func (i *Invoice) Calculate(tx *gorm.DB) {
-	var subTotal, taxable int 
-	i.LoadItems(tx)
+func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
+	var subTotal, taxable int
+
+	// Auto load items
+	if len(loadItems) < 1 || (len(loadItems) > 0 && loadItems[0] != false) {
+		i.LoadItems(tx)
+	}
 
 	for _, item := range i.Items {
 		subTotal += item.ItemPrice.Price
@@ -133,6 +155,26 @@ func (i *Invoice) Calculate(tx *gorm.DB) {
 	i.Taxes = int(float32(taxable) * 0.00)
 	i.DemonDin = int(float32(subTotal) * 0.03)
 	i.Total = i.SubTotal + i.Taxes + i.DemonDin
+}
+
+func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
+	for _, _item := range input.Items {
+		var invoiceItem *InvoiceItem
+
+		// Create New InvoiceItem, or 'Fetch Existing InvoiceItem
+		if _item.ID == nil || *_item.ID == uuid.Nil {
+			invoiceItem = i.AddItemByUUID(tx, _item.ItemID)
+		} else {
+			invoiceItem = FetchInvoiceItem(tx, *_item.ID)
+		}
+
+		utils.PipeInput(_item, invoiceItem)
+		i.AddInvoiceItem(tx, invoiceItem)
+	}
+}
+
+func (i *Invoice) Save(tx *gorm.DB) {
+	tx.Save(i)
 }
 
 func (i *Invoice) Submit() {

@@ -1,21 +1,20 @@
 package graphql
 
 import (
-  "io"
   "os"
   "fmt"
   "time"
 	"context"
-	"encoding/json"
 
 	//"github.com/99designs/gqlgen/graphql"
+	"github.com/KellyLSB/demondin/graphql/utils"
 	"github.com/KellyLSB/demondin/graphql/model"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/go-macaron/session"
-	//"github.com/kr/pretty"
+	"github.com/kr/pretty"
 )
 
 var dbh func(func(*gorm.DB))
@@ -90,7 +89,7 @@ func (r *mutationResolver) CreateItem(
 	var err error
 
   	// Copy input into the item
-	err = pipeInput(&input, &item)	
+	err = utils.PipeInput(&input, &item)	
 	if err != nil {
     		return nil, err
  	}
@@ -126,7 +125,7 @@ func (r *mutationResolver) UpdateItem(
 	
 	// Copy input into the item
 	// @TODO: verify updating with\/out associations
-	err = pipeInput(&input, &item)
+	err = utils.PipeInput(&input, &item)
 	
 	if err != nil {
 		return nil, err
@@ -151,7 +150,7 @@ func (r *mutationResolver) ActiveInvoice(
 	var invoice model.Invoice
 	var err error
 
-	// Load the requested invoice or session
+	// Fetch/Update Active or Requested Invoice
 	dbh(func(db *gorm.DB) {
 		var invoiceUUID uuid.UUID
 		if input != nil && input.ID != nil && len(*input.ID) < 1 {
@@ -159,23 +158,12 @@ func (r *mutationResolver) ActiveInvoice(
 		}
 
 		activeSessionInvoice(db, r.Session, &invoice, invoiceUUID)
+		invoice.Input(db, input)
+		invoice.Calculate(db)
+		invoice.Save(db)
 	})
 
-	// Copy input into the invoice
-	// @TODO: verify updating with\/out associations
-	err = pipeInput(&input, &invoice)
-	
-	if err != nil {
-	  return nil, err
-	}
-
-	// Save the resulting model
-	dbh(func(db *gorm.DB) {
-	  err = gormErrors(db.Save(&invoice))
-	  invoice.LoadItems(db)
-	  //invoice.Calculate(db)
-	  //fmt.Printf("%# v", pretty.Formatter(invoice))
-	})
+	fmt.Printf("\n%# v\n", pretty.Formatter(invoice))
 
 	// Set session ID
 	r.Session.Set("activeInvoiceUUID", invoice.ID)
@@ -201,7 +189,7 @@ func (r *mutationResolver) CreateInvoice(
 	var err error
 
 	// Copy input into the invoice
-	err = pipeInput(&input, &invoice)
+	err = utils.PipeInput(&input, &invoice)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +228,7 @@ func (r *mutationResolver) UpdateInvoice(
 	
 	// Copy input into the invoice
 	// @TODO: verify updating with\/out associations
-	err = pipeInput(&input, invoice)
+	err = utils.PipeInput(&input, invoice)
 	
 	if err != nil {
 	  return
@@ -367,7 +355,7 @@ func (r *subscriptionResolver) InvoiceUpdated(
 	// Send the currently active invoice.
 	go func() {
 		dbh(func(db *gorm.DB) {
-			sessionInvoice.LoadItems(db)
+			sessionInvoice.Calculate(db)
 			ch <- &sessionInvoice
 		})
 	}()
@@ -427,18 +415,5 @@ func gormPaging(query *gorm.DB, paging *model.Paging) (*gorm.DB) {
   return query
 }
 
-func pipeInput(from, to interface{}) (err error) {
-  jReader, jWriter := io.Pipe()
-  defer jReader.Close()
-  
-  go func() {
-    defer jWriter.Close()
-	  err = json.NewEncoder(jWriter).Encode(from)
-	}()
-	
-	if err != nil {
-	  return
-	}
-	
-	return json.NewDecoder(jReader).Decode(to)
-}
+
+

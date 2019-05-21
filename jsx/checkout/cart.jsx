@@ -71,12 +71,14 @@ export default class Cart extends React.Component {
 									</Segment>
 									{invoice.items.map((item) =>
 										<Segment key={item.id} attached>
-											<Header as='h4' dividing>{item.item.name}</Header>
-											<span>{item.itemPrice.price.toDollars()}</span>
+											<Header as='h4' dividing>{item.item ? item.item.name : "<Item>"}</Header>
+											<span>{item.itemPrice ? item.itemPrice.price.toDollars() : "-.-"}</span>
 											<List>
-												{item.options.map((option) =>
-													<List.Item key={option.itemOptionType.id}>
-														<List.Header>{option.itemOptionType.key}</List.Header>
+												{item.options.map((option, i) =>
+													<List.Item key={option.itemOptionType ? option.itemOptionType.id : `option-${i}`}>
+														<List.Header>
+															{option.itemOptionType ? option.itemOptionType.key : null}
+														</List.Header>
 														{option.values}
 													</List.Item>
 												)}

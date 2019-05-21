@@ -33,7 +33,7 @@ type Item struct {
 	Prices      []ItemPrice      `json:"prices" gorm:"foreignkey:ItemID"`
 }
 
-func FetchItem(tx *gorm.DB, uuid uuid.UUID) (*Item) {
+func FetchItem(tx *gorm.DB, uuid uuid.UUID) *Item {
 	var item Item	
 	tx.First(&item, "id = ?", uuid)
 	return &item
