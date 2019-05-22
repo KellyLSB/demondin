@@ -70,6 +70,9 @@ func main() {
 			"AppVer": func() string {
 				return "0.0.1"
 			},
+			"GoGetenv": func(env string) string {
+				return os.Getenv(env)
+			},
 		}},
 	}))
 

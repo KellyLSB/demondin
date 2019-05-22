@@ -84,7 +84,7 @@ ReactDOM.render(
             <Items addToCart={(id) => console.log("ID: ", id)} />
           </Grid.Column>
           <Grid.Column width={6}>
-						<StripeProvider apiKey="pk_QvTYY0U3QV8SWMI15Ya6asvTgcXga">
+						<StripeProvider apiKey={STRIPE_PUBLISH_KEY}>
 							<Elements>
 								<Cart />
 							</Elements>
