@@ -31,6 +31,7 @@
     "react-apollo": "^2.4.1",
     "react-datepicker": "^2.0.0",
     "react-number-format": "^4.0.4",
+    "react-stripe-elements": "^3.0.0",
     "semantic-ui-react": "^0.85.0",
     "subscriptions-transport-ws": "^0.9.16"
   },

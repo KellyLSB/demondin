@@ -6,7 +6,9 @@ import Item from './item'
 
 import { Form, List, Button, Header, Icon, Grid, Segment } from 'semantic-ui-react'
 
-export default class Cart extends React.Component {
+import {CardElement, injectStripe} from 'react-stripe-elements';
+
+export default injectStripe(Cart); class Cart extends React.Component {
   constructor(props) {
     super(props);
 
@@ -16,9 +18,12 @@ export default class Cart extends React.Component {
 	onSubmit(e, updateInvoice) {
 		e.preventDefault()
 
+		let {token} = this.props.stripe.createToken({name: "Name"});
+
 		updateInvoice({ variables: {
 			input: { 
-				submit: true
+				cardToken: token.id,
+				submit: true,
 			}
 		} })
 	}
@@ -86,27 +91,47 @@ export default class Cart extends React.Component {
 										</Segment>											
 									)}
 									{invoice.total > 0 ? (
-										<Segment attached>
-											<List>
-												<List.Item>
-													<List.Header>SubTotal</List.Header>
-													{invoice.subTotal.toDollars()}
-												</List.Item>
-												<List.Item>
-													<List.Header>DemonDin</List.Header>
-													{invoice.demonDin.toDollars()}
-												</List.Item>
-												<List.Item>
-													<List.Header>Taxes</List.Header>
-													{invoice.taxes.toDollars()}
-												</List.Item>
-												<List.Item>
-													<List.Header>Total</List.Header>
-													{invoice.total.toDollars()}
-												</List.Item>
-											</List>
-										</Segment>
-									) : null }					
+										<React.Fragment>
+											<Segment attached>
+												<List>
+													<List.Item>
+														<List.Header>SubTotal</List.Header>
+														{invoice.subTotal.toDollars()}
+													</List.Item>
+													<List.Item>
+														<List.Header>DemonDin</List.Header>
+														{invoice.demonDin.toDollars()}
+													</List.Item>
+													<List.Item>
+														<List.Header>Taxes</List.Header>
+														{invoice.taxes.toDollars()}
+													</List.Item>
+													<List.Item>
+														<List.Header>Total</List.Header>
+														{invoice.total.toDollars()}
+													</List.Item>
+												</List>
+											</Segment>
+											<Segment attached>
+												<CardElement />
+											</Segment>
+											<Segment attached>
+												<Mutation mutation={gql`
+													mutation activeInvoice($input: NewInvoice!) {
+														activeInvoice(input: $input) {
+															id
+														}
+													}
+												`}>
+													{(updateInvoice) => (
+														<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
+															<Button type='submit'>Checkout</Button>
+														</Form>
+													) }				
+												</Mutation>
+											</Segment>
+										</React.Fragment>
+									) : null }		
 								</React.Fragment>
 							);
 
@@ -114,21 +139,6 @@ export default class Cart extends React.Component {
 						}	
 					}
 				</Subscription>
-				<Segment attached>
-					<Mutation mutation={gql`
-						mutation activeInvoice($input: NewInvoice!) {
-							activeInvoice(input: $input) {
-								id
-							}
-						}
-					`}>
-						{(updateInvoice) => (
-							<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
-								<Button type='submit'>Checkout</Button>
-							</Form>
-						) }				
-					</Mutation>
-				</Segment>
 			</Grid.Row>
 		)
 	}

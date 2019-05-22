@@ -1,7 +1,7 @@
 package model
 
 import (
-	//"fmt"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/google/uuid"
@@ -67,4 +67,24 @@ func (i *InvoiceItem) LoadOptions(tx *gorm.DB) *InvoiceItem {
 	//fmt.Printf("%# v", pretty.Formatter(i))
 
 	return i
+}
+
+
+func (i *InvoiceItem) Sample() string {
+	return fmt.Sprintf("%q (%f)", 
+		i.Item.Name,
+		float32(i.ItemPrice.Price) / 100,
+	)
+}
+
+func (i *InvoiceItem) SampleOptions() []string {
+		var options = []string{}
+
+		for _, _option_ := range i.Options {
+			options = append(options, 
+				_option_.Sample(),
+			)
+		} 
+
+		return options
 }

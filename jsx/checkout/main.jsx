@@ -72,6 +72,9 @@ import '../../semantic/dist/semantic.min.css';
 import Items from './items';
 import Cart from './cart';
 
+// Stripe.JS React Elements
+import {Elements, StripeProvider} from 'react-stripe-elements';
+
 ReactDOM.render(
   <ApolloProvider client={client}>
     <Container text>
@@ -81,9 +84,11 @@ ReactDOM.render(
             <Items addToCart={(id) => console.log("ID: ", id)} />
           </Grid.Column>
           <Grid.Column width={6}>
-						<Cart />
-						<Segment>Cart Data</Segment>
-            <Segment>Checkout</Segment>
+						<StripeProvider apiKey="pub_Tok (ENVVAR?)">
+							<Elements>
+								<Cart />
+							</Elements>
+						</StripeProvider>
           </Grid.Column>
         </Grid.Row>
       </Grid>

@@ -6,6 +6,9 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/kr/pretty"
 	"github.com/KellyLSB/demondin/graphql/utils"
+	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/charge"
+	"gopkg.in/yaml.v2"
 )
 
 func FetchInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
@@ -154,6 +157,9 @@ func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 	i.SubTotal = subTotal
 	i.Taxes = int(float32(taxable) * 0.00)
 	i.DemonDin = int(float32(subTotal) * 0.03)
+	
+	 // Calculate the Totals (Ensure ApplicationFee accuracy)
+	// || \\ ^ [ i.Total = i.SubTotal + i.Taxes ]
 	i.Total = i.SubTotal + i.Taxes + i.DemonDin
 }
 
@@ -177,6 +183,45 @@ func (i *Invoice) Save(tx *gorm.DB) {
 	tx.Save(i)
 }
 
-func (i *Invoice) Submit() {
-	
+func (i *Invoice) Submit() error {
+	 // List Items and Prices
+	// || \\ ^ Update this for refunds!
+	var items map[string][]string
+	for _, _item_ := range i.Items {
+		var key = _item_.Sample()
+		var opt = _item_.SampleOptions()
+		items[key] = opt
+	}
+
+	var description map[string]interface{} 
+	description["subTotal"] = i.SubTotal
+	description["demonDin"] = i.DemonDin
+	description["taxes"] = i.Taxes
+	description["total"] = i.Total
+	description["items"] = items
+
+	_description_, err := yaml.Marshal(description)
+	if err != nil {
+		return err
+	}
+
+	 // Stripe Transaction
+	// || \\ ^
+	chargeParams := &stripe.ChargeParams{
+  		Amount: stripe.Int64(int64(i.SubTotal)),
+		ApplicationFeeAmount: stripe.Int64(int64(i.DemonDin)),
+  		Currency: stripe.String(string(stripe.CurrencyUSD)),
+  		Description: stripe.String(string(_description_)),
+	}
+
+	chargeParams.SetSource(i.CardToken) // obtained with Stripe.js
+	_charge_, err := charge.New(chargeParams)
+	if err != nil {
+		return err
+	}
+
+	i.ChargeToken = stripe.String(_charge_.ID)
+	i.ChargeData = _charge_
+
+	return nil
 }

@@ -1,7 +1,7 @@
 package model
 
 import (
-	//"fmt"	
+	"fmt"	
 	"github.com/jinzhu/gorm"
 	"github.com/google/uuid"
 	//"github.com/kr/pretty"
@@ -18,4 +18,11 @@ func (o *ItemOption) LoadItemOptionType(xo *gorm.DB) *ItemOption {
 	xo.Model(o).Related(o.ItemOptionType)
 	//fmt.Printf("% #v", pretty.Formatter(o))
 	return o
+}
+
+func (o *ItemOption) Sample() string {
+	return fmt.Sprintf("[%q]: %# v", 
+		o.ItemOptionType.Key, 
+		o.Values,
+	)
 }
