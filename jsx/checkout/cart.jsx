@@ -8,7 +8,7 @@ import { Form, List, Button, Header, Icon, Grid, Segment } from 'semantic-ui-rea
 
 import {CardElement, injectStripe} from 'react-stripe-elements';
 
-export default injectStripe(Cart); class Cart extends React.Component {
+class Cart extends React.Component {
   constructor(props) {
     super(props);
 
@@ -143,3 +143,5 @@ export default injectStripe(Cart); class Cart extends React.Component {
 		)
 	}
 }
+
+export default injectStripe(Cart);
