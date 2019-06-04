@@ -167,6 +167,7 @@ func (r *mutationResolver) ActiveInvoice(
 
 	// Set session ID
 	r.Session.Set("activeInvoiceUUID", invoice.ID)
+	fmt.Println("#7")
 
 	// Inform subscriptions of create/update
 	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice[invoice.ID]))

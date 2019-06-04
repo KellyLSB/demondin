@@ -321,10 +321,12 @@
     "github.com/kr/pretty",
     "github.com/lib/pq",
     "github.com/stripe/stripe-go",
+    "github.com/stripe/stripe-go/charge",
     "github.com/stripe/stripe-go/client",
     "github.com/vektah/gqlparser",
     "github.com/vektah/gqlparser/ast",
     "gopkg.in/macaron.v1",
+    "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

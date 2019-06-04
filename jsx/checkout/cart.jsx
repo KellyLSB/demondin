@@ -4,21 +4,41 @@ import gql from "graphql-tag";
 
 import Item from './item'
 
-import { Form, List, Button, Header, Icon, Grid, Segment } from 'semantic-ui-react'
+import { Input, Form, List, Button, Header, Icon, Grid, Segment } from 'semantic-ui-react'
 
 import {CardElement, injectStripe} from 'react-stripe-elements';
 
 class Cart extends React.Component {
-  constructor(props) {
-    super(props);
-
+	constructor(props) {
+		super(props);
+		
+		this.state = {
+			values: {},
+		};
+		
+		this.onChange = this.onChange.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
-  }
+	}
+	
+	onChange(e, { name, value }) {
+		this.setState((state) => {
+			state.values[name] = value;
+			return state
+		} );
+	}
 
 	onSubmit(e, updateInvoice) {
 		e.preventDefault()
+		
+		console.log(this.state.values)
 
-		let {token} = this.props.stripe.createToken({name: "Name"});
+		let { token } = this.props.stripe.createToken({
+			name: 		this.state.values.cardHolder,
+			address_line1: 	this.state.values.cardAddress,
+			address_city: 	this.state.values.cardCity,
+			address_state: 	this.state.values.cardState,
+			address_zip: 	this.state.values.cardZip,
+		});
 
 		updateInvoice({ variables: {
 			input: { 
@@ -93,24 +113,47 @@ class Cart extends React.Component {
 									{invoice.total > 0 ? (
 										<React.Fragment>
 											<Segment attached>
-												<List>
-													<List.Item>
-														<List.Header>SubTotal</List.Header>
-														{invoice.subTotal.toDollars()}
-													</List.Item>
-													<List.Item>
-														<List.Header>DemonDin</List.Header>
-														{invoice.demonDin.toDollars()}
-													</List.Item>
-													<List.Item>
-														<List.Header>Taxes</List.Header>
-														{invoice.taxes.toDollars()}
-													</List.Item>
-													<List.Item>
-														<List.Header>Total</List.Header>
-														{invoice.total.toDollars()}
-													</List.Item>
-												</List>
+												<Grid columns={2}>
+													<Grid.Row>
+														<Grid.Column>
+															<Header sub>SubTotal</Header>
+															{invoice.subTotal.toDollars()}
+														</Grid.Column>
+														<Grid.Column textAlign='right'>
+															<Header sub>DemonDin</Header>
+															{invoice.demonDin.toDollars()}
+														</Grid.Column>
+													</Grid.Row>
+													<Grid.Row>
+														<Grid.Column>
+															<Header sub>Taxes</Header>
+															{invoice.taxes.toDollars()}
+														</Grid.Column>
+														<Grid.Column textAlign='right'>
+															<Header sub>Total</Header>
+															{invoice.total.toDollars()}
+														</Grid.Column>
+													</Grid.Row>
+												</Grid>
+											</Segment>
+											<Segment attached>
+												<Input fluid transparent name="cardHolder" 
+															 placeholder="Cardholder"
+															 onChange={this.onChange} />
+											</Segment>
+											<Segment attached>
+												<Input fluid transparent name="cardAddress"
+															 placeholder="Street Address" 
+															 onChange={this.onChange} />
+												<Input fluid transparent name="cardCity"
+															 placeholder="City" 
+															 onChange={this.onChange} />
+												<Input fluid transparent name="cardState" 
+															 placeholder="State" 
+															 onChange={this.onChange} />
+												<Input fluid transparent name="cardZip"
+															 placeholder="ZIP Code" 
+															 onChange={this.onChange} />
 											</Segment>
 											<Segment attached>
 												<CardElement />

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"os"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
@@ -10,6 +11,10 @@ import (
 	"github.com/stripe/stripe-go/charge"
 	"gopkg.in/yaml.v2"
 )
+
+func init() {
+	stripe.Key = os.Getenv("STRIPE_PRIVATE_KEY")
+}
 
 func FetchInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 	var invoice *Invoice = new(Invoice)
@@ -109,9 +114,11 @@ func (i *Invoice) AddInvoiceItem(
 	tx *gorm.DB, invoiceItem *InvoiceItem,
 ) *InvoiceItem {
 	tx.Model(i).Association("Items").Append(invoiceItem)
-	invoiceItem.LoadOptions(tx)	
+	invoiceItem.LoadOptions(tx)
 	invoiceItem.LoadPrice(tx)
-	invoiceItem.LoadItem(tx)	
+	invoiceItem.LoadItem(tx)
+	fmt.Println("#1")
+	fmt.Printf("%# v\n", pretty.Formatter(invoiceItem))
 	return invoiceItem
 } 
 
@@ -164,6 +171,11 @@ func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 }
 
 func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
+	// Set Card Token
+	if input.CardToken != nil && *input.CardToken != "" {
+		i.CardToken = input.CardToken
+	}
+	
 	for _, _item := range input.Items {
 		var invoiceItem *InvoiceItem
 
@@ -173,8 +185,14 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 		} else {
 			invoiceItem = FetchInvoiceItem(tx, *_item.ID)
 		}
-
+		
 		utils.PipeInput(_item, invoiceItem)
+		
+		fmt.Println("#3")
+		fmt.Printf("%# v\n", pretty.Formatter(_item))
+		fmt.Println("#4")
+		fmt.Printf("%# v\n", pretty.Formatter(invoiceItem))
+
 		i.AddInvoiceItem(tx, invoiceItem)
 	}
 }
@@ -222,6 +240,8 @@ func (i *Invoice) Submit() error {
 
 	i.ChargeToken = stripe.String(_charge_.ID)
 	i.ChargeData = _charge_
+	
+	//fmt.Printf("%# v\n", pretty.Formatter(i))
 
 	return nil
 }

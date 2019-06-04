@@ -15,13 +15,13 @@ const GRAPHQL_BACKEND = "localhost:8080/graphql";
 
 // Create an HTTP link:
 const httpLink = new HttpLink({
-  uri: "http://" + GRAPHQL_BACKEND,
+	uri: "http://" + GRAPHQL_BACKEND,
 });
 
 // Create a WebSocket link:
 const wsLink = new WebSocketLink({
-  uri: "ws://" + GRAPHQL_BACKEND,
-  options: { reconnect: true },
+	uri: "ws://" + GRAPHQL_BACKEND,
+	options: { reconnect: true },
 });
 
 // Handle link splitting:
@@ -29,12 +29,14 @@ const link = ApolloLink.from([
 	onError(({ graphQLErrors, networkError }) => {
 		if (graphQLErrors)
 			graphQLErrors.map(({ message, locations, path }) =>
-      	console.log(
-					'[GraphQL error]: Message: ', message,' Location: ', locations, ' Path: ', path,
+				console.log(
+					'[GraphQL error]: Message: ', message,
+					' Location: ', locations, 
+					' Path: ', path,
 				),
 			);
-   	if (networkError) console.log(`[Network error]: ${networkError}`);
-		if (networkError) console.log(networkError);
+		if (networkError) 
+			console.log('[Network error]: ', networkError);
   }),
 	split(
 		// split based on operation type
@@ -76,23 +78,22 @@ import Cart from './cart';
 import {Elements, StripeProvider} from 'react-stripe-elements';
 
 ReactDOM.render(
-  <ApolloProvider client={client}>
-    <Container text>
-      <Grid columns={2} divided>
-        <Grid.Row stretched>
-          <Grid.Column width={10}>
-            <Items addToCart={(id) => console.log("ID: ", id)} />
-          </Grid.Column>
-          <Grid.Column width={6}>
+	<ApolloProvider client={client}>
+		<Container text>
+			<Grid columns={2} divided>
+				<Grid.Row stretched>
+					<Grid.Column width={10}>
+						<Items addToCart={(id) => console.log("ID: ", id)} />
+					</Grid.Column>
+					<Grid.Column width={6}>
 						<StripeProvider apiKey={STRIPE_PUBLISH_KEY}>
 							<Elements>
 								<Cart />
 							</Elements>
 						</StripeProvider>
-          </Grid.Column>
-        </Grid.Row>
-      </Grid>
-    </Container>
-  </ApolloProvider>,
-  document.getElementById('root')
-);
+					</Grid.Column>
+				</Grid.Row>
+			</Grid>
+		</Container>
+	</ApolloProvider>
+, document.getElementById('root'));

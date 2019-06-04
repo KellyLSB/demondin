@@ -5,7 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/google/uuid"
-	//"github.com/kr/pretty"
+	"github.com/kr/pretty"
 )
 
 func FetchInvoiceItem(tx *gorm.DB, iUUID uuid.UUID) *InvoiceItem {
@@ -35,10 +35,14 @@ func (i *InvoiceItem) AddOption(
 	itemOptionType *ItemOptionType, 
 	values postgres.Jsonb,
 ) (itemOption *ItemOption) {
+	fmt.Println("#2")
+	fmt.Printf("%# v\n", pretty.Formatter(values))
+	
+	fmt.Printf("%# v\n", pretty.Formatter(postgres.Jsonb{ values.RawMessage }))
 	itemOption = &ItemOption{
 		ItemOptionTypeID: itemOptionType.ID,
 		// Get RawJSON from postgres.Jsonb object
-		Values: string(values.RawMessage),
+		Values: postgres.Jsonb{ values.RawMessage },
 	}
 
 	tx.Model(i).Association("Options").Append(itemOption)

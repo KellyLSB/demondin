@@ -92,14 +92,16 @@ func UnmarshalDateTime(v interface{}) (time.Time, error) {
 }
 
 func MarshalJSON(v postgres.Jsonb) graphql.Marshaler {
-  return graphql.WriterFunc(func(w io.Writer) {
-    io.WriteString(w, string(v.RawMessage))
-  })
+	return graphql.WriterFunc(func(w io.Writer) {
+		byt, _ := v.MarshalJSON()
+		w.Write(byt)
+	})
 }
 
 func UnmarshalJSON(v interface{}) (out postgres.Jsonb, err error) {
-  byt, err := json.Marshal(v)
-  return postgres.Jsonb{json.RawMessage(byt)}, err
+	byt, err := json.Marshal(v)
+	err = out.UnmarshalJSON(byt)
+	return
 }
 
 // @TODO:

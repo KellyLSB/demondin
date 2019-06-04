@@ -57,21 +57,21 @@ type ItemOption struct {
 	InvoiceItemID    uuid.UUID       `json:"invoiceItemID" gorm:"type:uuid;"`
 	ItemOptionType   *ItemOptionType `json:"itemOptionType"`
 	ItemOptionTypeID uuid.UUID       `json:"itemOptionTypeID" gorm:"type:uuid;"`
-	Values           string          `json:"values"`
+	Values           postgres.Jsonb  `json:"values"`
 }
 
 func (ItemOption) IsPostgresql() {}
 
 type ItemOptionType struct {
-	ID        uuid.UUID       `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt time.Time       `json:"createdAt"`
-	UpdatedAt time.Time       `json:"updatedAt"`
-	DeletedAt *time.Time      `json:"deletedAt"`
-	Item      *Item           `json:"item"`
-	ItemID    uuid.UUID       `json:"itemID" gorm:"type:uuid;"`
-	Key       string          `json:"key"`
-	ValueType string          `json:"valueType"`
-	Values    *postgres.Jsonb `json:"values"`
+	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt *time.Time     `json:"deletedAt"`
+	Item      *Item          `json:"item"`
+	ItemID    uuid.UUID      `json:"itemID" gorm:"type:uuid;"`
+	Key       string         `json:"key"`
+	ValueType string         `json:"valueType"`
+	Values    postgres.Jsonb `json:"values"`
 }
 
 func (ItemOptionType) IsPostgresql() {}
@@ -92,9 +92,10 @@ type ItemPrice struct {
 func (ItemPrice) IsPostgresql() {}
 
 type NewInvoice struct {
-	ID     *uuid.UUID       `json:"id"`
-	Submit *bool            `json:"submit"`
-	Items  []NewInvoiceItem `json:"items"`
+	ID        *uuid.UUID       `json:"id"`
+	CardToken *string          `json:"cardToken"`
+	Submit    *bool            `json:"submit"`
+	Items     []NewInvoiceItem `json:"items"`
 }
 
 type NewInvoiceItem struct {

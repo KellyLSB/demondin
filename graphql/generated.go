@@ -864,7 +864,7 @@ type ItemOptionType implements Postgresql {
   itemID:           ID!
   key:              String!
   valueType:        String!
-  values:           JSON
+  values:           JSON!
 }
 
 type ItemOption implements Postgresql {
@@ -877,7 +877,7 @@ type ItemOption implements Postgresql {
   invoiceItemID:    ID!
   itemOptionType:   ItemOptionType
   itemOptionTypeID: ID!
-  values:           String!
+  values:           JSON!
 }
 
 type ItemPrice implements Postgresql {
@@ -957,6 +957,7 @@ input NewItemOptionType {
 
 input NewInvoice {
   id:               ID
+  cardToken:        String
   submit:           Boolean
   items:            [NewInvoiceItem!]!
 }
@@ -2270,10 +2271,10 @@ func (ec *executionContext) _ItemOption_values(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(postgres.Jsonb)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemOptionType_id(ctx context.Context, field graphql.CollectedField, obj *model.ItemOptionType) graphql.Marshaler {
@@ -2493,12 +2494,15 @@ func (ec *executionContext) _ItemOptionType_values(ctx context.Context, field gr
 		return obj.Values, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*postgres.Jsonb)
+	res := resTmp.(postgres.Jsonb)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, field.Selections, res)
+	return ec.marshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemPrice_id(ctx context.Context, field graphql.CollectedField, obj *model.ItemPrice) graphql.Marshaler {
@@ -3917,6 +3921,12 @@ func (ec *executionContext) unmarshalInputNewInvoice(ctx context.Context, v inte
 			if err != nil {
 				return it, err
 			}
+		case "cardToken":
+			var err error
+			it.CardToken, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "submit":
 			var err error
 			it.Submit, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -4485,6 +4495,9 @@ func (ec *executionContext) _ItemOptionType(ctx context.Context, sel ast.Selecti
 			}
 		case "values":
 			out.Values[i] = ec._ItemOptionType_values(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
