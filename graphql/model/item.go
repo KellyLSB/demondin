@@ -1,11 +1,11 @@
 package model
 
 import (
-  //"log"
-  //"sort"
+	//"fmt"
+	//"log"
+	//"sort"
 	"sort"
 	"time"
-	"fmt"
 	"io"
 	"strconv"
 	"encoding/json"
@@ -54,8 +54,6 @@ func (i *Item) CurrentPrice() *ItemPrice {
 		sb :=        i.Prices[x].AfterDate.After(i.Prices[y].AfterDate)
 		return sb && i.Prices[x].BeforeDate.Before(i.Prices[y].BeforeDate)
 	})
-
-	fmt.Printf("%+v\n", i)
 
 	now := time.Now()
 	for _, price := range i.Prices {
@@ -107,20 +105,20 @@ func UnmarshalJSON(v interface{}) (out postgres.Jsonb, err error) {
 // @TODO:
 // Might break this into specific scalars that serialize the
 // official models: https://gowalker.org/github.com/stripe/stripe-go#Card
-func MarshalStripeCard(v stripe.Card) graphql.Marshaler {
+func MarshalStripeToken(v stripe.Token) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
-    json.NewEncoder(w).Encode(v)
+    json.NewEncoder(w).Encode(&v)
   })
 }
 
-func UnmarshalStripeCard(v interface{}) (out stripe.Card, err error) {
+func UnmarshalStripeToken(v interface{}) (out stripe.Token, err error) {
   err = json.NewDecoder(strings.NewReader(v.(string))).Decode(&out)
   return
 }
 
 func MarshalStripeCharge(v stripe.Charge) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
-    json.NewEncoder(w).Encode(v)
+    json.NewEncoder(w).Encode(&v)
   })
 }
 

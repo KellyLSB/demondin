@@ -9,6 +9,6 @@ import (
 
 func FetchItemOptionType(xo *gorm.DB, uuid uuid.UUID) *ItemOptionType {
 	var itemOptionType ItemOptionType
-	xo.First(&itemOptionType, "id = ?", uuid)	
+	xo.First(&itemOptionType, "id = ?", uuid)
 	return &itemOptionType
 }

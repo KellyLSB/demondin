@@ -15,19 +15,19 @@ type Postgresql interface {
 }
 
 type Invoice struct {
-	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CreatedAt   time.Time      `json:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt"`
-	DeletedAt   *time.Time     `json:"deletedAt"`
-	CardToken   *string        `json:"cardToken"`
-	ChargeToken *string        `json:"chargeToken"`
-	CardData    *stripe.Card   `json:"cardData"`
-	ChargeData  *stripe.Charge `json:"chargeData"`
-	SubTotal    int            `json:"subTotal"`
-	DemonDin    int            `json:"demonDin"`
-	Taxes       int            `json:"taxes"`
-	Total       int            `json:"total"`
-	Items       []*InvoiceItem `json:"items"`
+	ID             uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+	DeletedAt      *time.Time     `json:"deletedAt"`
+	StripeTokenID  *string        `json:"stripeTokenID"`
+	StripeChargeID *string        `json:"stripeChargeID"`
+	StripeToken    *stripe.Token  `json:"stripeToken"`
+	StripeCharge   *stripe.Charge `json:"stripeCharge"`
+	SubTotal       int            `json:"subTotal"`
+	DemonDin       int            `json:"demonDin"`
+	Taxes          int            `json:"taxes"`
+	Total          int            `json:"total"`
+	Items          []*InvoiceItem `json:"items"`
 }
 
 func (Invoice) IsPostgresql() {}
@@ -92,10 +92,10 @@ type ItemPrice struct {
 func (ItemPrice) IsPostgresql() {}
 
 type NewInvoice struct {
-	ID        *uuid.UUID       `json:"id"`
-	CardToken *string          `json:"cardToken"`
-	Submit    *bool            `json:"submit"`
-	Items     []NewInvoiceItem `json:"items"`
+	ID            *uuid.UUID       `json:"id"`
+	StripeTokenID *string          `json:"stripeTokenID"`
+	Submit        *bool            `json:"submit"`
+	Items         []NewInvoiceItem `json:"items"`
 }
 
 type NewInvoiceItem struct {

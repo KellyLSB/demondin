@@ -82,10 +82,10 @@ ReactDOM.render(
 		<Container text>
 			<Grid columns={2} divided>
 				<Grid.Row stretched>
-					<Grid.Column width={10}>
+					<Grid.Column width={9}>
 						<Items addToCart={(id) => console.log("ID: ", id)} />
 					</Grid.Column>
-					<Grid.Column width={6}>
+					<Grid.Column width={7}>
 						<StripeProvider apiKey={STRIPE_PUBLISH_KEY}>
 							<Elements>
 								<Cart />

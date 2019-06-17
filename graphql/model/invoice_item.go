@@ -5,7 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/google/uuid"
-	"github.com/kr/pretty"
+	//"github.com/kr/pretty"
 )
 
 func FetchInvoiceItem(tx *gorm.DB, iUUID uuid.UUID) *InvoiceItem {
@@ -15,11 +15,11 @@ func FetchInvoiceItem(tx *gorm.DB, iUUID uuid.UUID) *InvoiceItem {
 		"Item", "ItemPrice", "Options",
 	).First(&invoiceItem, "id = ?", iUUID)
 
-	return &invoiceItem	
+	return &invoiceItem
 }
 
 func (i *InvoiceItem) LoadItem(tx *gorm.DB) *InvoiceItem {
-	i.Item = new(Item)	
+	i.Item = new(Item)
 	tx.Model(i).Related(i.Item)
 	return i
 }
@@ -35,10 +35,6 @@ func (i *InvoiceItem) AddOption(
 	itemOptionType *ItemOptionType, 
 	values postgres.Jsonb,
 ) (itemOption *ItemOption) {
-	fmt.Println("#2")
-	fmt.Printf("%# v\n", pretty.Formatter(values))
-	
-	fmt.Printf("%# v\n", pretty.Formatter(postgres.Jsonb{ values.RawMessage }))
 	itemOption = &ItemOption{
 		ItemOptionTypeID: itemOptionType.ID,
 		// Get RawJSON from postgres.Jsonb object
@@ -67,8 +63,6 @@ func (i *InvoiceItem) LoadOptions(tx *gorm.DB) *InvoiceItem {
 	for _, o := range i.Options {
 		o.LoadItemOptionType(tx)
 	}
-
-	//fmt.Printf("%# v", pretty.Formatter(i))
 
 	return i
 }

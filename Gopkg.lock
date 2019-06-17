@@ -321,6 +321,7 @@
     "github.com/kr/pretty",
     "github.com/lib/pq",
     "github.com/stripe/stripe-go",
+    "github.com/stripe/stripe-go/card",
     "github.com/stripe/stripe-go/charge",
     "github.com/stripe/stripe-go/client",
     "github.com/vektah/gqlparser",

@@ -1,9 +1,9 @@
 package graphql
 
 import (
-  "os"
-  "fmt"
-  "time"
+	"os"
+	"fmt"
+	"time"
 	"context"
 
 	//"github.com/99designs/gqlgen/graphql"
@@ -14,7 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/go-macaron/session"
-	"github.com/kr/pretty"
+	//"github.com/kr/pretty"
 )
 
 var dbh func(func(*gorm.DB))
@@ -161,13 +161,16 @@ func (r *mutationResolver) ActiveInvoice(
 		invoice.Input(db, input)
 		invoice.Calculate(db)
 		invoice.Save(db)
+		
+		if input != nil && input.Submit != nil && *(input.Submit) {
+			invoice.Submit(db)
+		}
 	})
 
-	fmt.Printf("\n%# v\n", pretty.Formatter(invoice))
+	//fmt.Printf("\n%# v\n", pretty.Formatter(invoice))
 
 	// Set session ID
 	r.Session.Set("activeInvoiceUUID", invoice.ID)
-	fmt.Println("#7")
 
 	// Inform subscriptions of create/update
 	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice[invoice.ID]))

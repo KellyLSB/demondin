@@ -29,23 +29,23 @@ class Cart extends React.Component {
 
 	onSubmit(e, updateInvoice) {
 		e.preventDefault()
-		
-		console.log(this.state.values)
 
-		let { token } = this.props.stripe.createToken({
+		this.props.stripe.createToken({
 			name: 		this.state.values.cardHolder,
 			address_line1: 	this.state.values.cardAddress,
 			address_city: 	this.state.values.cardCity,
 			address_state: 	this.state.values.cardState,
-			address_zip: 	this.state.values.cardZip,
+		}).then(({ token }) => {
+			console.log(token);
+		
+			updateInvoice({ variables: {
+				input: {
+					items: [], // Req?!
+					stripeTokenID: token.id,
+					submit: true,
+				}
+			} });
 		});
-
-		updateInvoice({ variables: {
-			input: { 
-				cardToken: token.id,
-				submit: true,
-			}
-		} })
 	}
 
   render() {
@@ -63,6 +63,10 @@ class Cart extends React.Component {
 							demonDin
 							taxes
 							total
+							stripeTokenID
+							stripeToken
+							stripeChargeID
+							stripeCharge
 							items {
 								id
 								item {
@@ -136,43 +140,56 @@ class Cart extends React.Component {
 													</Grid.Row>
 												</Grid>
 											</Segment>
-											<Segment attached>
-												<Input fluid transparent name="cardHolder" 
-															 placeholder="Cardholder"
-															 onChange={this.onChange} />
-											</Segment>
-											<Segment attached>
-												<Input fluid transparent name="cardAddress"
-															 placeholder="Street Address" 
-															 onChange={this.onChange} />
-												<Input fluid transparent name="cardCity"
-															 placeholder="City" 
-															 onChange={this.onChange} />
-												<Input fluid transparent name="cardState" 
-															 placeholder="State" 
-															 onChange={this.onChange} />
-												<Input fluid transparent name="cardZip"
-															 placeholder="ZIP Code" 
-															 onChange={this.onChange} />
-											</Segment>
-											<Segment attached>
-												<CardElement />
-											</Segment>
-											<Segment attached>
-												<Mutation mutation={gql`
-													mutation activeInvoice($input: NewInvoice!) {
-														activeInvoice(input: $input) {
-															id
+											{ invoice.stripeTokenID ? (
+												<Segment attached>
+													<Header as='h3'>Card Applied</Header>
+													{console.log(invoice.stripeToken)}
+												</Segment>
+											) : (
+												<React.Fragment>
+													<Segment attached>
+														<Input fluid transparent name="cardHolder" 
+																	 placeholder="Cardholder"
+																	 onChange={this.onChange} />
+													</Segment>
+													<Segment attached>
+														<Input fluid transparent name="cardAddress"
+																	 placeholder="Street Address" 
+																	 onChange={this.onChange} />
+														<Input fluid transparent name="cardCity"
+																	 placeholder="City" 
+																	 onChange={this.onChange} />
+														<Input fluid transparent name="cardState" 
+																	 placeholder="State" 
+																	 onChange={this.onChange} />
+													</Segment>
+													<Segment attached>
+														<CardElement />
+													</Segment>
+												</React.Fragment>
+											) }
+											{ invoice.stripeChargeID ? (
+												<Segment attached>
+													<Header as='h3'>Charged and Checked Out</Header>
+													{console.log(invoice.stripeCharge)}
+												</Segment>
+											) : (
+												<Segment attached>
+													<Mutation mutation={gql`
+														mutation activeInvoice($input: NewInvoice!) {
+															activeInvoice(input: $input) {
+																id
+															}
 														}
-													}
-												`}>
-													{(updateInvoice) => (
-														<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
-															<Button type='submit'>Checkout</Button>
-														</Form>
-													) }				
-												</Mutation>
-											</Segment>
+													`}>
+														{(updateInvoice) => (
+															<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
+																<Button type='submit'>Checkout</Button>
+															</Form>
+														) }				
+													</Mutation>
+												</Segment>
+											) }
 										</React.Fragment>
 									) : null }		
 								</React.Fragment>

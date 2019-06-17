@@ -8,6 +8,7 @@ import (
 	"github.com/kr/pretty"
 	"github.com/KellyLSB/demondin/graphql/utils"
 	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/token"
 	"github.com/stripe/stripe-go/charge"
 	"gopkg.in/yaml.v2"
 )
@@ -171,9 +172,9 @@ func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 }
 
 func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
-	// Set Card Token
-	if input.CardToken != nil && *input.CardToken != "" {
-		i.CardToken = input.CardToken
+	// Set Source Token
+	if input.StripeTokenID != nil && *input.StripeTokenID != "" {
+		i.SetStripeTokenID(tx, *input.StripeTokenID)
 	}
 	
 	for _, _item := range input.Items {
@@ -187,12 +188,6 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 		}
 		
 		utils.PipeInput(_item, invoiceItem)
-		
-		fmt.Println("#3")
-		fmt.Printf("%# v\n", pretty.Formatter(_item))
-		fmt.Println("#4")
-		fmt.Printf("%# v\n", pretty.Formatter(invoiceItem))
-
 		i.AddInvoiceItem(tx, invoiceItem)
 	}
 }
@@ -201,17 +196,37 @@ func (i *Invoice) Save(tx *gorm.DB) {
 	tx.Save(i)
 }
 
-func (i *Invoice) Submit() error {
+func (i *Invoice) SetStripeTokenID(tx *gorm.DB, id string) {
+	stripe.Key = os.Getenv("STRIPE_PRIVATE_KEY")
+	tkn, err := token.Get(id, &stripe.TokenParams{})
+	if err != nil {
+		panic(err)
+	}
+	
+	i.SetStripeToken(tx, tkn)
+}
+
+func (i *Invoice) SetStripeToken(tx *gorm.DB, tkn *stripe.Token) {
+	i.StripeTokenID = stripe.String(tkn.ID)
+	i.StripeToken = tkn
+	i.Save(tx)
+}
+
+func (i *Invoice) Submit(tx *gorm.DB) error {
+	if i.StripeTokenID == nil || *(i.StripeTokenID) == "" {
+		return fmt.Errorf("Missing SourceToken at Invoice Submission")
+	}
+
 	 // List Items and Prices
 	// || \\ ^ Update this for refunds!
-	var items map[string][]string
+	var items = map[string][]string{}
 	for _, _item_ := range i.Items {
 		var key = _item_.Sample()
 		var opt = _item_.SampleOptions()
 		items[key] = opt
 	}
 
-	var description map[string]interface{} 
+	var description = map[string]interface{}{} 
 	description["subTotal"] = i.SubTotal
 	description["demonDin"] = i.DemonDin
 	description["taxes"] = i.Taxes
@@ -225,21 +240,26 @@ func (i *Invoice) Submit() error {
 
 	 // Stripe Transaction
 	// || \\ ^
+	stripe.Key = os.Getenv("STRIPE_PRIVATE_KEY")
 	chargeParams := &stripe.ChargeParams{
-  		Amount: stripe.Int64(int64(i.SubTotal)),
-		ApplicationFeeAmount: stripe.Int64(int64(i.DemonDin)),
-  		Currency: stripe.String(string(stripe.CurrencyUSD)),
-  		Description: stripe.String(string(_description_)),
+		Amount: stripe.Int64(int64(i.SubTotal)),
+		//ApplicationFeeAmount: stripe.Int64(int64(i.DemonDin)),
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+		Description: stripe.String(string(_description_)),
 	}
-
-	chargeParams.SetSource(i.CardToken) // obtained with Stripe.js
+	
+	//chargeParams.SetStripeAccount(os.Getenv("STRIPE_CONNECT_ACT"))
+	chargeParams.SetSource(*(i.StripeTokenID)) // obtained with Stripe.js
+	
 	_charge_, err := charge.New(chargeParams)
 	if err != nil {
 		return err
 	}
 
-	i.ChargeToken = stripe.String(_charge_.ID)
-	i.ChargeData = _charge_
+	i.StripeChargeID = stripe.String(_charge_.ID)
+	i.StripeCharge = _charge_
+	
+	i.Save(tx)
 	
 	//fmt.Printf("%# v\n", pretty.Formatter(i))
 

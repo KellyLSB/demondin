@@ -50,19 +50,19 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Invoice struct {
-		ID          func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		DeletedAt   func(childComplexity int) int
-		CardToken   func(childComplexity int) int
-		ChargeToken func(childComplexity int) int
-		CardData    func(childComplexity int) int
-		ChargeData  func(childComplexity int) int
-		SubTotal    func(childComplexity int) int
-		DemonDin    func(childComplexity int) int
-		Taxes       func(childComplexity int) int
-		Total       func(childComplexity int) int
-		Items       func(childComplexity int) int
+		ID             func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		UpdatedAt      func(childComplexity int) int
+		DeletedAt      func(childComplexity int) int
+		StripeTokenID  func(childComplexity int) int
+		StripeChargeID func(childComplexity int) int
+		StripeToken    func(childComplexity int) int
+		StripeCharge   func(childComplexity int) int
+		SubTotal       func(childComplexity int) int
+		DemonDin       func(childComplexity int) int
+		Taxes          func(childComplexity int) int
+		Total          func(childComplexity int) int
+		Items          func(childComplexity int) int
 	}
 
 	InvoiceItem struct {
@@ -207,33 +207,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Invoice.DeletedAt(childComplexity), true
 
-	case "Invoice.CardToken":
-		if e.complexity.Invoice.CardToken == nil {
+	case "Invoice.StripeTokenID":
+		if e.complexity.Invoice.StripeTokenID == nil {
 			break
 		}
 
-		return e.complexity.Invoice.CardToken(childComplexity), true
+		return e.complexity.Invoice.StripeTokenID(childComplexity), true
 
-	case "Invoice.ChargeToken":
-		if e.complexity.Invoice.ChargeToken == nil {
+	case "Invoice.StripeChargeID":
+		if e.complexity.Invoice.StripeChargeID == nil {
 			break
 		}
 
-		return e.complexity.Invoice.ChargeToken(childComplexity), true
+		return e.complexity.Invoice.StripeChargeID(childComplexity), true
 
-	case "Invoice.CardData":
-		if e.complexity.Invoice.CardData == nil {
+	case "Invoice.StripeToken":
+		if e.complexity.Invoice.StripeToken == nil {
 			break
 		}
 
-		return e.complexity.Invoice.CardData(childComplexity), true
+		return e.complexity.Invoice.StripeToken(childComplexity), true
 
-	case "Invoice.ChargeData":
-		if e.complexity.Invoice.ChargeData == nil {
+	case "Invoice.StripeCharge":
+		if e.complexity.Invoice.StripeCharge == nil {
 			break
 		}
 
-		return e.complexity.Invoice.ChargeData(childComplexity), true
+		return e.complexity.Invoice.StripeCharge(childComplexity), true
 
 	case "Invoice.SubTotal":
 		if e.complexity.Invoice.SubTotal == nil {
@@ -829,7 +829,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "demondin.graphql", Input: `scalar DateTime
 scalar JSON
-scalar StripeCard
+scalar StripeToken
 scalar StripeCharge
 
 interface Postgresql {
@@ -900,10 +900,10 @@ type Invoice implements Postgresql {
   updatedAt:        DateTime!
   deletedAt:        DateTime
 
-  cardToken:        String
-  chargeToken:      String
-  cardData:         StripeCard
-  chargeData:       StripeCharge
+  stripeTokenID:    String
+  stripeChargeID:   String
+  stripeToken:      StripeToken
+  stripeCharge:     StripeCharge
 
   subTotal:         Int!
   demonDin:         Int!
@@ -957,7 +957,7 @@ input NewItemOptionType {
 
 input NewInvoice {
   id:               ID
-  cardToken:        String
+  stripeTokenID:    String
   submit:           Boolean
   items:            [NewInvoiceItem!]!
 }
@@ -1305,7 +1305,7 @@ func (ec *executionContext) _Invoice_deletedAt(ctx context.Context, field graphq
 	return ec.marshalODateTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Invoice_cardToken(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
+func (ec *executionContext) _Invoice_stripeTokenID(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1317,7 +1317,7 @@ func (ec *executionContext) _Invoice_cardToken(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CardToken, nil
+		return obj.StripeTokenID, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -1328,7 +1328,7 @@ func (ec *executionContext) _Invoice_cardToken(ctx context.Context, field graphq
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Invoice_chargeToken(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
+func (ec *executionContext) _Invoice_stripeChargeID(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1340,7 +1340,7 @@ func (ec *executionContext) _Invoice_chargeToken(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ChargeToken, nil
+		return obj.StripeChargeID, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -1351,7 +1351,7 @@ func (ec *executionContext) _Invoice_chargeToken(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Invoice_cardData(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
+func (ec *executionContext) _Invoice_stripeToken(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1363,18 +1363,18 @@ func (ec *executionContext) _Invoice_cardData(ctx context.Context, field graphql
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CardData, nil
+		return obj.StripeToken, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*stripe.Card)
+	res := resTmp.(*stripe.Token)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOStripeCard2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCard(ctx, field.Selections, res)
+	return ec.marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Invoice_chargeData(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
+func (ec *executionContext) _Invoice_stripeCharge(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1386,7 +1386,7 @@ func (ec *executionContext) _Invoice_chargeData(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ChargeData, nil
+		return obj.StripeCharge, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -3921,9 +3921,9 @@ func (ec *executionContext) unmarshalInputNewInvoice(ctx context.Context, v inte
 			if err != nil {
 				return it, err
 			}
-		case "cardToken":
+		case "stripeTokenID":
 			var err error
-			it.CardToken, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.StripeTokenID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4218,14 +4218,14 @@ func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "deletedAt":
 			out.Values[i] = ec._Invoice_deletedAt(ctx, field, obj)
-		case "cardToken":
-			out.Values[i] = ec._Invoice_cardToken(ctx, field, obj)
-		case "chargeToken":
-			out.Values[i] = ec._Invoice_chargeToken(ctx, field, obj)
-		case "cardData":
-			out.Values[i] = ec._Invoice_cardData(ctx, field, obj)
-		case "chargeData":
-			out.Values[i] = ec._Invoice_chargeData(ctx, field, obj)
+		case "stripeTokenID":
+			out.Values[i] = ec._Invoice_stripeTokenID(ctx, field, obj)
+		case "stripeChargeID":
+			out.Values[i] = ec._Invoice_stripeChargeID(ctx, field, obj)
+		case "stripeToken":
+			out.Values[i] = ec._Invoice_stripeToken(ctx, field, obj)
+		case "stripeCharge":
+			out.Values[i] = ec._Invoice_stripeCharge(ctx, field, obj)
 		case "subTotal":
 			out.Values[i] = ec._Invoice_subTotal(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -5784,29 +5784,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOStripeCard2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCard(ctx context.Context, v interface{}) (stripe.Card, error) {
-	return model.UnmarshalStripeCard(v)
-}
-
-func (ec *executionContext) marshalOStripeCard2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCard(ctx context.Context, sel ast.SelectionSet, v stripe.Card) graphql.Marshaler {
-	return model.MarshalStripeCard(v)
-}
-
-func (ec *executionContext) unmarshalOStripeCard2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCard(ctx context.Context, v interface{}) (*stripe.Card, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOStripeCard2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCard(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOStripeCard2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCard(ctx context.Context, sel ast.SelectionSet, v *stripe.Card) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.marshalOStripeCard2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCard(ctx, sel, *v)
-}
-
 func (ec *executionContext) unmarshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx context.Context, v interface{}) (stripe.Charge, error) {
 	return model.UnmarshalStripeCharge(v)
 }
@@ -5828,6 +5805,29 @@ func (ec *executionContext) marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋde
 		return graphql.Null
 	}
 	return ec.marshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx context.Context, v interface{}) (stripe.Token, error) {
+	return model.UnmarshalStripeToken(v)
+}
+
+func (ec *executionContext) marshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx context.Context, sel ast.SelectionSet, v stripe.Token) graphql.Marshaler {
+	return model.MarshalStripeToken(v)
+}
+
+func (ec *executionContext) unmarshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx context.Context, v interface{}) (*stripe.Token, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx context.Context, sel ast.SelectionSet, v *stripe.Token) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

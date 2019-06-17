@@ -1,6 +1,6 @@
 scalar DateTime
 scalar JSON
-scalar StripeCard
+scalar StripeToken
 scalar StripeCharge
 
 interface Postgresql {
@@ -71,10 +71,10 @@ type Invoice implements Postgresql {
   updatedAt:        DateTime!
   deletedAt:        DateTime
 
-  cardToken:        String
-  chargeToken:      String
-  cardData:         StripeCard
-  chargeData:       StripeCharge
+  stripeTokenID:    String
+  stripeChargeID:   String
+  stripeToken:      StripeToken
+  stripeCharge:     StripeCharge
 
   subTotal:         Int!
   demonDin:         Int!
@@ -128,7 +128,7 @@ input NewItemOptionType {
 
 input NewInvoice {
   id:               ID
-  cardToken:        String
+  stripeTokenID:    String
   submit:           Boolean
   items:            [NewInvoiceItem!]!
 }
