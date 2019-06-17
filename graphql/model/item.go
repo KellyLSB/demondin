@@ -13,11 +13,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/araddon/dateparse"
-	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/jinzhu/gorm"
-
-	"github.com/stripe/stripe-go"
+	"github.com/jinzhu/gorm/dialects/postgres"
+	pgStripe "github.com/KellyLSB/demondin/graphql/postgres"
 )
 
 type Item struct {
@@ -105,24 +104,24 @@ func UnmarshalJSON(v interface{}) (out postgres.Jsonb, err error) {
 // @TODO:
 // Might break this into specific scalars that serialize the
 // official models: https://gowalker.org/github.com/stripe/stripe-go#Card
-func MarshalStripeToken(v stripe.Token) graphql.Marshaler {
+func MarshalStripeToken(v pgStripe.StripeToken) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
     json.NewEncoder(w).Encode(&v)
   })
 }
 
-func UnmarshalStripeToken(v interface{}) (out stripe.Token, err error) {
+func UnmarshalStripeToken(v interface{}) (out pgStripe.StripeToken, err error) {
   err = json.NewDecoder(strings.NewReader(v.(string))).Decode(&out)
   return
 }
 
-func MarshalStripeCharge(v stripe.Charge) graphql.Marshaler {
+func MarshalStripeCharge(v pgStripe.StripeCharge) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
     json.NewEncoder(w).Encode(&v)
   })
 }
 
-func UnmarshalStripeCharge(v interface{}) (out stripe.Charge, err error) {
+func UnmarshalStripeCharge(v interface{}) (out pgStripe.StripeCharge, err error) {
   err = json.NewDecoder(strings.NewReader(v.(string))).Decode(&out)
   return
 }

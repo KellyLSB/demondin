@@ -15,9 +15,9 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/KellyLSB/demondin/graphql/model"
+	postgres1 "github.com/KellyLSB/demondin/graphql/postgres"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/stripe/stripe-go"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -1368,10 +1368,10 @@ func (ec *executionContext) _Invoice_stripeToken(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*stripe.Token)
+	res := resTmp.(*postgres1.StripeToken)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx, field.Selections, res)
+	return ec.marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Invoice_stripeCharge(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
@@ -1391,10 +1391,10 @@ func (ec *executionContext) _Invoice_stripeCharge(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*stripe.Charge)
+	res := resTmp.(*postgres1.StripeCharge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx, field.Selections, res)
+	return ec.marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Invoice_subTotal(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
@@ -5784,50 +5784,50 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx context.Context, v interface{}) (stripe.Charge, error) {
+func (ec *executionContext) unmarshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, v interface{}) (postgres1.StripeCharge, error) {
 	return model.UnmarshalStripeCharge(v)
 }
 
-func (ec *executionContext) marshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx context.Context, sel ast.SelectionSet, v stripe.Charge) graphql.Marshaler {
+func (ec *executionContext) marshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, sel ast.SelectionSet, v postgres1.StripeCharge) graphql.Marshaler {
 	return model.MarshalStripeCharge(v)
 }
 
-func (ec *executionContext) unmarshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx context.Context, v interface{}) (*stripe.Charge, error) {
+func (ec *executionContext) unmarshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, v interface{}) (*postgres1.StripeCharge, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx, v)
+	res, err := ec.unmarshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx context.Context, sel ast.SelectionSet, v *stripe.Charge) graphql.Marshaler {
+func (ec *executionContext) marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, sel ast.SelectionSet, v *postgres1.StripeCharge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐCharge(ctx, sel, *v)
+	return ec.marshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx context.Context, v interface{}) (stripe.Token, error) {
+func (ec *executionContext) unmarshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, v interface{}) (postgres1.StripeToken, error) {
 	return model.UnmarshalStripeToken(v)
 }
 
-func (ec *executionContext) marshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx context.Context, sel ast.SelectionSet, v stripe.Token) graphql.Marshaler {
+func (ec *executionContext) marshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, sel ast.SelectionSet, v postgres1.StripeToken) graphql.Marshaler {
 	return model.MarshalStripeToken(v)
 }
 
-func (ec *executionContext) unmarshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx context.Context, v interface{}) (*stripe.Token, error) {
+func (ec *executionContext) unmarshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, v interface{}) (*postgres1.StripeToken, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx, v)
+	res, err := ec.unmarshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx context.Context, sel ast.SelectionSet, v *stripe.Token) graphql.Marshaler {
+func (ec *executionContext) marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, sel ast.SelectionSet, v *postgres1.StripeToken) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋstripeᚋstripeᚑgoᚐToken(ctx, sel, *v)
+	return ec.marshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

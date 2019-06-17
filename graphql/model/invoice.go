@@ -10,6 +10,7 @@ import (
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/token"
 	"github.com/stripe/stripe-go/charge"
+	pgStripe "github.com/KellyLSB/demondin/graphql/postgres"
 	"gopkg.in/yaml.v2"
 )
 
@@ -208,7 +209,7 @@ func (i *Invoice) SetStripeTokenID(tx *gorm.DB, id string) {
 
 func (i *Invoice) SetStripeToken(tx *gorm.DB, tkn *stripe.Token) {
 	i.StripeTokenID = stripe.String(tkn.ID)
-	i.StripeToken = tkn
+	i.StripeToken = &pgStripe.StripeToken{ *tkn }
 	i.Save(tx)
 }
 
@@ -257,7 +258,7 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 	}
 
 	i.StripeChargeID = stripe.String(_charge_.ID)
-	i.StripeCharge = _charge_
+	i.StripeCharge = &pgStripe.StripeCharge{ *_charge_ }
 	
 	i.Save(tx)
 	

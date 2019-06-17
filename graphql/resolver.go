@@ -13,6 +13,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/jinzhu/gorm/dialects/postgres"
+	//pgStripe "github.com/KellyLSB/demondin/graphql/postgres"
 	"github.com/go-macaron/session"
 	//"github.com/kr/pretty"
 )
