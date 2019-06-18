@@ -20,7 +20,7 @@ func (o *ItemOption) LoadItemOptionType(xo *gorm.DB) *ItemOption {
 }
 
 func (o *ItemOption) Sample() string {
-	return fmt.Sprintf("[%q]: %# v", 
+	return fmt.Sprintf("[%s]: %s", 
 		o.ItemOptionType.Key, 
 		o.Values,
 	)

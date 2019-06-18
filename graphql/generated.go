@@ -15,9 +15,8 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/KellyLSB/demondin/graphql/model"
-	postgres1 "github.com/KellyLSB/demondin/graphql/postgres"
+	"github.com/KellyLSB/demondin/graphql/postgres"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -1035,7 +1034,7 @@ func (ec *executionContext) field_Mutation_addItemToInvoice_args(ctx context.Con
 	args["item"] = arg1
 	var arg2 *postgres.Jsonb
 	if tmp, ok := rawArgs["options"]; ok {
-		arg2, err = ec.unmarshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, tmp)
+		arg2, err = ec.unmarshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1368,7 +1367,7 @@ func (ec *executionContext) _Invoice_stripeToken(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*postgres1.StripeToken)
+	res := resTmp.(*postgres.StripeToken)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx, field.Selections, res)
@@ -1391,7 +1390,7 @@ func (ec *executionContext) _Invoice_stripeCharge(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*postgres1.StripeCharge)
+	res := resTmp.(*postgres.StripeCharge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx, field.Selections, res)
@@ -2274,7 +2273,7 @@ func (ec *executionContext) _ItemOption_values(ctx context.Context, field graphq
 	res := resTmp.(postgres.Jsonb)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, field.Selections, res)
+	return ec.marshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemOptionType_id(ctx context.Context, field graphql.CollectedField, obj *model.ItemOptionType) graphql.Marshaler {
@@ -2502,7 +2501,7 @@ func (ec *executionContext) _ItemOptionType_values(ctx context.Context, field gr
 	res := resTmp.(postgres.Jsonb)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, field.Selections, res)
+	return ec.marshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemPrice_id(ctx context.Context, field graphql.CollectedField, obj *model.ItemPrice) graphql.Marshaler {
@@ -4043,7 +4042,7 @@ func (ec *executionContext) unmarshalInputNewItemOption(ctx context.Context, v i
 			}
 		case "values":
 			var err error
-			it.Values, err = ec.unmarshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, v)
+			it.Values, err = ec.unmarshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4079,7 +4078,7 @@ func (ec *executionContext) unmarshalInputNewItemOptionType(ctx context.Context,
 			}
 		case "values":
 			var err error
-			it.Values, err = ec.unmarshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, v)
+			it.Values, err = ec.unmarshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5205,11 +5204,11 @@ func (ec *executionContext) marshalNItemPrice2ᚕgithubᚗcomᚋKellyLSBᚋdemon
 	return ret
 }
 
-func (ec *executionContext) unmarshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx context.Context, v interface{}) (postgres.Jsonb, error) {
+func (ec *executionContext) unmarshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx context.Context, v interface{}) (postgres.Jsonb, error) {
 	return model.UnmarshalJSON(v)
 }
 
-func (ec *executionContext) marshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx context.Context, sel ast.SelectionSet, v postgres.Jsonb) graphql.Marshaler {
+func (ec *executionContext) marshalNJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx context.Context, sel ast.SelectionSet, v postgres.Jsonb) graphql.Marshaler {
 	return model.MarshalJSON(v)
 }
 
@@ -5714,27 +5713,27 @@ func (ec *executionContext) marshalOItemPrice2ᚖgithubᚗcomᚋKellyLSBᚋdemon
 	return ec._ItemPrice(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx context.Context, v interface{}) (postgres.Jsonb, error) {
+func (ec *executionContext) unmarshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx context.Context, v interface{}) (postgres.Jsonb, error) {
 	return model.UnmarshalJSON(v)
 }
 
-func (ec *executionContext) marshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx context.Context, sel ast.SelectionSet, v postgres.Jsonb) graphql.Marshaler {
+func (ec *executionContext) marshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx context.Context, sel ast.SelectionSet, v postgres.Jsonb) graphql.Marshaler {
 	return model.MarshalJSON(v)
 }
 
-func (ec *executionContext) unmarshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx context.Context, v interface{}) (*postgres.Jsonb, error) {
+func (ec *executionContext) unmarshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx context.Context, v interface{}) (*postgres.Jsonb, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, v)
+	res, err := ec.unmarshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx context.Context, sel ast.SelectionSet, v *postgres.Jsonb) graphql.Marshaler {
+func (ec *executionContext) marshalOJSON2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx context.Context, sel ast.SelectionSet, v *postgres.Jsonb) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋjinzhuᚋgormᚋdialectsᚋpostgresᚐJsonb(ctx, sel, *v)
+	return ec.marshalOJSON2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐJsonb(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalONewInvoice2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐNewInvoice(ctx context.Context, v interface{}) (model.NewInvoice, error) {
@@ -5784,15 +5783,15 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, v interface{}) (postgres1.StripeCharge, error) {
+func (ec *executionContext) unmarshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, v interface{}) (postgres.StripeCharge, error) {
 	return model.UnmarshalStripeCharge(v)
 }
 
-func (ec *executionContext) marshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, sel ast.SelectionSet, v postgres1.StripeCharge) graphql.Marshaler {
+func (ec *executionContext) marshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, sel ast.SelectionSet, v postgres.StripeCharge) graphql.Marshaler {
 	return model.MarshalStripeCharge(v)
 }
 
-func (ec *executionContext) unmarshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, v interface{}) (*postgres1.StripeCharge, error) {
+func (ec *executionContext) unmarshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, v interface{}) (*postgres.StripeCharge, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -5800,22 +5799,22 @@ func (ec *executionContext) unmarshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋ
 	return &res, err
 }
 
-func (ec *executionContext) marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, sel ast.SelectionSet, v *postgres1.StripeCharge) graphql.Marshaler {
+func (ec *executionContext) marshalOStripeCharge2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx context.Context, sel ast.SelectionSet, v *postgres.StripeCharge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec.marshalOStripeCharge2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeCharge(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, v interface{}) (postgres1.StripeToken, error) {
+func (ec *executionContext) unmarshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, v interface{}) (postgres.StripeToken, error) {
 	return model.UnmarshalStripeToken(v)
 }
 
-func (ec *executionContext) marshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, sel ast.SelectionSet, v postgres1.StripeToken) graphql.Marshaler {
+func (ec *executionContext) marshalOStripeToken2githubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, sel ast.SelectionSet, v postgres.StripeToken) graphql.Marshaler {
 	return model.MarshalStripeToken(v)
 }
 
-func (ec *executionContext) unmarshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, v interface{}) (*postgres1.StripeToken, error) {
+func (ec *executionContext) unmarshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, v interface{}) (*postgres.StripeToken, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -5823,7 +5822,7 @@ func (ec *executionContext) unmarshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋd
 	return &res, err
 }
 
-func (ec *executionContext) marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, sel ast.SelectionSet, v *postgres1.StripeToken) graphql.Marshaler {
+func (ec *executionContext) marshalOStripeToken2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋpostgresᚐStripeToken(ctx context.Context, sel ast.SelectionSet, v *postgres.StripeToken) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

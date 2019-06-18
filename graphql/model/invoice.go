@@ -10,7 +10,7 @@ import (
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/token"
 	"github.com/stripe/stripe-go/charge"
-	pgStripe "github.com/KellyLSB/demondin/graphql/postgres"
+	"github.com/KellyLSB/demondin/graphql/postgres"
 	"gopkg.in/yaml.v2"
 )
 
@@ -69,7 +69,6 @@ func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 			invoice = input
 		case uuid.UUID:
 			if input != uuid.Nil {
-	fmt.Printf("%# v\n", pretty.Formatter(input))
 				invUUID = input
 			}
 		case *uuid.UUID:
@@ -82,8 +81,6 @@ func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 			fmt.Printf("%# v\n", pretty.Formatter(input))
 		}
 	}
-
-	fmt.Printf("%# v\n", pretty.Formatter(invUUID))
 
 	FetchInvoice(tx, invoice, invUUID)
 
@@ -102,25 +99,16 @@ func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
 	tx.Model(i).Related(&i.Items)
 
 	for _, it := range i.Items {
-		it.LoadItem(tx)
-		it.LoadPrice(tx)
-		it.LoadOptions(tx)
+		it.LoadRelations(tx)
 	}
-
-	//fmt.Printf("%# v", pretty.Formatter(i))
 
 	return i
 }
 
 func (i *Invoice) AddInvoiceItem(
-	tx *gorm.DB, invoiceItem *InvoiceItem,
+	tx *gorm.DB, invoiceItem *InvoiceItem, 
 ) *InvoiceItem {
 	tx.Model(i).Association("Items").Append(invoiceItem)
-	invoiceItem.LoadOptions(tx)
-	invoiceItem.LoadPrice(tx)
-	invoiceItem.LoadItem(tx)
-	fmt.Println("#1")
-	fmt.Printf("%# v\n", pretty.Formatter(invoiceItem))
 	return invoiceItem
 } 
 
@@ -142,7 +130,9 @@ func (i *Invoice) AddItem(
 	)
 }
 
-func (i *Invoice) AddItemByUUID(tx *gorm.DB, uuid uuid.UUID) *InvoiceItem {
+func (i *Invoice) AddItemByUUID(
+	tx *gorm.DB, uuid uuid.UUID, 
+) *InvoiceItem {
 	return i.AddItem(tx, FetchItem(tx, uuid))
 }
 
@@ -150,7 +140,7 @@ func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 	var subTotal, taxable int
 
 	// Auto load items
-	if len(loadItems) < 1 || (len(loadItems) > 0 && loadItems[0] != false) {
+	if utils.IsTrue(loadItems...) {
 		i.LoadItems(tx)
 	}
 
@@ -188,7 +178,23 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 			invoiceItem = FetchInvoiceItem(tx, *_item.ID)
 		}
 		
-		utils.PipeInput(_item, invoiceItem)
+		// Add Options
+		for _, _option := range _item.Options {
+			if _option.ID == nil || *_option.ID == uuid.Nil {
+				invoiceItem.AddItemOptionTypeByUUID(
+					tx, _option.ItemOptionTypeID, 
+					_option.Values,
+				)
+			} else {
+				opt := FetchItemOption(tx, *_option.ID)
+				opt.Values = postgres.Jsonb{ 
+					_option.Values.RawMessage,
+				}
+				opt.ItemOptionTypeID = _option.ItemOptionTypeID
+				invoiceItem.AddItemOption(tx, opt)
+			}
+		}
+		
 		i.AddInvoiceItem(tx, invoiceItem)
 	}
 }
@@ -209,7 +215,7 @@ func (i *Invoice) SetStripeTokenID(tx *gorm.DB, id string) {
 
 func (i *Invoice) SetStripeToken(tx *gorm.DB, tkn *stripe.Token) {
 	i.StripeTokenID = stripe.String(tkn.ID)
-	i.StripeToken = &pgStripe.StripeToken{ *tkn }
+	i.StripeToken = &postgres.StripeToken{ *tkn }
 	i.Save(tx)
 }
 
@@ -220,11 +226,16 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 
 	 // List Items and Prices
 	// || \\ ^ Update this for refunds!
+	fmt.Println("##!!")
+	fmt.Printf("%# v\n", pretty.Formatter(i))
 	var items = map[string][]string{}
 	for _, _item_ := range i.Items {
 		var key = _item_.Sample()
 		var opt = _item_.SampleOptions()
 		items[key] = opt
+		fmt.Println("##")
+		fmt.Printf("%# v\n", pretty.Formatter(key))
+		fmt.Printf("%# v\n", pretty.Formatter(opt))
 	}
 
 	var description = map[string]interface{}{} 
@@ -258,7 +269,7 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 	}
 
 	i.StripeChargeID = stripe.String(_charge_.ID)
-	i.StripeCharge = &pgStripe.StripeCharge{ *_charge_ }
+	i.StripeCharge = &postgres.StripeCharge{ *_charge_ }
 	
 	i.Save(tx)
 	

@@ -15,8 +15,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/jinzhu/gorm"
-	"github.com/jinzhu/gorm/dialects/postgres"
-	pgStripe "github.com/KellyLSB/demondin/graphql/postgres"
+	"github.com/KellyLSB/demondin/graphql/postgres"
 )
 
 type Item struct {
@@ -39,12 +38,12 @@ func FetchItem(tx *gorm.DB, uuid uuid.UUID) *Item {
 }
 
 func (i *Item) LoadOptions(tx *gorm.DB) *Item {
-	tx.Model(i).Association("Options").Find(&i.Options)
+	tx.Model(i).Related(&i.Options)
 	return i
 }
 
 func (i *Item) LoadPrices(tx *gorm.DB) *Item {
-	tx.Model(i).Association("Prices").Find(&i.Prices)
+	tx.Model(i).Related(&i.Prices)
 	return i
 }
 
@@ -90,38 +89,41 @@ func UnmarshalDateTime(v interface{}) (time.Time, error) {
 
 func MarshalJSON(v postgres.Jsonb) graphql.Marshaler {
 	return graphql.WriterFunc(func(w io.Writer) {
-		byt, _ := v.MarshalJSON()
-		w.Write(byt)
+		if json.Valid(v.RawMessage) {
+			w.Write(v.RawMessage)
+			return
+		}
+		
+		w.Write([]byte(strconv.Quote(string(v.RawMessage))))
 	})
 }
 
 func UnmarshalJSON(v interface{}) (out postgres.Jsonb, err error) {
-	byt, err := json.Marshal(v)
-	err = out.UnmarshalJSON(byt)
+	err = out.Scan(v)
 	return
 }
 
 // @TODO:
 // Might break this into specific scalars that serialize the
 // official models: https://gowalker.org/github.com/stripe/stripe-go#Card
-func MarshalStripeToken(v pgStripe.StripeToken) graphql.Marshaler {
+func MarshalStripeToken(v postgres.StripeToken) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
     json.NewEncoder(w).Encode(&v)
   })
 }
 
-func UnmarshalStripeToken(v interface{}) (out pgStripe.StripeToken, err error) {
+func UnmarshalStripeToken(v interface{}) (out postgres.StripeToken, err error) {
   err = json.NewDecoder(strings.NewReader(v.(string))).Decode(&out)
   return
 }
 
-func MarshalStripeCharge(v pgStripe.StripeCharge) graphql.Marshaler {
+func MarshalStripeCharge(v postgres.StripeCharge) graphql.Marshaler {
   return graphql.WriterFunc(func(w io.Writer) {
     json.NewEncoder(w).Encode(&v)
   })
 }
 
-func UnmarshalStripeCharge(v interface{}) (out pgStripe.StripeCharge, err error) {
+func UnmarshalStripeCharge(v interface{}) (out postgres.StripeCharge, err error) {
   err = json.NewDecoder(strings.NewReader(v.(string))).Decode(&out)
   return
 }

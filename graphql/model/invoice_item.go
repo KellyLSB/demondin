@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/KellyLSB/demondin/graphql/postgres"
 	"github.com/google/uuid"
 	//"github.com/kr/pretty"
 )
@@ -30,33 +30,6 @@ func (i *InvoiceItem) LoadPrice(tx *gorm.DB) *InvoiceItem {
 	return i
 }
 
-func (i *InvoiceItem) AddOption(
-	tx *gorm.DB, 
-	itemOptionType *ItemOptionType, 
-	values postgres.Jsonb,
-) (itemOption *ItemOption) {
-	itemOption = &ItemOption{
-		ItemOptionTypeID: itemOptionType.ID,
-		// Get RawJSON from postgres.Jsonb object
-		Values: postgres.Jsonb{ values.RawMessage },
-	}
-
-	tx.Model(i).Association("Options").Append(itemOption)
-	itemOption.LoadItemOptionType(tx)
-	
-	return
-}
-
-func (i *InvoiceItem) AddOptionByTypeUUID(
-	tx *gorm.DB,
-	itemOptionTypeUUID uuid.UUID,
-	values postgres.Jsonb,
-) (*ItemOption) {
-	return i.AddOption(tx, FetchItemOptionType(
-		tx, itemOptionTypeUUID,
-	), values)
-}
-
 func (i *InvoiceItem) LoadOptions(tx *gorm.DB) *InvoiceItem {
 	tx.Model(i).Related(&i.Options)
 
@@ -65,6 +38,43 @@ func (i *InvoiceItem) LoadOptions(tx *gorm.DB) *InvoiceItem {
 	}
 
 	return i
+}
+
+func (i *InvoiceItem) LoadRelations(tx *gorm.DB) *InvoiceItem {
+	i.LoadOptions(tx)
+	i.LoadPrice(tx)
+	i.LoadItem(tx)
+	return i
+}
+
+func (i *InvoiceItem) AddItemOption(
+	tx *gorm.DB, 
+	itemOption *ItemOption,
+) (*ItemOption) {
+	tx.Model(i).Association("Options").Append(itemOption)
+	return itemOption
+}
+
+func (i *InvoiceItem) AddItemOptionType(
+	tx *gorm.DB, 
+	itemOptionType *ItemOptionType, 
+	values postgres.Jsonb,
+) (itemOption *ItemOption) {
+	return i.AddItemOption(tx, &ItemOption{
+		ItemOptionTypeID: itemOptionType.ID,
+		// Get RawJSON from postgres.Jsonb object
+		Values: postgres.Jsonb{ values.RawMessage },
+	})
+}
+
+func (i *InvoiceItem) AddItemOptionTypeByUUID(
+	tx *gorm.DB,
+	itemOptionTypeUUID uuid.UUID,
+	values postgres.Jsonb,
+) (*ItemOption) {
+	return i.AddItemOptionType(tx, FetchItemOptionType(
+		tx, itemOptionTypeUUID,
+	), values)
 }
 
 

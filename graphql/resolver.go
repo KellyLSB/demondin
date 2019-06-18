@@ -12,8 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
-	"github.com/jinzhu/gorm/dialects/postgres"
-	//pgStripe "github.com/KellyLSB/demondin/graphql/postgres"
+	"github.com/KellyLSB/demondin/graphql/postgres"
 	"github.com/go-macaron/session"
 	//"github.com/kr/pretty"
 )
@@ -167,8 +166,6 @@ func (r *mutationResolver) ActiveInvoice(
 			invoice.Submit(db)
 		}
 	})
-
-	//fmt.Printf("\n%# v\n", pretty.Formatter(invoice))
 
 	// Set session ID
 	r.Session.Set("activeInvoiceUUID", invoice.ID)
