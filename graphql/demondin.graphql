@@ -10,6 +10,18 @@ interface Postgresql {
   deletedAt:        DateTime
 }
 
+type Account implements Postgresql {
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
+  
+  auth:             Int!
+  name:             String
+  email:            String!
+  passwordHash:     String
+}
+
 type Item implements Postgresql {
   id:               ID!
   createdAt:        DateTime!
@@ -70,6 +82,9 @@ type Invoice implements Postgresql {
   createdAt:        DateTime!
   updatedAt:        DateTime!
   deletedAt:        DateTime
+  
+  accountID:        ID!
+  account:          Account
 
   stripeTokenID:    String
   stripeChargeID:   String
@@ -104,6 +119,14 @@ type Query {
   invoices(paging: Paging = {limit: 0, offst: 0}): [Invoice!]!
 }
 
+input NewAccount {
+  id:               ID
+  auth:             Int
+  name:             String
+  email:            String
+  password:         String
+}
+
 input NewItem {
   id:               ID
   name:             String!
@@ -128,6 +151,7 @@ input NewItemOptionType {
 
 input NewInvoice {
   id:               ID
+  account:          NewAccount
   stripeTokenID:    String
   submit:           Boolean
   items:            [NewInvoiceItem!]!

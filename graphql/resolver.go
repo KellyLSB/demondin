@@ -160,11 +160,12 @@ func (r *mutationResolver) ActiveInvoice(
 		activeSessionInvoice(db, r.Session, &invoice, invoiceUUID)
 		invoice.Input(db, input)
 		invoice.Calculate(db)
-		invoice.Save(db)
 		
 		if input != nil && input.Submit != nil && *(input.Submit) {
 			invoice.Submit(db)
 		}
+		
+		invoice.Save(db)
 	})
 
 	// Set session ID

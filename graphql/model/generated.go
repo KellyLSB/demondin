@@ -13,11 +13,26 @@ type Postgresql interface {
 	IsPostgresql()
 }
 
+type Account struct {
+	ID           uuid.UUID  `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4();"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
+	DeletedAt    *time.Time `json:"deletedAt"`
+	Auth         int        `json:"auth"`
+	Name         *string    `json:"name"`
+	Email        string     `json:"email" gorm:"unique;"`
+	PasswordHash string     `json:"passwordHash"`
+}
+
+func (Account) IsPostgresql() {}
+
 type Invoice struct {
 	ID             uuid.UUID              `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4();"`
 	CreatedAt      time.Time              `json:"createdAt"`
 	UpdatedAt      time.Time              `json:"updatedAt"`
 	DeletedAt      *time.Time             `json:"deletedAt"`
+	AccountID      uuid.UUID              `json:"accountID" gorm:"type:uuid;"`
+	Account        *Account               `json:"account"`
 	StripeTokenID  *string                `json:"stripeTokenID"`
 	StripeChargeID *string                `json:"stripeChargeID"`
 	StripeToken    *postgres.StripeToken  `json:"stripeToken" gorm:"type:jsonb;"`
@@ -54,7 +69,7 @@ type ItemOption struct {
 	DeletedAt        *time.Time      `json:"deletedAt"`
 	InvoiceItem      *InvoiceItem    `json:"invoiceItem"`
 	InvoiceItemID    uuid.UUID       `json:"invoiceItemID" gorm:"type:uuid;"`
-	ItemOptionType   *ItemOptionType `json:"itemOptionType"`
+	ItemOptionType   *ItemOptionType `json:"itemOptionType" gorm:"save_associations:false;"`
 	ItemOptionTypeID uuid.UUID       `json:"itemOptionTypeID" gorm:"type:uuid;"`
 	Values           postgres.Jsonb  `json:"values"`
 }
@@ -90,8 +105,17 @@ type ItemPrice struct {
 
 func (ItemPrice) IsPostgresql() {}
 
+type NewAccount struct {
+	ID       *uuid.UUID `json:"id"`
+	Auth     *int       `json:"auth"`
+	Name     *string    `json:"name"`
+	Email    *string    `json:"email"`
+	Password *string    `json:"password"`
+}
+
 type NewInvoice struct {
 	ID            *uuid.UUID       `json:"id"`
+	Account       *NewAccount      `json:"account"`
 	StripeTokenID *string          `json:"stripeTokenID"`
 	Submit        *bool            `json:"submit"`
 	Items         []NewInvoiceItem `json:"items"`

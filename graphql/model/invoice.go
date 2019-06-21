@@ -95,6 +95,12 @@ CreateInvoice:
 	return invoice
 }
 
+func (i *Invoice) LoadAccount(tx *gorm.DB) *Invoice {
+	i.Account = new(Account)
+	tx.Model(i).Related(i.Account)
+	return i
+}
+
 func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
 	tx.Model(i).Related(&i.Items)
 
@@ -168,6 +174,13 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 		i.SetStripeTokenID(tx, *input.StripeTokenID)
 	}
 	
+	// Attach an Account
+	if input.Account != nil {
+		if input.Account.Email != nil && *input.Account.Email != "" {
+			i.SetAccountByEmail(tx, *input.Account.Email)
+		}
+	}
+	
 	for _, _item := range input.Items {
 		var invoiceItem *InvoiceItem
 
@@ -203,6 +216,14 @@ func (i *Invoice) Save(tx *gorm.DB) {
 	tx.Save(i)
 }
 
+func (i *Invoice) SetAccount(tx *gorm.DB, account *Account) {
+	i.Account = account
+}
+
+func (i *Invoice) SetAccountByEmail(tx *gorm.DB, email string) {
+	i.SetAccount(tx, FindAccountByEmail(tx, email))
+}
+
 func (i *Invoice) SetStripeTokenID(tx *gorm.DB, id string) {
 	stripe.Key = os.Getenv("STRIPE_PRIVATE_KEY")
 	tkn, err := token.Get(id, &stripe.TokenParams{})
@@ -216,7 +237,6 @@ func (i *Invoice) SetStripeTokenID(tx *gorm.DB, id string) {
 func (i *Invoice) SetStripeToken(tx *gorm.DB, tkn *stripe.Token) {
 	i.StripeTokenID = stripe.String(tkn.ID)
 	i.StripeToken = &postgres.StripeToken{ *tkn }
-	i.Save(tx)
 }
 
 func (i *Invoice) Submit(tx *gorm.DB) error {
@@ -226,16 +246,11 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 
 	 // List Items and Prices
 	// || \\ ^ Update this for refunds!
-	fmt.Println("##!!")
-	fmt.Printf("%# v\n", pretty.Formatter(i))
 	var items = map[string][]string{}
 	for _, _item_ := range i.Items {
 		var key = _item_.Sample()
 		var opt = _item_.SampleOptions()
 		items[key] = opt
-		fmt.Println("##")
-		fmt.Printf("%# v\n", pretty.Formatter(key))
-		fmt.Printf("%# v\n", pretty.Formatter(opt))
 	}
 
 	var description = map[string]interface{}{} 
@@ -262,7 +277,8 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 	
 	//chargeParams.SetStripeAccount(os.Getenv("STRIPE_CONNECT_ACT"))
 	chargeParams.SetSource(*(i.StripeTokenID)) // obtained with Stripe.js
-	
+
+	// Charge the Source	
 	_charge_, err := charge.New(chargeParams)
 	if err != nil {
 		return err
@@ -271,9 +287,10 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 	i.StripeChargeID = stripe.String(_charge_.ID)
 	i.StripeCharge = &postgres.StripeCharge{ *_charge_ }
 	
-	i.Save(tx)
+	// Update Stripe Token in DB
+	i.SetStripeTokenID(tx, *(i.StripeTokenID))
 	
-	//fmt.Printf("%# v\n", pretty.Formatter(i))
+	fmt.Printf("%# v\n", pretty.Formatter(i))
 
 	return nil
 }
