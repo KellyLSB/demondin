@@ -67,7 +67,7 @@ type ItemOption struct {
 	CreatedAt        time.Time       `json:"createdAt"`
 	UpdatedAt        time.Time       `json:"updatedAt"`
 	DeletedAt        *time.Time      `json:"deletedAt"`
-	InvoiceItem      *InvoiceItem    `json:"invoiceItem"`
+	InvoiceItem      *InvoiceItem    `json:"invoiceItem" gorm:"save_associations:false;"`
 	InvoiceItemID    uuid.UUID       `json:"invoiceItemID" gorm:"type:uuid;"`
 	ItemOptionType   *ItemOptionType `json:"itemOptionType" gorm:"save_associations:false;"`
 	ItemOptionTypeID uuid.UUID       `json:"itemOptionTypeID" gorm:"type:uuid;"`
@@ -81,7 +81,7 @@ type ItemOptionType struct {
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt *time.Time     `json:"deletedAt"`
-	Item      *Item          `json:"item"`
+	Item      *Item          `json:"item" gorm:"save_associations:false;"`
 	ItemID    uuid.UUID      `json:"itemID" gorm:"type:uuid;"`
 	Key       string         `json:"key"`
 	ValueType string         `json:"valueType"`
@@ -95,7 +95,7 @@ type ItemPrice struct {
 	CreatedAt  time.Time  `json:"createdAt"`
 	UpdatedAt  time.Time  `json:"updatedAt"`
 	DeletedAt  *time.Time `json:"deletedAt"`
-	Item       *Item      `json:"item"`
+	Item       *Item      `json:"item" gorm:"save_associations:false;"`
 	ItemID     uuid.UUID  `json:"itemID" gorm:"type:uuid;"`
 	Price      int        `json:"price"`
 	BeforeDate time.Time  `json:"beforeDate"`
