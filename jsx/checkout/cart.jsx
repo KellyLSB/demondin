@@ -283,7 +283,7 @@ class Cart extends React.Component {
 												<Segment attached>
 													<Header as='h3'>Charged and Checked Out</Header>
 													<span>
-														{ invoice.account ? invoice.account.email : "<email>" } 
+														{ invoice.stripeCharge.receipt_email } 
 														:: { invoice.stripeCharge.paid ? 
 															"Paid" : `Status: ${invoice.stripeCharge.status}`
 														}

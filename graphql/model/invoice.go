@@ -273,6 +273,7 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 		//ApplicationFeeAmount: stripe.Int64(int64(i.DemonDin)),
 		Currency: stripe.String(string(stripe.CurrencyUSD)),
 		Description: stripe.String(string(_description_)),
+		ReceiptEmail: stripe.String(i.Account.Email),
 	}
 	
 	//chargeParams.SetStripeAccount(os.Getenv("STRIPE_CONNECT_ACT"))
