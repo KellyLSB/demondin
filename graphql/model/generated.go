@@ -21,7 +21,7 @@ type Account struct {
 	Auth         int        `json:"auth"`
 	Name         *string    `json:"name"`
 	Email        string     `json:"email" gorm:"unique;"`
-	PasswordHash string     `json:"passwordHash"`
+	PasswordHash *string    `json:"passwordHash"`
 }
 
 func (Account) IsPostgresql() {}
@@ -117,8 +117,8 @@ type NewInvoice struct {
 	ID            *uuid.UUID       `json:"id"`
 	Account       *NewAccount      `json:"account"`
 	StripeTokenID *string          `json:"stripeTokenID"`
-	Submit        *bool            `json:"submit"`
 	Items         []NewInvoiceItem `json:"items"`
+	Submit        *bool            `json:"submit"`
 }
 
 type NewInvoiceItem struct {
@@ -126,6 +126,7 @@ type NewInvoiceItem struct {
 	ItemID      uuid.UUID       `json:"itemID"`
 	ItemPriceID uuid.UUID       `json:"itemPriceID"`
 	Options     []NewItemOption `json:"options"`
+	Remove      *bool           `json:"remove"`
 }
 
 type NewItem struct {

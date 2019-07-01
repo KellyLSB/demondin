@@ -31,9 +31,13 @@ type Item struct {
 	Prices      []ItemPrice      `json:"prices" gorm:"foreignkey:ItemID"`
 }
 
-func FetchItem(tx *gorm.DB, uuid uuid.UUID) *Item {
-	var item Item	
-	tx.First(&item, "id = ?", uuid)
+func FetchItem(tx *gorm.DB, iUUID uuid.UUID) *Item {
+	var item Item
+	
+	tx.Preload(
+		"Options", "Prices",
+	).First(&item, "id = ?", iUUID)
+	
 	return &item
 }
 
@@ -49,7 +53,7 @@ func (i *Item) LoadPrices(tx *gorm.DB) *Item {
 
 func (i *Item) CurrentPrice() *ItemPrice {
 	sort.Slice(i.Prices, func(x, y int) bool {
-		sb :=        i.Prices[x].AfterDate.After(i.Prices[y].AfterDate)
+		sb := i.Prices[x].AfterDate.After(i.Prices[y].AfterDate)
 		return sb && i.Prices[x].BeforeDate.Before(i.Prices[y].BeforeDate)
 	})
 

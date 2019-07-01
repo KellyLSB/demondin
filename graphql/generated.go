@@ -930,7 +930,7 @@ type Account implements Postgresql {
   auth:             Int!
   name:             String
   email:            String!
-  passwordHash:     String!
+  passwordHash:     String
 }
 
 type Item implements Postgresql {
@@ -1064,8 +1064,9 @@ input NewInvoice {
   id:               ID
   account:          NewAccount
   stripeTokenID:    String
-  submit:           Boolean
   items:            [NewInvoiceItem!]!
+  
+  submit:           Boolean
 }
 
 input NewInvoiceItem {
@@ -1073,6 +1074,8 @@ input NewInvoiceItem {
   itemID:           ID!
   itemPriceID:      ID!
   options:          [NewItemOption!]!
+  
+  remove:           Boolean
 }
 
 input NewItemOption {
@@ -1501,15 +1504,12 @@ func (ec *executionContext) _Account_passwordHash(ctx context.Context, field gra
 		return obj.PasswordHash, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Invoice_id(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) graphql.Marshaler {
@@ -4332,15 +4332,15 @@ func (ec *executionContext) unmarshalInputNewInvoice(ctx context.Context, v inte
 			if err != nil {
 				return it, err
 			}
-		case "submit":
-			var err error
-			it.Submit, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "items":
 			var err error
 			it.Items, err = ec.unmarshalNNewInvoiceItem2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐNewInvoiceItem(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "submit":
+			var err error
+			it.Submit, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4377,6 +4377,12 @@ func (ec *executionContext) unmarshalInputNewInvoiceItem(ctx context.Context, v 
 		case "options":
 			var err error
 			it.Options, err = ec.unmarshalNNewItemOption2ᚕgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐNewItemOption(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "remove":
+			var err error
+			it.Remove, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4641,9 +4647,6 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "passwordHash":
 			out.Values[i] = ec._Account_passwordHash(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

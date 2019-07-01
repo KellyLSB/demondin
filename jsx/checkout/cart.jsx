@@ -6,11 +6,14 @@ import * as EmailValidator from 'email-validator';
 import Item from './item'
 
 import { 
+	Divider,
 	Input, Form, List, Button, Header, 
-	Icon, Grid, Segment, Message,
+	Icon, Label, Grid, Segment, Message,
 } from 'semantic-ui-react'
 
-import {CardElement, injectStripe} from 'react-stripe-elements';
+import GridList from '../utils/gridList'
+
+import { CardElement, injectStripe } from 'react-stripe-elements';
 
 class Cart extends React.Component {
 	constructor(props) {
@@ -24,6 +27,7 @@ class Cart extends React.Component {
 		this.onError = this.onError.bind(this);
 		this.hasError = this.hasError.bind(this);
 		this.onChange = this.onChange.bind(this);
+		this.onRemove = this.onRemove.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
 	}
 	
@@ -69,6 +73,27 @@ class Cart extends React.Component {
 			state.values[name] = value;
 			return state;
 		} );
+	}
+	
+	onRemove(e, item, updateInvoice) {
+		e.preventDefault()
+		
+		var update = { variables: {
+			input: {
+				items: [{ 
+					id: item.id,
+					remove: true,
+					// Currently required
+					itemID: item.itemID,
+					itemPriceID: item.itemPriceID,
+					options: [],
+				}],
+			}
+		} };
+		
+		console.log("==>", update)
+		
+		updateInvoice(update);
 	}
 
 	onSubmit(e, updateInvoice) {
@@ -130,6 +155,8 @@ class Cart extends React.Component {
 							}
 							items {
 								id
+								itemID
+								itemPriceID
 								item {
 									name
 								}
@@ -162,54 +189,78 @@ class Cart extends React.Component {
 									{ invoice.items.map((item) =>
 										<Segment key={item.id} attached>
 											<Header as='h4' dividing>
-												{ item.item ? item.item.name : "<Item>" }
+												{ item.item ? 
+													item.item.name : "<Item>"
+												}
 											</Header>
-											<span>
+											<Label attached='top right' size='mini'>
+												<Mutation mutation={gql`
+													mutation activeInvoice($input: NewInvoice!) {
+														activeInvoice(input: $input) {
+															id
+														}
+													}
+												`}>
+													{ (updateInvoice) => (
+														<Form error={ this.hasError() } onSubmit={
+															(e) => this.onRemove(e, item, updateInvoice)
+														}>
+															<Message error header='Error removing from cart'
+																list={Object.values(this.state.errors)}
+															/>
+															<Button icon='close' type='submit' 
+																size='mini' circular 
+															/>
+														</Form>
+														) }
+												</Mutation>
+											</Label>
+											
+											<GridList columns={2}>
+												{ item.options.map((option, i) =>
+													<React.Fragment key={option.itemOptionType ? 
+														option.itemOptionType.id : `option-${i}`
+													}>
+														<Header>
+															{ option.itemOptionType ? 
+																option.itemOptionType.key : "<Option>"
+															}
+														</Header>
+														{ option.values }
+													</React.Fragment>
+												) }
+											</GridList>
+
+											<Divider hidden />
+
+											<Label ribbon='right'>
 												{ item.itemPrice ? 
 													item.itemPrice.price.toDollars() : "-.-"
 												}
-											</span>
-											<List>
-												{ item.options.map((option, i) =>
-													<List.Item key={option.itemOptionType ? 
-														option.itemOptionType.id : `option-${i}`
-													} >
-														<List.Header>
-															{ option.itemOptionType ? 
-																option.itemOptionType.key : null
-															}
-														</List.Header>
-														{ option.values }
-													</List.Item>
-												) }
-											</List>
+											</Label>
 										</Segment>
 									) }
 									{ invoice.total > 0 ? (
 										<React.Fragment>
 											<Segment attached>
-												<Grid columns={2}>
-													<Grid.Row>
-														<Grid.Column>
-															<Header sub>SubTotal</Header>
-															{ invoice.subTotal.toDollars() }
-														</Grid.Column>
-														<Grid.Column textAlign='right'>
-															<Header sub>DemonDin</Header>
-															{ invoice.demonDin.toDollars() }
-														</Grid.Column>
-													</Grid.Row>
-													<Grid.Row>
-														<Grid.Column>
-															<Header sub>Taxes</Header>
-															{ invoice.taxes.toDollars() }
-														</Grid.Column>
-														<Grid.Column textAlign='right'>
-															<Header sub>Total</Header>
-															{ invoice.total.toDollars() }
-														</Grid.Column>
-													</Grid.Row>
-												</Grid>
+												<GridList columns={2}>
+													<React.Fragment>
+														<Header sub>SubTotal</Header>
+														{ invoice.subTotal.toDollars() }
+													</React.Fragment>
+													<React.Fragment>
+														<Header sub>DemonDin</Header>
+														{ invoice.demonDin.toDollars() }
+													</React.Fragment>
+													<React.Fragment>
+														<Header sub>Taxes</Header>
+														{ invoice.taxes.toDollars() }
+													</React.Fragment>
+													<React.Fragment>
+														<Header sub>Total</Header>
+														{ invoice.total.toDollars() }
+													</React.Fragment>
+												</GridList>
 											</Segment>
 											{ invoice.stripeToken ? (
 												<Segment attached>
@@ -299,8 +350,9 @@ class Cart extends React.Component {
 														}
 													`}>
 														{ (updateInvoice) => (
-															<Form error={this.hasError()} 
-																onSubmit={ (e) => this.onSubmit(e, updateInvoice) }>
+															<Form error={ this.hasError() } onSubmit={ 
+																(e) => this.onSubmit(e, updateInvoice)
+															}>
 																<Message error header='Error checking out'
 																	list={Object.values(this.state.errors)}
 																/>

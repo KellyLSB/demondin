@@ -153,8 +153,9 @@ input NewInvoice {
   id:               ID
   account:          NewAccount
   stripeTokenID:    String
-  submit:           Boolean
   items:            [NewInvoiceItem!]!
+  
+  submit:           Boolean
 }
 
 input NewInvoiceItem {
@@ -162,6 +163,8 @@ input NewInvoiceItem {
   itemID:           ID!
   itemPriceID:      ID!
   options:          [NewItemOption!]!
+  
+  remove:           Boolean
 }
 
 input NewItemOption {

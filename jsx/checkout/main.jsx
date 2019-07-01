@@ -58,13 +58,17 @@ const client = new ApolloClient({ link: link, cache: new InMemoryCache() });
 String.prototype.toCents = function() {
 	return Math.round(100 * parseFloat(
 		this.replace(/[$,]/g, '')
-	))
+	));
+}
+
+String.random = function(len = 4) {
+	return Math.random().toString(36).substr(2, len);
 }
 
 Number.prototype.toDollars = function() {
 	return (this / 100).toLocaleString("en-US", {
 		style: "currency", currency: "USD"
-	})
+	});
 }
 
 // Style and Elements

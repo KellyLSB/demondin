@@ -8,7 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"gopkg.in/macaron.v1"
-  	"github.com/go-macaron/session"
+	"github.com/go-macaron/session"
 	"github.com/gorilla/websocket"
 
 	"github.com/99designs/gqlgen/handler"
@@ -31,29 +31,29 @@ func main() {
 
 	// Handle Session Cookies
 	m.Use(session.Sessioner(session.Options{
-    // Name of provider. Default is "memory".
-    Provider:       "memory",
-    // Provider configuration, it's corresponding to provider.
-    ProviderConfig: "",
-    // Cookie name to save session ID. Default is "MacaronSession".
-    CookieName:     "demondin",
-    // Cookie path to store. Default is "/".
-    CookiePath:     "/",
-    // GC interval time in seconds. Default is 3600.
-    Gclifetime:     3600,
-    // Max life time in seconds. Default is whatever GC interval time is.
-    Maxlifetime:    3600,
-    // Use HTTPS only. Default is false.
-    Secure:         false,
-    // Cookie life time. Default is 0.
-    CookieLifeTime: 0,
-    // Cookie domain name. Default is empty.
-    Domain:         "",
-    // Session ID length. Default is 16.
-    IDLength:       16,
-    // Configuration section name. Default is "session".
-    Section:        "session",
-  }))
+	// Name of provider. Default is "memory".
+	Provider:       "memory",
+	// Provider configuration, it's corresponding to provider.
+	ProviderConfig: "",
+	// Cookie name to save session ID. Default is "MacaronSession".
+	CookieName:     "demondin",
+	// Cookie path to store. Default is "/".
+	CookiePath:     "/",
+	// GC interval time in seconds. Default is 3600.
+	Gclifetime:     3600,
+	// Max life time in seconds. Default is whatever GC interval time is.
+	Maxlifetime:    3600,
+	// Use HTTPS only. Default is false.
+	Secure:         false,
+	// Cookie life time. Default is 0.
+	CookieLifeTime: 0,
+	// Cookie domain name. Default is empty.
+	Domain:         "",
+	// Session ID length. Default is 16.
+	IDLength:       16,
+	// Configuration section name. Default is "session".
+	Section:        "session",
+} ) )
 
 
 	// Handle Templating
@@ -80,11 +80,13 @@ func main() {
 	m.Group("/shop", func() {
 		m.Group("/keeper", func() {
 			m.Get("/", func(ctx *macaron.Context) {
-        ctx.HTML(200, "shop/keeper/items")
+				// templates/default/shop/keeper/items.tmpl
+				ctx.HTML(200, "shop/keeper/items")
 			})
 		})
 
 		m.Get("/", func(ctx *macaron.Context) {
+			// templates/default/shop/items.tmpl
 			ctx.HTML(200, "shop/items")
 		})
 	})
@@ -112,7 +114,10 @@ func main() {
 
 	// Start our macaron daemon
 	log.Println("Server is running...")
-	log.Printf("connect to http://%s/playground for GraphQL playground", os.Getenv("HOSTPORT"))
+	log.Printf(
+		"Connect to http://%s/playground for GraphQL playground", 
+		os.Getenv("HOSTPORT"),
+	)
 	log.Println(http.ListenAndServe(os.Getenv("HOSTPORT"), m))
 }
 

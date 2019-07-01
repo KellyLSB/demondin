@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/KellyLSB/demondin/graphql/postgres"
+	"github.com/KellyLSB/demondin/graphql/utils"
 	"github.com/google/uuid"
 	//"github.com/kr/pretty"
 )
@@ -47,34 +48,31 @@ func (i *InvoiceItem) LoadRelations(tx *gorm.DB) *InvoiceItem {
 	return i
 }
 
-func (i *InvoiceItem) AddItemOption(
-	tx *gorm.DB, 
-	itemOption *ItemOption,
-) (*ItemOption) {
-	tx.Model(i).Association("Options").Append(itemOption)
-	return itemOption
+func (i *InvoiceItem) AddItemOption(tx *gorm.DB, io *ItemOption) *ItemOption {
+	tx.Model(i).Association("Options").Append(io)
+	return io
 }
 
-func (i *InvoiceItem) AddItemOptionType(
-	tx *gorm.DB, 
-	itemOptionType *ItemOptionType, 
-	values postgres.Jsonb,
-) (itemOption *ItemOption) {
-	return i.AddItemOption(tx, &ItemOption{
-		ItemOptionTypeID: itemOptionType.ID,
-		// Get RawJSON from postgres.Jsonb object
-		Values: postgres.Jsonb{ values.RawMessage },
-	})
+func (i *InvoiceItem) Input(tx *gorm.DB, input *NewInvoiceItem) {
+	for _, option := range input.Options {
+		i.AddItemOption(tx, &ItemOption{
+			ID: utils.EnsureUUID(option.ID),
+			ItemOptionTypeID: option.ItemOptionTypeID,
+			// Get RawJSON from postgres.Jsonb object
+			Values: postgres.Jsonb{ option.Values.RawMessage },
+		})
+	}
 }
 
-func (i *InvoiceItem) AddItemOptionTypeByUUID(
-	tx *gorm.DB,
-	itemOptionTypeUUID uuid.UUID,
-	values postgres.Jsonb,
-) (*ItemOption) {
-	return i.AddItemOptionType(tx, FetchItemOptionType(
-		tx, itemOptionTypeUUID,
-	), values)
+// Remove performs an Unsafe Delete, assuming cart is unchecked out.
+func (i *InvoiceItem) Remove(tx *gorm.DB) {
+	i.LoadOptions(tx)
+	
+	for _, option := range i.Options {
+		option.Remove(tx)
+	}
+	
+	tx.Unscoped().Delete(i)
 }
 
 

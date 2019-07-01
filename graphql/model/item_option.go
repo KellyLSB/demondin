@@ -1,7 +1,7 @@
 package model
 
 import (
-	"fmt"	
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/google/uuid"
 	//"github.com/kr/pretty"
@@ -17,6 +17,10 @@ func (o *ItemOption) LoadItemOptionType(xo *gorm.DB) *ItemOption {
 	o.ItemOptionType = new(ItemOptionType)
 	xo.Model(o).Related(o.ItemOptionType)
 	return o
+}
+
+func (o *ItemOption) Remove(tx *gorm.DB) {
+	tx.Unscoped().Delete(o)
 }
 
 func (o *ItemOption) Sample() string {

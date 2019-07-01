@@ -169,9 +169,8 @@ func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 }
 
 func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
-	// Set Source Token
-	if input.StripeTokenID != nil && *input.StripeTokenID != "" {
-		i.SetStripeTokenID(tx, *input.StripeTokenID)
+	if input == nil {
+		return
 	}
 	
 	// Attach an Account
@@ -181,6 +180,13 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 		}
 	}
 	
+	// Set Stripe Token
+	if input.StripeTokenID != nil && *input.StripeTokenID != "" {
+		i.SetStripeTokenID(tx, *input.StripeTokenID)
+	}
+	
+	
+	// Add Items to Cart
 	for _, _item := range input.Items {
 		var invoiceItem *InvoiceItem
 
@@ -189,25 +195,16 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 			invoiceItem = i.AddItemByUUID(tx, _item.ItemID)
 		} else {
 			invoiceItem = FetchInvoiceItem(tx, *_item.ID)
-		}
-		
-		// Add Options
-		for _, _option := range _item.Options {
-			if _option.ID == nil || *_option.ID == uuid.Nil {
-				invoiceItem.AddItemOptionTypeByUUID(
-					tx, _option.ItemOptionTypeID, 
-					_option.Values,
-				)
-			} else {
-				opt := FetchItemOption(tx, *_option.ID)
-				opt.Values = postgres.Jsonb{ 
-					_option.Values.RawMessage,
-				}
-				opt.ItemOptionTypeID = _option.ItemOptionTypeID
-				invoiceItem.AddItemOption(tx, opt)
+			
+			// Remove from Cart
+			if _item.Remove != nil && *(_item.Remove) {
+				invoiceItem.Remove(tx)
+				continue
 			}
 		}
 		
+		// Add Options
+		invoiceItem.Input(tx, &_item)
 		i.AddInvoiceItem(tx, invoiceItem)
 	}
 }
