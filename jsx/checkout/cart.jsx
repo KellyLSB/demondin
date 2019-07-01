@@ -3,10 +3,9 @@ import { Subscription, Mutation } from "react-apollo";
 import gql from "graphql-tag";
 import * as EmailValidator from 'email-validator';
 
-import Item from './item'
+import CartItem from './cart_item';
 
-import { 
-	Divider,
+import {
 	Input, Form, List, Button, Header, 
 	Icon, Label, Grid, Segment, Message,
 } from 'semantic-ui-react'
@@ -27,7 +26,6 @@ class Cart extends React.Component {
 		this.onError = this.onError.bind(this);
 		this.hasError = this.hasError.bind(this);
 		this.onChange = this.onChange.bind(this);
-		this.onRemove = this.onRemove.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
 	}
 	
@@ -73,27 +71,6 @@ class Cart extends React.Component {
 			state.values[name] = value;
 			return state;
 		} );
-	}
-	
-	onRemove(e, item, updateInvoice) {
-		e.preventDefault()
-		
-		var update = { variables: {
-			input: {
-				items: [{ 
-					id: item.id,
-					remove: true,
-					// Currently required
-					itemID: item.itemID,
-					itemPriceID: item.itemPriceID,
-					options: [],
-				}],
-			}
-		} };
-		
-		console.log("==>", update)
-		
-		updateInvoice(update);
 	}
 
 	onSubmit(e, updateInvoice) {
@@ -187,58 +164,7 @@ class Cart extends React.Component {
 										</Header>
 									</Segment>
 									{ invoice.items.map((item) =>
-										<Segment key={item.id} attached>
-											<Header as='h4' dividing>
-												{ item.item ? 
-													item.item.name : "<Item>"
-												}
-											</Header>
-											<Label attached='top right' size='mini'>
-												<Mutation mutation={gql`
-													mutation activeInvoice($input: NewInvoice!) {
-														activeInvoice(input: $input) {
-															id
-														}
-													}
-												`}>
-													{ (updateInvoice) => (
-														<Form error={ this.hasError() } onSubmit={
-															(e) => this.onRemove(e, item, updateInvoice)
-														}>
-															<Message error header='Error removing from cart'
-																list={Object.values(this.state.errors)}
-															/>
-															<Button icon='close' type='submit' 
-																size='mini' circular 
-															/>
-														</Form>
-														) }
-												</Mutation>
-											</Label>
-											
-											<GridList columns={2}>
-												{ item.options.map((option, i) =>
-													<React.Fragment key={option.itemOptionType ? 
-														option.itemOptionType.id : `option-${i}`
-													}>
-														<Header>
-															{ option.itemOptionType ? 
-																option.itemOptionType.key : "<Option>"
-															}
-														</Header>
-														{ option.values }
-													</React.Fragment>
-												) }
-											</GridList>
-
-											<Divider hidden />
-
-											<Label ribbon='right'>
-												{ item.itemPrice ? 
-													item.itemPrice.price.toDollars() : "-.-"
-												}
-											</Label>
-										</Segment>
+										<CartItem item={item} key={item.id} />
 									) }
 									{ invoice.total > 0 ? (
 										<React.Fragment>
