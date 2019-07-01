@@ -1,6 +1,6 @@
 # DemonDin
 
-![Screenshot with Close Button](https://raw.githubusercontent.com/KellyLSB/demondin/master/screenshots/Screenshot%20from%202019-06-30%2019-34-19.png)
+![Screenshot with Close Button](https://raw.githubusercontent.com/KellyLSB/demondin/master/screenshots/Screenshot%20from%202019-06-30%2021-30-02.png)
 
 ```
 # git get github.com/KellyLSB/demondin
