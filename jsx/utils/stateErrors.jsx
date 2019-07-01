@@ -1,10 +1,20 @@
-export default class StateErrors {
+import { Component } from 'react';
+
+export default class StateErrors extends Component {
 	constructor(props) {
 		super(props);
 		
+		if(!this.state) {
+			this.state = {}
+		}
+		
+		if(!this.state.hasOwnProperty("errors")) {
+			this.state.errors = {};
+		}
+		
 		this.onError = this.onError.bind(this);
 		this.hasError = this.hasError.bind(this);
-		this.getError = this.getError.bind(this);
+		this.getErrors = this.getErrors.bind(this);
 	}
 
 	onError(name, msg = null) {

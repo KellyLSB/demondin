@@ -7,41 +7,23 @@ import {
 	Divider, Segment, Header, Label, Form, Message, Button,
 } from 'semantic-ui-react';
 
-import GridList from '../utils/gridList'
+import GridList from '../utils/gridList';
+import StateErrors from '../utils/stateErrors';
 
-export default class CartItem extends React.Component {
+const MUTATE_ACTIVE_INVOICE_ID = gql(`
+mutation activeInvoice($input: NewInvoice!) {
+	activeInvoice(input: $input) {
+		id
+	}
+}`);
+
+export default class CartItem extends StateErrors {
 	constructor(props) {
 		super(props)
 		
-		this.state = {
-			errors: [],
-		};
-		
-		this.onError = this.onError.bind(this);
-		this.hasError = this.hasError.bind(this);
 		this.onRemove = this.onRemove.bind(this);
 	}
-	
-	onError(name, msg = null) {
-		this.setState((state) => {
-			if (msg === false) {
-				delete state.errors[name];
-			} else {
-				state.errors[name] = msg;
-			}
-			
-			return state;
-		} );
-	}
-	
-	hasError(name = null) {
-		if (name === null) {
-			return Object.keys(this.state.errors).length > 0;
-		}
 		
-		return this.state.errors.hasOwnProperty(name);
-	}
-	
 	onRemove(e, item, updateInvoice) {
 		e.preventDefault();
 		
@@ -69,18 +51,12 @@ export default class CartItem extends React.Component {
 				}
 			</Header>
 			<Label attached='top right' size='mini'>
-				<Mutation mutation={gql`
-					mutation activeInvoice($input: NewInvoice!) {
-						activeInvoice(input: $input) {
-							id
-						}
-					}
-				`}>
+				<Mutation mutation={MUTATE_ACTIVE_INVOICE_ID}>
 					{ (updateInvoice) => (
 						<Form error={ this.hasError() }
 							onSubmit={ (e) => this.onRemove(e, item, updateInvoice) }>
 							<Message error header='Error removing from cart'
-								list={Object.values(this.state.errors)}
+								list={this.getErrors()}
 							/>
 							<Button icon='close' type='submit' size='mini' circular />
 						</Form>

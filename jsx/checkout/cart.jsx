@@ -10,43 +10,21 @@ import {
 	Icon, Label, Grid, Segment, Message,
 } from 'semantic-ui-react'
 
-import GridList from '../utils/gridList'
+import GridList from '../utils/gridList';
+import StateErrors from '../utils/stateErrors';
 
 import { CardElement, injectStripe } from 'react-stripe-elements';
 
-class Cart extends React.Component {
+class Cart extends StateErrors {
 	constructor(props) {
 		super(props);
 		
-		this.state = {
-			errors: {},
+		Object.assign(this.state, {
 			values: {},
-		};
+		});
 		
-		this.onError = this.onError.bind(this);
-		this.hasError = this.hasError.bind(this);
 		this.onChange = this.onChange.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
-	}
-	
-	onError(name, msg = null) {
-		this.setState((state) => {
-			if (msg === false) {
-				delete state.errors[name];
-			} else {
-				state.errors[name] = msg;
-			}
-			
-			return state;
-		} );
-	}
-	
-	hasError(name = null) {
-		if (name === null) {
-			return Object.keys(this.state.errors).length > 0;
-		}
-		
-		return this.state.errors.hasOwnProperty(name);
 	}
 	
 	onChange(e, { name, value }) {
@@ -280,7 +258,7 @@ class Cart extends React.Component {
 																(e) => this.onSubmit(e, updateInvoice)
 															}>
 																<Message error header='Error checking out'
-																	list={Object.values(this.state.errors)}
+																	list={this.getErrors()}
 																/>
 																<Button type='submit'>Checkout</Button>
 															</Form>
