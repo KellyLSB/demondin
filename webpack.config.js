@@ -2,20 +2,26 @@ module.exports = {
   mode: 'development',
   entry: {
     checkout: `${__dirname}/jsx/checkout/main.jsx`,
-    admin:    `${__dirname}/jsx/admin/main.jsx`
+    //admin:    `${__dirname}/jsx/admin/main.jsx`
   },
   output: { filename: '[name].js', path: `${__dirname}/public` },
   resolve: {
-    extensions: [ '.wasm', '.mjs', '.js', '.jsx', '.json' ]
+    extensions: [ '.wasm', '.mjs', '.ts', '.tsx', '.js', '.jsx', '.json' ]
   },
   devtool: 'source-map',
   module: {
     rules: [{
-      test: /\.js(|x)$/,
+      test: /\.(t|j)s(|x)$/,
       use: {
         loader: 'babel-loader',
         options: {
-          presets: [ '@babel/preset-env', '@babel/preset-react' ],
+          cacheDirectory: true,
+          presets: [ 
+            '@babel/preset-env', 
+            '@babel/preset-react', 
+            '@babel/preset-typescript',
+            '@babel/preset-flow',
+          ],
           plugins: [ '@babel/plugin-proposal-class-properties' ]
         }
       }

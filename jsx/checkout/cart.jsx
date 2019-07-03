@@ -11,44 +11,30 @@ import {
 } from 'semantic-ui-react'
 
 import GridList from '../utils/gridList';
-import StateErrors from '../utils/stateErrors';
+import FormHelper from '../utils/formHelper';
 
 import { CardElement, injectStripe } from 'react-stripe-elements';
 
-class Cart extends StateErrors {
+class Cart extends FormHelper {
 	constructor(props) {
 		super(props);
-		
-		Object.assign(this.state, {
-			values: {},
-		});
-		
-		this.onChange = this.onChange.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
 	}
 	
-	onChange(e, { name, value }) {
-		// Validate Email Address
-		if (name.startsWith("emailAddress")) {
+	componentDidMount() {
+		this.validate('emailAddress', (name, value) => {
 			if ( ! EmailValidator.validate(value)) {
 				this.onError(name, `Invalid email address: ${value}`);
-				return;
+				return false;
 			}
-			
-			if (name == "emailAddress2") {
-				if (value !== this.state.values.emailAddress) {
-					this.onError(name, "Please ensure email address authenticity.");
-					return;
-				}
+		});
+		
+		this.validate('emailAddress2', (name, value) => {
+			if (value !== this.getValue('emailAddress')) {
+				this.onError(name, 'Please ensure email address authenticity.');
+				return false;
 			}
-			
-			this.onError(name, false);
-		}
-	
-		this.setState((state) => {
-			state.values[name] = value;
-			return state;
-		} );
+		});
 	}
 
 	onSubmit(e, updateInvoice) {
@@ -62,10 +48,10 @@ class Cart extends StateErrors {
 
 		// Create Stripe Token
 		this.props.stripe.createToken({
-			name: 					this.state.values.cardHolder,
-			address_line1: 	this.state.values.cardAddress,
-			address_city: 	this.state.values.cardCity,
-			address_state: 	this.state.values.cardState,
+			name: 					this.getValue('cardHolder'),
+			address_line1: 	this.getValue('cardAddress'),
+			address_city: 	this.getValue('cardCity'),
+			address_state: 	this.getValue('cardState'),
 		}).then(({ error, token }) => {
 			if (error) {
 				this.onError("stripe", error.message);
@@ -76,8 +62,8 @@ class Cart extends StateErrors {
 				input: {
 					items: [], // Req?!
 					account: { 
-						name:  this.state.values.cardHolder,
-						email: this.state.values.emailAddress, 
+						name:  this.getValue('cardHolder'),
+						email: this.getValue('emailAddress'), 
 					}, 
 					stripeTokenID: token.id,
 					submit: true,
