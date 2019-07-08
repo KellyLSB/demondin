@@ -161,3 +161,19 @@ type Paging struct {
 	Limit  int `json:"limit"`
 	Offset int `json:"offset"`
 }
+
+type Session struct {
+	ID         uuid.UUID  `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4();"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
+	DeletedAt  *time.Time `json:"deletedAt"`
+	AccountID  *uuid.UUID `json:"accountID" gorm:"type:uuid;"`
+	Account    *Account   `json:"account" gorm:"save_associations:false;"`
+	RemoteAddr *string    `json:"remoteAddr"`
+	UserAgent  *string    `json:"userAgent"`
+	Referer    *string    `json:"referer"`
+	Method     *string    `json:"method"`
+	URL        *string    `json:"url"`
+}
+
+func (Session) IsPostgresql() {}

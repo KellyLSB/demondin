@@ -66,6 +66,14 @@
   revision = "0a0a789bf1934e55fde19629869caa015a40c525"
 
 [[projects]]
+  digest = "1:0e638432a31fe74a82a8efb3f73015041548990c47a78f6a37397755ae41ab39"
+  name = "github.com/gobuffalo/flect"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "751c52157d8840ef1ebfeb65917fb9680ef51f24"
+  version = "v0.1.5"
+
+[[projects]]
   digest = "1:582b704bebaa06b48c29b0cec224a6058a09c86883aaddabde889cd1a5f73e1b"
   name = "github.com/google/uuid"
   packages = ["."]
@@ -313,6 +321,7 @@
     "github.com/99designs/gqlgen/handler",
     "github.com/araddon/dateparse",
     "github.com/go-macaron/session",
+    "github.com/gobuffalo/flect",
     "github.com/google/uuid",
     "github.com/gorilla/websocket",
     "github.com/jinzhu/gorm",
@@ -320,7 +329,6 @@
     "github.com/joho/godotenv",
     "github.com/kr/pretty",
     "github.com/lib/pq",
-    "github.com/lib/pq/hstore",
     "github.com/stripe/stripe-go",
     "github.com/stripe/stripe-go/charge",
     "github.com/stripe/stripe-go/client",

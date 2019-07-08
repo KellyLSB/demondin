@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"context"
+	"net/url"
 
 	//"github.com/99designs/gqlgen/graphql"
 	"github.com/KellyLSB/demondin/graphql/utils"
@@ -52,7 +53,12 @@ var Subscriptions = new(subscriptions)
 // or will these subscription bindings be for loss placed here.
 // Ideally I will use PG Notify...
 type Resolver struct{
-	Session session.Store
+	Session    session.Store
+	RemoteAddr string
+	UserAgent  string
+	Referer    string
+	Method     string
+	URL        *url.URL
 }
 
 func (r *Resolver) Mutation() MutationResolver {

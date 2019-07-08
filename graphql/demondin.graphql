@@ -10,6 +10,22 @@ interface Postgresql {
   deletedAt:        DateTime
 }
 
+type Session implements Postgresql {
+  id:               ID!
+  createdAt:        DateTime!
+  updatedAt:        DateTime!
+  deletedAt:        DateTime
+  
+  accountID:        ID
+  account:          Account
+
+  remoteAddr:       String
+  userAgent:        String
+  referer:          String
+  method:           String
+  url:              String
+}
+
 type Account implements Postgresql {
   id:               ID!
   createdAt:        DateTime!
