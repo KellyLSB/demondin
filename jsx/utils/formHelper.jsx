@@ -43,19 +43,12 @@ export default class FormHelper extends StateErrors {
 	}
 	
 	getValue(name: string) {
-		console.log(
-			'getValue(', name, '):', 
-			this.state.form.values.hasOwnProperty(name), 
-			this.state.form.values[name]
-		);
-		
 		if(this.state.form.values.hasOwnProperty(name)) {
 			return this.state.form.values[name];
 		}
 	}
 	
 	getValues() {
-		console.log('getValues():', this.state.form.values);
 		return this.state.form.values;
 	}
 	
@@ -68,25 +61,14 @@ export default class FormHelper extends StateErrors {
 	onChange(e, { name, value }) {
 		e.preventDefault();
 		
-		var success = ! Object.keys(this.state.form.validations).map((regex) => {
-			console.log("validation", name, regex, name.match(regex));
-			
-			if(name.match(regex)) {
-				var success = ! this.state.form.validations[regex].map(
-					(fn) => fn(name, value)
-				).includes(false);
-
-				console.log("validation", name, success);
-				return success;
-			}
-		}).includes(false);
-		
-		console.log("validation success", success);
-		if(!success) return;
+		if(Object.keys(this.state.form.validations).map((regex) => {
+			if(name.match(regex)) return ! this.state.form.validations[regex].map(
+				(fn) => fn(name, value)
+			).includes(false);
+		}).includes(false)) return;
 		
 		this.onError(name, false);
 	
-		console.log('onChange(e, {', name, ', ', value, '})');
 		this.setState((state) => {
 			state.form.values[name] = value;
 			return state;

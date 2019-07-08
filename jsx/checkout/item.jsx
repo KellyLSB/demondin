@@ -1,5 +1,8 @@
 import React from 'react';
 
+import { Subscription } from "react-apollo";
+import gql from "graphql-tag";
+
 import { Divider, Form,
 				  Header, Segment,
 					Button, Icon, Label
@@ -16,7 +19,15 @@ export default class Item extends React.Component {
 			hideForm: true,
 		};
 
-		this.onToggleForm = this.onToggleForm.bind(this)
+		this.closeForm = this.closeForm.bind(this);
+		this.onToggleForm = this.onToggleForm.bind(this);
+	}
+	
+	closeForm() {
+		this.setState((state) => {
+			state.hideForm = true;
+			return state;
+		});
 	}
 
 	onToggleForm() {
@@ -68,21 +79,36 @@ export default class Item extends React.Component {
 						<Icon name='dollar sign' />
 						{ this.printPrice() }
 					</Label>
-					<Button primary icon labelPosition='left'
-						onClick={this.onToggleForm}>
-						<Icon name='shop' />
-						Customize
-					</Button>
+
+					<Subscription subscription={gql`
+						subscription InvoiceUpdated {
+							invoiceUpdated {
+								id
+								stripeChargeID
+							}
+						}`}>
+						{({ data, loading }) => {
+							var invoice = data ? data.invoiceUpdated : false;
+
+							if(loading || !invoice || invoice.stripeChargeID) {
+								this.closeForm();
+								return null;
+							}
+
+							return <Button onClick={this.onToggleForm} 
+											primary icon labelPosition='left'>
+								<Icon name='shop' />
+								Customize
+							</Button>;
+						} }
+					</Subscription>
 				</GridList>
 			</Segment>
 
-			{ this.state.hideForm ? null : (
-				<Segment secondary attached='bottom'>
-					<ItemForm item={this.props.item.id} 
-										price={this.currentPrice().id} 
-										options={this.props.item.options} />
-				</Segment>
-			) }
+			<ItemForm item={this.props.item.id} hideForm={this.state.hideForm}
+								price={this.currentPrice().id} 
+								options={this.props.item.options} />
+
 		</React.Fragment>;
 	}
 }

@@ -27,9 +27,7 @@ export default class CartItem extends StateErrors {
 	onRemove(e, item, updateInvoice) {
 		e.preventDefault();
 		
-		if (this.props.charged) {
-			return;
-		}
+		if(this.props.charged) return;
 		
 		updateInvoice({ variables: {
 			input: {

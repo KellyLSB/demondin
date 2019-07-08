@@ -2,7 +2,7 @@ import React from 'react'
 import { Mutation } from "react-apollo";
 import gql from "graphql-tag";
 
-import { Divider, Form, Button } from 'semantic-ui-react'
+import { Segment, Divider, Form, Button } from 'semantic-ui-react'
 
 import ItemOption from './item_option'
 import GridList from '../utils/gridList';
@@ -18,7 +18,9 @@ export default class ItemForm extends FormHelper {
 	onSubmit(e, updateInvoice) {
 		e.preventDefault()
 		
-		var input = { variables: {
+		if(this.props.hideForm) return;
+		
+		updateInvoice({ variables: {
 			input: { 
 				items: [{
 					itemID: this.props.item,
@@ -31,16 +33,14 @@ export default class ItemForm extends FormHelper {
 					})
 				}] 
 			}
-		} };
-		
-		console.log(input);
-
-		updateInvoice(input);
+		} });
 	}
 
 	render() {
-		return (
-			 <Mutation mutation={gql`
+		if(this.props.hideForm) return null;
+		 
+		return <Segment secondary attached='bottom'>
+			<Mutation mutation={gql`
 				mutation activeInvoice($input: NewInvoice!) {
 					activeInvoice(input: $input) {
 						id
@@ -63,7 +63,7 @@ export default class ItemForm extends FormHelper {
 						<GridList columns={2}>
 							{this.props.options.map((option) => 
 								<ItemOption key={option.id} option={option}
-														getValue={this.getValue(option.key)}
+														getValue={this.getValue(option.id)}
 														onChange={this.onChange} />
 							) }
 						</GridList>
@@ -72,5 +72,6 @@ export default class ItemForm extends FormHelper {
 					</Form>
 				) }
 			</Mutation>
-	) };
+		</Segment>
+	};
 }
