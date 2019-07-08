@@ -4,7 +4,7 @@ import { Mutation } from "react-apollo";
 import gql from "graphql-tag";
 
 import {
-	Divider, Segment, Header, Label, Form, Message, Button,
+	Icon, Divider, Segment, Header, Label, Form, Message, Button,
 } from 'semantic-ui-react';
 
 import GridList from '../utils/gridList';
@@ -26,6 +26,10 @@ export default class CartItem extends StateErrors {
 		
 	onRemove(e, item, updateInvoice) {
 		e.preventDefault();
+		
+		if (this.props.charged) {
+			return;
+		}
 		
 		updateInvoice({ variables: {
 			input: {
@@ -50,19 +54,22 @@ export default class CartItem extends StateErrors {
 					item.item.name : "<Item>"
 				}
 			</Header>
-			<Label attached='top right' size='mini'>
-				<Mutation mutation={MUTATE_ACTIVE_INVOICE_ID}>
-					{ (updateInvoice) => (
-						<Form error={ this.hasError() }
-							onSubmit={ (e) => this.onRemove(e, item, updateInvoice) }>
-							<Message error header='Error removing from cart'
-								list={this.getErrors()}
-							/>
-							<Button icon='close' type='submit' size='mini' circular />
-						</Form>
-					) }
-				</Mutation>
-			</Label>
+			
+			{ this.props.charged ? null : (
+				<Label attached='top right' size='mini'>
+					<Mutation mutation={MUTATE_ACTIVE_INVOICE_ID}>
+						{ (updateInvoice) => (
+							<Form error={ this.hasError() }
+								onSubmit={ (e) => this.onRemove(e, item, updateInvoice) }>
+								<Message error header='Error removing from cart'
+									list={this.getErrors()}
+								/>
+								<Button icon='close' type='submit' size='mini' circular />
+							</Form>
+						) }
+					</Mutation>
+				</Label>
+			) }
 
 			<GridList columns={2}>
 				{ item.options.map((option, i) =>
@@ -82,8 +89,9 @@ export default class CartItem extends StateErrors {
 			<Divider hidden />
 
 			<Label ribbon='right'>
+				<Icon name='dollar sign' />
 				{ item.itemPrice ? 
-					item.itemPrice.price.toDollars() : "-.-"
+					item.itemPrice.price.toDollars(false) : "-.-"
 				}
 			</Label>
 		</Segment>;

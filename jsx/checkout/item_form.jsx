@@ -2,56 +2,43 @@ import React from 'react'
 import { Mutation } from "react-apollo";
 import gql from "graphql-tag";
 
-import { Form, Button } from 'semantic-ui-react'
+import { Divider, Form, Button } from 'semantic-ui-react'
 
 import ItemOption from './item_option'
+import GridList from '../utils/gridList';
+import FormHelper from '../utils/formHelper';
 
-export default class ItemForm extends React.Component {
-  constructor(props) {
-    super(props);
+export default class ItemForm extends FormHelper {
+	constructor(props) {
+		super(props);
 
-		this.state = {
-			data: {},
-			values: {},
-		};
-
-		if ('options' in props) {
-      this.state.data.options = props.options;
-    }
-
-		this.onChange = this.onChange.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
-  }
-
-	onChange(e, option, data) {
-		this.setState((state) => {
-			state.values[option.id] = data.value;
-			return state
-		} );
 	}
 
 	onSubmit(e, updateInvoice) {
 		e.preventDefault()
-
-		var options = Object.keys(this.state.values).map((key) => ( {
-			itemOptionTypeID: key,
-			values: this.state.values[key],
-		} ))
-
-		updateInvoice({ variables: {
+		
+		var input = { variables: {
 			input: { 
 				items: [{
 					itemID: this.props.item,
 					itemPriceID: this.props.price,
-					options: options
+					options: this.mapValues((name, value) => {
+						return {
+							itemOptionTypeID: name,
+							values: value
+						};
+					})
 				}] 
 			}
-		} })
+		} };
+		
+		console.log(input);
+
+		updateInvoice(input);
 	}
 
-  render() {
-		var option = this.props.option;
-
+	render() {
 		return (
 			 <Mutation mutation={gql`
 				mutation activeInvoice($input: NewInvoice!) {
@@ -62,7 +49,7 @@ export default class ItemForm extends React.Component {
 							options {
 								id
 								itemOptionType {
-									id									
+									id
 									key
 								}
 								values
@@ -73,15 +60,17 @@ export default class ItemForm extends React.Component {
 			`}>
 				{(updateInvoice) => (
 					<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
-						//No need to subscribe to activeSessionInvoice (it's the session :P)
-						{this.state.data.options.map((option) => 
-							<ItemOption key={option.key} option={option}
-													value={this.state[option.key]}
-				                  onChange={(e, d) => this.onChange(e, option, d)} />
-						) }
+						<GridList columns={2}>
+							{this.props.options.map((option) => 
+								<ItemOption key={option.id} option={option}
+														getValue={this.getValue(option.key)}
+														onChange={this.onChange} />
+							) }
+						</GridList>
+						<Divider hidden />
 						<Button type='submit'>Purchase</Button>
 					</Form>
-				) }				
+				) }
 			</Mutation>
 	) };
 }

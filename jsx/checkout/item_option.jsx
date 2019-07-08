@@ -2,14 +2,10 @@ import React from 'react'
 import { Form } from 'semantic-ui-react'
 
 export default class ItemOption extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
+	render() {
 		var option = this.props.option;
 
-    if (option.valueType == "select") {
+		if (option.valueType == "select") {
 			var values;
 
 			if (['key', 'text', 'value'] in option.values) {
@@ -22,17 +18,21 @@ export default class ItemOption extends React.Component {
 
 			return (
 				<Form.Field>
-					<Form.Select label={option.key} 
+					<Form.Select label={option.key} fluid
 											 placeholder={option.key} 
-											 options={values}
+											 name={option.id} 
+											 options={values} 
+											 value={this.props.value}
 											 onChange={this.props.onChange} />
 				</Form.Field>
 		)	};
 
 		return (
 			<Form.Field>
-				<Form.Input label={option.key}
-										placeholder={option.key}
+				<Form.Input label={option.key} fluid 
+										placeholder={option.key} 
+										name={option.id} 
+										value={this.props.value}
 										onChange={this.props.onChange} />
 			</Form.Field>
 	) };

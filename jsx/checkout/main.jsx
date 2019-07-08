@@ -65,14 +65,20 @@ String.random = function(len = 4) {
 	return Math.random().toString(36).substr(2, len);
 }
 
-Number.prototype.toDollars = function() {
-	return (this / 100).toLocaleString("en-US", {
-		style: "currency", currency: "USD"
-	});
+Number.prototype.toDollars = function(sign = true) {
+	return Intl.NumberFormat('en-US', {
+		style: 'currency', 
+		currency: 'USD',
+	}).formatToParts(this / 100).map(({ type, value }) => {
+		switch(type) {
+		case 'currency': return sign ? value : '';
+		default: return value;
+		}
+	}).join('');
 }
 
 // Style and Elements
-import { Container, Grid, Segment } from 'semantic-ui-react';
+import { Divider, Container, Grid, Segment } from 'semantic-ui-react';
 import '../../semantic/dist/semantic.min.css';
 
 import Items from './items';
@@ -84,10 +90,11 @@ import {Elements, StripeProvider} from 'react-stripe-elements';
 ReactDOM.render(
 	<ApolloProvider client={client}>
 		<Container text>
+			<Divider hidden />
 			<Grid columns={2} divided>
 				<Grid.Row stretched>
 					<Grid.Column width={9}>
-						<Items addToCart={(id) => console.log("ID: ", id)} />
+						<Items />
 					</Grid.Column>
 					<Grid.Column width={7}>
 						<StripeProvider apiKey={STRIPE_PUBLISH_KEY}>

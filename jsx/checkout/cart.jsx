@@ -116,19 +116,15 @@ class Cart extends FormHelper {
 					}`}>
 						{({ data, loading }) => {
 							var invoice = data ? data.invoiceUpdated : false;
-
-							//console.log(loading);
-							//console.log(invoice);
 						
 							if (!loading && invoice) return (
 								<React.Fragment>
-									<Segment attached>
-										<Header as='h3'>
-											Invoice ID: { invoice.id }
-										</Header>
-									</Segment>
+									<Header attached as='h3'>
+										Invoice ID: { invoice.id }
+									</Header>
 									{ invoice.items.map((item) =>
-										<CartItem item={item} key={item.id} />
+										<CartItem item={item} key={item.id} 
+										charged={invoice.stripeCharge ? true : false} />
 									) }
 									{ invoice.total > 0 ? (
 										<React.Fragment>
@@ -261,6 +257,7 @@ class Cart extends FormHelper {
 						}	
 					}
 				</Subscription>
+				<Segment secondary attached='bottom' />
 			</Grid.Row>
 		)
 	}
