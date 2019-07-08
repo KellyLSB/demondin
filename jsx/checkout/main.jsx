@@ -104,6 +104,11 @@ ReactDOM.render(
 						</StripeProvider>
 					</Grid.Column>
 				</Grid.Row>
+				<Grid.Row stretched>
+					<Grid.Column width={16} textAlign='right'>
+						&copy; HeXXeD
+					</Grid.Column>
+				</Grid.Row>
 			</Grid>
 		</Container>
 	</ApolloProvider>

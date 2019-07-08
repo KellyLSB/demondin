@@ -80,35 +80,44 @@ export default class Item extends React.Component {
 						{ this.printPrice() }
 					</Label>
 
-					<Subscription subscription={gql`
-						subscription InvoiceUpdated {
-							invoiceUpdated {
-								id
-								stripeChargeID
-							}
-						}`}>
-						{({ data, loading }) => {
-							var invoice = data ? data.invoiceUpdated : false;
-
-							if(loading || !invoice || invoice.stripeChargeID) {
-								this.closeForm();
-								return null;
-							}
-
-							return <Button onClick={this.onToggleForm} 
-											primary icon labelPosition='left'>
-								<Icon name='shop' />
-								Customize
-							</Button>;
-						} }
-					</Subscription>
+					<InvoiceCharged not>
+						<Button onClick={this.onToggleForm} 
+										primary icon labelPosition='left'>
+							<Icon name='shop' />
+							Customize
+						</Button>
+					</InvoiceCharged>
 				</GridList>
 			</Segment>
 
-			<ItemForm item={this.props.item.id} hideForm={this.state.hideForm}
-								price={this.currentPrice().id} 
-								options={this.props.item.options} />
-
+			<InvoiceCharged not>
+				<ItemForm item={this.props.item.id} hideForm={this.state.hideForm}
+									price={this.currentPrice().id} 
+									options={this.props.item.options} />
+			</InvoiceCharged>
 		</React.Fragment>;
+	}
+}
+
+class InvoiceCharged extends React.Component {
+	render() {
+		return <Subscription subscription={gql`
+			subscription InvoiceUpdated {
+				invoiceUpdated {
+					id
+					stripeChargeID
+				}
+			}`}>
+			{({ data, loading }) => {
+				var invoice = data ? data.invoiceUpdated : false;
+				if(loading || !invoice || invoice.stripeChargeID) {
+					if(!this.props.not) return this.props.children;
+					return null;
+				}
+				
+				if(this.props.not) return this.props.children;
+				return null;
+			} }
+		</Subscription>;
 	}
 }
