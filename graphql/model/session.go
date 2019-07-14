@@ -31,7 +31,7 @@ func UpdateSession(tx *gorm.DB, s session.Store, r *http.Request) (*Session) {
 	return &session
 }
 
-func (s *Session) AttachAccount(tx *gorm.DB, a *Account) (*Session) {
+func (s *Session) AttachAccount(a *Account) (*Session) {
 	s.AccountID = &a.ID
 	s.Account = a
 	return s
@@ -39,13 +39,13 @@ func (s *Session) AttachAccount(tx *gorm.DB, a *Account) (*Session) {
 
 func (s *Session) InitializeInvoice(tx *gorm.DB) (*Session) {
 	if s.Invoice == nil {
-		s.AttachInvoice(tx, FetchOrCreateInvoice(tx, s.InvoiceID))
+		s.AttachInvoice(FetchOrCreateInvoice(tx, s.InvoiceID))
 	}
 	
 	return s
 }
 
-func (s *Session) AttachInvoice(tx *gorm.DB, i *Invoice) (*Session) {
+func (s *Session) AttachInvoice(i *Invoice) (*Session) {
 	s.InvoiceID = &i.ID
 	s.Invoice = i
 	return s
