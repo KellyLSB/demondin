@@ -244,17 +244,17 @@ class Cart extends FormHelper {
 																/>
 																<Button type='submit'>Checkout</Button>
 															</Form>
-														) }				
+														) }
 													</Mutation>
 												</Segment>
 											) }
 										</React.Fragment>
-									) : null }		
+									) : null }
 								</React.Fragment>
 							);
 
 							return (<Segment attached>Empty Cart</Segment>);
-						}	
+						}
 					}
 				</Subscription>
 				<Segment secondary attached='bottom' />

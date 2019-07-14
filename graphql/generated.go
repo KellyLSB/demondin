@@ -162,6 +162,8 @@ type ComplexityRoot struct {
 		DeletedAt  func(childComplexity int) int
 		AccountID  func(childComplexity int) int
 		Account    func(childComplexity int) int
+		InvoiceID  func(childComplexity int) int
+		Invoice    func(childComplexity int) int
 		RemoteAddr func(childComplexity int) int
 		UserAgent  func(childComplexity int) int
 		Referer    func(childComplexity int) int
@@ -847,6 +849,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Account(childComplexity), true
 
+	case "Session.InvoiceID":
+		if e.complexity.Session.InvoiceID == nil {
+			break
+		}
+
+		return e.complexity.Session.InvoiceID(childComplexity), true
+
+	case "Session.Invoice":
+		if e.complexity.Session.Invoice == nil {
+			break
+		}
+
+		return e.complexity.Session.Invoice(childComplexity), true
+
 	case "Session.RemoteAddr":
 		if e.complexity.Session.RemoteAddr == nil {
 			break
@@ -1004,7 +1020,6 @@ var parsedSchema = gqlparser.MustLoadSchema(
 scalar JSON
 scalar StripeToken
 scalar StripeCharge
-scalar IP
 
 interface Postgresql {
   id:               ID!
@@ -1021,6 +1036,8 @@ type Session implements Postgresql {
   
   accountID:        ID
   account:          Account
+  invoiceID:        ID
+  invoice:          Invoice
 
   remoteAddr:       String
   userAgent:        String
@@ -3688,6 +3705,52 @@ func (ec *executionContext) _Session_account(ctx context.Context, field graphql.
 	return ec.marshalOAccount2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_invoiceID(ctx context.Context, field graphql.CollectedField, obj *model.Session) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Session",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InvoiceID, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOID2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋvendorᚋgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_invoice(ctx context.Context, field graphql.CollectedField, obj *model.Session) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Session",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Invoice, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Invoice)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOInvoice2ᚖgithubᚗcomᚋKellyLSBᚋdemondinᚋgraphqlᚋmodelᚐInvoice(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_remoteAddr(ctx context.Context, field graphql.CollectedField, obj *model.Session) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -5570,6 +5633,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_accountID(ctx, field, obj)
 		case "account":
 			out.Values[i] = ec._Session_account(ctx, field, obj)
+		case "invoiceID":
+			out.Values[i] = ec._Session_invoiceID(ctx, field, obj)
+		case "invoice":
+			out.Values[i] = ec._Session_invoice(ctx, field, obj)
 		case "remoteAddr":
 			out.Values[i] = ec._Session_remoteAddr(ctx, field, obj)
 		case "userAgent":

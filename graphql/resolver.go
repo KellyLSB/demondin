@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 	"context"
-	"net/url"
+	"net/http"
 
 	//"github.com/99designs/gqlgen/graphql"
 	"github.com/KellyLSB/demondin/graphql/utils"
@@ -53,12 +53,8 @@ var Subscriptions = new(subscriptions)
 // or will these subscription bindings be for loss placed here.
 // Ideally I will use PG Notify...
 type Resolver struct{
-	Session    session.Store
-	RemoteAddr string
-	UserAgent  string
-	Referer    string
-	Method     string
-	URL        *url.URL
+	Session session.Store
+	Request *http.Request
 }
 
 func (r *Resolver) Mutation() MutationResolver {
@@ -153,37 +149,30 @@ func (r *mutationResolver) ActiveInvoice(
 	*model.Invoice,
 	error,
 ) {
-	var invoice model.Invoice
+	var session *model.Session
 	var err error
 
 	// Fetch/Update Active or Requested Invoice
 	dbh(func(db *gorm.DB) {
-		var invoiceUUID uuid.UUID
-		if input != nil && input.ID != nil && len(*input.ID) < 1 {
-			invoiceUUID = *input.ID
-		}
+		session = model.UpdateSession(db, r.Session, r.Request)
 
-		activeSessionInvoice(db, r.Session, &invoice, invoiceUUID)
-		invoice.Input(db, input)
-		invoice.Calculate(db)
-		
+		session.Invoice.Input(db, input)
+		session.Invoice.Calculate(db)
+
 		if input != nil && input.Submit != nil && *(input.Submit) {
-			invoice.Submit(db)
+			session.Invoice.Submit(db)
 		}
 		
-		invoice.Save(db)
+		session.Invoice.Save(db)
 	})
 
-	// Set session ID
-	r.Session.Set("activeInvoiceUUID", invoice.ID)
-
 	// Inform subscriptions of create/update
-	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice[invoice.ID]))
-	for _, sub := range Subscriptions.Invoice[invoice.ID] {
-		sub <- &invoice
+	fmt.Printf("%d Invoice Subscriptions\n", len(Subscriptions.Invoice[session.ID]))
+	for _, sub := range Subscriptions.Invoice[session.ID] {
+		sub <- session.Invoice
 	}
 
-	return &invoice, err
+	return session.Invoice, err
 }
 
 
@@ -344,28 +333,28 @@ func (r *subscriptionResolver) InvoiceUpdated(
 	ctx context.Context, 
 	id *uuid.UUID,
 ) (<-chan *model.Invoice, error) {
-	var sessionInvoice model.Invoice	
-	
-	ch := make(chan *model.Invoice)	
-	fmt.Println("Creating Channel for InvoiceUpdated Subscription.")		
-		
+	var session *model.Session
+
+	ch := make(chan *model.Invoice)
+	fmt.Println("Creating Channel for InvoiceUpdated Subscription.")
+
 	// Load Session Invoice & Create Channel
 	dbh(func(db *gorm.DB) {
-		activeSessionInvoice(db, r.Session, &sessionInvoice, uuid.Nil)
-		Subscriptions.Invoice[sessionInvoice.ID] = append(
-			Subscriptions.Invoice[sessionInvoice.ID], ch,
+		session = model.UpdateSession(db, r.Session, r.Request)
+		Subscriptions.Invoice[session.ID] = append(
+			Subscriptions.Invoice[session.ID], ch,
 		)
 
 		fmt.Printf("%d Subscriptions Created\n", len(
-			Subscriptions.Invoice[sessionInvoice.ID],
+			Subscriptions.Invoice[session.ID],
 		))
 	})
 
 	// Send the currently active invoice.
 	go func() {
 		dbh(func(db *gorm.DB) {
-			sessionInvoice.Calculate(db)
-			ch <- &sessionInvoice
+			session.Invoice.Calculate(db)
+			ch <- session.Invoice
 		})
 	}()
 	
@@ -384,23 +373,8 @@ func (r *subscriptionResolver) InvoiceUpdated(
 	return ch, nil
 }
 
-// activeSessionInvoice()
-// Provided UUID's as variable `inputs` are priority
-func activeSessionInvoice(
-	db *gorm.DB, sess session.Store, 
-	invoice *model.Invoice, altUUID uuid.UUID,
-) {
-	invoiceUUID := sess.Get("activeInvoiceUUID")
-	model.FetchOrCreateInvoice(
-		db, invoice, invoiceUUID, altUUID,
-	)
 
-	if altUUID == uuid.Nil {
-		sess.Set("activeInvoiceUUID", invoice.ID)
-	}
-}
-
-//#   # #  #sess.Get("activeInvoiceUUID")
+//#   # #  #
 //###  #
 //#  # #
 

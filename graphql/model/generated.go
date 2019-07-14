@@ -169,6 +169,8 @@ type Session struct {
 	DeletedAt  *time.Time `json:"deletedAt"`
 	AccountID  *uuid.UUID `json:"accountID" gorm:"type:uuid;"`
 	Account    *Account   `json:"account" gorm:"save_associations:false;"`
+	InvoiceID  *uuid.UUID `json:"invoiceID" gorm:"type:uuid;"`
+	Invoice    *Invoice   `json:"invoice" gorm:"save_associations:false;"`
 	RemoteAddr *string    `json:"remoteAddr"`
 	UserAgent  *string    `json:"userAgent"`
 	Referer    *string    `json:"referer"`

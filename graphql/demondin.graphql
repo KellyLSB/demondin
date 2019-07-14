@@ -18,6 +18,8 @@ type Session implements Postgresql {
   
   accountID:        ID
   account:          Account
+  invoiceID:        ID
+  invoice:          Invoice
 
   remoteAddr:       String
   userAgent:        String

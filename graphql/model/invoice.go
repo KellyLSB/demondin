@@ -68,13 +68,17 @@ func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 		case *Invoice:
 			invoice = input
 		case uuid.UUID:
-			if input != uuid.Nil {
-				invUUID = input
+			if input == uuid.Nil {
+				goto CreateInvoice
 			}
+			
+			invUUID = input
 		case *uuid.UUID:
-			if input != nil {
-				invUUID = *input
+			if input == nil {
+				goto CreateInvoice
 			}
+
+			invUUID = *input
 		case string:
 			invUUID = uuid.MustParse(input)
 		default:
@@ -144,6 +148,10 @@ func (i *Invoice) AddItemByUUID(
 
 func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 	var subTotal, taxable int
+	
+	if i.ID == uuid.Nil {
+		return
+	}
 
 	// Auto load items
 	if utils.IsTrue(loadItems...) {

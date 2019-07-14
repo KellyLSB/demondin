@@ -27,17 +27,13 @@ type Item struct {
 	Description *string          `json:"description"`
 	Enabled     bool             `json:"enabled"`
 	IsBadge     bool             `json:"isBadge"`
-	Options     []ItemOptionType `json:"options" gorm:"foreignkey:ItemID"`
-	Prices      []ItemPrice      `json:"prices" gorm:"foreignkey:ItemID"`
+	Options     []ItemOptionType `json:"options" gorm:"foreignkey:ItemID;"`
+	Prices      []ItemPrice      `json:"prices" gorm:"foreignkey:ItemID;"`
 }
 
 func FetchItem(tx *gorm.DB, iUUID uuid.UUID) *Item {
 	var item Item
-	
-	tx.Preload(
-		"Options", "Prices",
-	).First(&item, "id = ?", iUUID)
-	
+	tx.Preload("Options").Preload("Prices").First(&item, "id = ?", iUUID)
 	return &item
 }
 

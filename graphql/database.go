@@ -72,6 +72,7 @@ func InitDB(
 
 func (d Database) Migrate() {
 	d.Transact(func(db *gorm.DB) {
+		db.AutoMigrate(&model.Session{})
 		db.AutoMigrate(&model.Account{})
 		db.AutoMigrate(&model.Invoice{})
 		db.AutoMigrate(&model.InvoiceItem{})

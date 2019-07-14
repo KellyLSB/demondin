@@ -85,7 +85,7 @@ import Items from './items';
 import Cart from './cart';
 
 // Stripe.JS React Elements
-import {Elements, StripeProvider} from 'react-stripe-elements';
+import { Elements, StripeProvider } from 'react-stripe-elements';
 
 ReactDOM.render(
 	<ApolloProvider client={client}>

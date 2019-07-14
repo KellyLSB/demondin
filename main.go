@@ -101,11 +101,7 @@ func main() {
 			graphql.NewExecutableSchema(graphql.Config{
 				Resolvers: &graphql.Resolver{
 					Session: s,
-					RemoteAddr: r.RemoteAddr,
-					UserAgent: r.UserAgent(),
-					Referer: r.Referer(),
-					Method: r.Method,
-					URL: r.URL,
+					Request: r,
 				},
 			}),
 			handler.WebsocketUpgrader(websocket.Upgrader{
