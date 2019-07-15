@@ -46,7 +46,7 @@ func relationshipFieldDBNames(
 	}
 
 	for i, foreignKey := range foreignKeys {
-		if field := m.getField(foreignKey); field != nil {
+		if field := m.GetField(foreignKey); field != nil {
 			fields = append(fields, field.DBName)
 		}
 		
@@ -54,7 +54,7 @@ func relationshipFieldDBNames(
 			dbName = append(dbName, joinTablesDBNames[i])
 		} else {
 			dbName = append(
-				dbName, DBName(s.StructField.Type.Name())+"_"+field.DBName,
+				dbName, DBName(s.StructField.Type.Name()) + "_" + field.DBName,
 			)
 		}
 	}
@@ -79,6 +79,10 @@ type StructField struct {
 
 func (s *StructField) GetSetting(name string) (string, bool) {
 	return s.Settings[name], s.Settings[name] != ""
+}
+
+func (s *StructField) DstModelStruct() *ModelStruct {
+	return LoadModelStruct(reflect.New(s.StructField.Type).Interface())
 }
 
 func DBName(name string) string {
@@ -133,19 +137,20 @@ func (s *StructField) Setup() func(*StructField) {
 		switch indirectType.Kind() {
 		case reflect.Slice:
 			return func(m *ModelStruct, s *StructField) {
+				var a            *ModelStruct = s.DstModelStruct()
 				var relationship *Relationship
-				var foreignKeys []string
-				var associationForeignKeys []string
-				var elemType reflect.Type = s.StructField.Type
+				var mForeignKeys []string
+				var aForeignKeys []string
+				var elemType     reflect.Type = s.StructField.Type
 				
 				if value, ok := s.GetSetting("FOREIGNKEY"); ok {
-					foreignKeys = strings.Split(value, ",")
+					mForeignKeys = strings.Split(value, ",")
 				}
 				
 				if value, ok := s.GetSetting("ASSOCIATION_FOREIGNKEY"); ok {
-					associationForeignKeys = strings.Split(value, ",")
+					aForeignKeys = strings.Split(value, ",")
 				} else if value, ok := s.GetSetting("ASSOCIATIONFOREIGNKEY"); ok {
-					associationForeignKeys = strings.Split(value, ",")
+					aForeignKeys = strings.Split(value, ",")
 				}
 				
 				//
@@ -158,8 +163,8 @@ func (s *StructField) Setup() func(*StructField) {
 						relationship.Kind = "many_to_many"
 
 						{ // Source
-							foreignKeys, foreignFields, foreignDBNames = relatedFieldDBNames(
-								m, s, "JOINTABLE_FOREIGNKEY", foreignKeys,
+							mForeignKeys, foreignFields, foreignDBNames = relatedFieldDBNames(
+								m, s, "JOINTABLE_FOREIGNKEY", mForeignKeys,
 							)
 
 							relationship.ForeignFieldNames = foreignFields
@@ -167,9 +172,8 @@ func (s *StructField) Setup() func(*StructField) {
 						}
 
 						{ // Destination
-							associationForeignKeys, foreignFields, foreignDBNames = relatedFieldDBNames(
-								LoadModelStruct(reflect.New(s.StructField.Type).Interface()), 
-								s, "ASSOCIATION_JOINTABLE_FOREIGNKEY", associationForeignKeys,
+							aForeignKeys, foreignFields, foreignDBNames = relatedFieldDBNames(
+								a, s, "ASSOCIATION_JOINTABLE_FOREIGNKEY", aForeignKeys,
 							)
 
 							relationship.AssociationForeignFieldNames = foreignFields
@@ -179,17 +183,89 @@ func (s *StructField) Setup() func(*StructField) {
 						s.Relationship = relationship
 					} else {
 						var associationType = m.Value.Type.Name()
-						var fields = LoadModelStruct(
-							reflect.New(s.StructField.Type).Interface(),
-						).Fields()
-						
 						relationship.Kind = "has_many"
 						
-						// ---https://github.com/jinzhu/gorm/blob/836fb2c19d84dac7b0272958dfb9af7cf0d0ade4/model_struct.go#L365
+						if value, ok := s.GetSetting("POLYMORPHIC"); ok {
+							if polyField := d.GetField(value + "Type"); polyType != nil {
+								associationType                = value
+								relationship.PolymorphicType   = polyField.Name
+								relationship.PolymorphicDBName = polyField.DBName
+								
+								if value, ok := s.GetSetting("POLYMORPHIC_VALUE"); ok {
+									relationship.PolymorphicValue = value
+								} else {
+									relationship.PolymorphicValue = m.TableName()
+								}
+								
+								polyField.IsForeignKey = true
+							}
+						}
+						
+						if len(mForeignKeys) < 1 {
+							if len(aForeignKeys) < 1 {
+								a.PrimaryFields(func(field *StructField) {
+									mForeignKeys = append(mForeignKeys, s.Name + field.Name)
+									aForeignKeys = append(aForeignKeys, field.Name)
+								})
+							} else {
+								for _, aForeignKey := range aForeignKeys {
+									if field := a.GetField(aForeignKey); field != nil {
+										mForeignKeys = append(mForeignKeys, s.Name + field.Name)
+										aForeignKeys = append(aForeignKeys, field.Name)
+									}
+								}
+							}
+						} else {
+							if len(aForeignKeys) < 1 {
+								for _, mForeignKey := range mForeignKeys {
+									if strings.HasPrefix(mForeignKey, s.Name) {
+										aForeignKey := strings.TrimPrefix(mForeignKey, s.Name)
+										if field := a.GetField(aForeignKey); field != nil {
+											aForeignKeys = append(aForeignKeys, aForeignKey)
+										}
+									}
+								}
+								
+								if len(aForeignKeys) == 0 && len(mForeignKeys) == 1 {
+									aForeignKeys = []string{ a.PrimaryKey() }
+								}
+							} else if len(mForeignKeys) != len(aForeignKeys) {
+								panic("Invalid ForeignKeys: a/m should express same length.")
+							}
+						}
+						
+						for i, mForeignKey := range mForeignKeys {
+							if mField := m.GetField(mForeignKey); mField != nil {
+								if aField := a.GetField(aForeignKeys[i]); aField != nil {
+									mField.IsForeignKey = true
+									
+									relationship.ForeignFieldNames = append(
+										relationship.ForeignFieldNames, mField.Name,
+									)
+									
+									relationship.ForeignDBNames = append(
+										relationship.ForeignDBNames, mField.DBName,
+									)
+									
+									relationship.AssociationForeignFieldNames = append(
+										relationship.AssociationForeignFieldNames, aField.Name,
+									)
+									
+									relationship.AssociationForeignDBNames = append(
+										relationship.AssociationForeignDBNames, aField.DBName,
+									)
+								}
+							}
+						}
+						
+						if len(relationship.ForeignFieldNames) != 0 {
+							s.Relationship = relationship
+						}
 					}
+				} else {
+					s.IsNormal = true
 				}
-
-			}
+			} // (m, s)
 		case reflect.Struct:
 		default:
 			s.IsNormal = true
@@ -244,7 +320,47 @@ func (s *ModelStruct) Fields() []*StructField {
 	}
 }
 
-func (s *ModelStruct) getField(name string) *StructField {
+func (s *ModelStruct) PrimaryFields(
+	fns ...func(*StructField),
+) (fields []*StructField) {
+	for _, field := range s.Fields {
+		if field.IsPrimaryKey {
+			for _, fn := range fns {
+				fn(field)
+			}
+
+			fields = append(fields, field)
+		}
+	}
+	
+	return
+}
+
+func (s *ModelStruct) PrimaryField() *StructField {
+	if fields := s.PrimaryFields(); len(fields) > 0 {
+		if len(fields) > 1 {
+			for _, field := range fields {
+				if field.DBName == "id" {
+					return field
+				}
+			}
+		}
+
+		return fields[0]
+	}
+
+	return nil
+}
+
+func (s *ModelStruct) PrimaryKey() string {
+	if field := s.PrimaryField(); field != nil {
+		return field.DBName
+	}
+
+	return ""
+}
+
+func (s *ModelStruct) GetField(name string) *StructField {
 	for _, field := range s.Fields {
 		if field.Name == name || field.DBName == DBName(name) {
 			return field
