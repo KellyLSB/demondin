@@ -1,6 +1,7 @@
 package database
 
 import (
+	"time"
 	"reflect"
 	"strings"
 	"go/ast"
@@ -12,9 +13,9 @@ import (
 type Relationship struct {
 	Kind                         string
 	
-	//PolymorphicType              string
-	//PolymorphicDBName            string
-	//PolymorphicValue             string
+	PolymorphicType              string
+	PolymorphicDBName            string
+	PolymorphicValue             string
 	
 	ForeignFieldNames            []string
 	ForeignDBNames               []string
@@ -22,10 +23,10 @@ type Relationship struct {
 	AssociationForeignDBNames    []string
 }
 
-func relationshipFieldDBNames(
+func relatedFieldDBNames(
 	m *ModelStruct, s *StructField, 
 	joinTableSetting string,
-	foreignKeys []string
+	foreignKeys []string,
 ) (
 	keys   []string,
 	fields []string, 
@@ -48,14 +49,14 @@ func relationshipFieldDBNames(
 	for i, foreignKey := range foreignKeys {
 		if field := m.GetField(foreignKey); field != nil {
 			fields = append(fields, field.DBName)
-		}
-		
-		if len(joinTableDBNames) > i {
-			dbName = append(dbName, joinTablesDBNames[i])
-		} else {
-			dbName = append(
-				dbName, DBName(s.StructField.Type.Name()) + "_" + field.DBName,
-			)
+
+			if len(joinTableDBNames) > i {
+				dbName = append(dbName, joinTableDBNames[i])
+			} else {
+				dbName = append(
+					dbName, DBName(s.StructField.Type.Name()) + "_" + field.DBName,
+				)
+			}
 		}
 	}
 	
@@ -74,6 +75,7 @@ type StructField struct {
 	IsScanner,
 	IsIgnored,
 	IsPrimaryKey,
+	IsForeignKey,
 	HasDefaultValue bool
 }
 
@@ -89,7 +91,7 @@ func DBName(name string) string {
 	return flect.Underscore(name)
 }
 
-func (s *StructField) Setup() func(*StructField) {
+func (s *StructField) Setup() func(*ModelStruct, *StructField) {
 	if value, ok := s.GetSetting("COLUMN"); ok {
 		s.DBName = value
 	} else {
@@ -98,7 +100,7 @@ func (s *StructField) Setup() func(*StructField) {
 
 	if _, ok := s.GetSetting("-"); ok {
 		s.IsIgnored = true
-		return
+		return nil
 	}
 
 	//
@@ -106,11 +108,11 @@ func (s *StructField) Setup() func(*StructField) {
 		s.IsPrimaryKey = true
 	}
 	
-	if _, ok :+ s.GetSetting("DEFAULT"); ok && !s.IsPrimaryKey {
+	if _, ok := s.GetSetting("DEFAULT"); ok && !s.IsPrimaryKey {
 		s.HasDefaultValue = true
 	}
 	
-	if _, ok :+ s.GetSetting("AUTO_INCREMENT"); ok && !s.IsPrimaryKey {
+	if _, ok := s.GetSetting("AUTO_INCREMENT"); ok && !s.IsPrimaryKey {
 		s.HasDefaultValue = true
 	}
 
@@ -128,11 +130,12 @@ func (s *StructField) Setup() func(*StructField) {
 	} else if _, isTime := fieldValue.(*time.Time); isTime {
 		s.IsNormal = true
 	} else if _, ok := s.GetSetting("EMBEDDED"); ok || s.StructField.Anonymous {
-		for _, subField := range LoadModelStruct(fieldValue).Fields() {
+		for _, subField := range LoadModelStruct(fieldValue).GetFields() {
+			reflect.ValueOf(subField)
 			// Preloaded SubFields
 		}
 		
-		return
+		return nil
 	} else {
 		switch indirectType.Kind() {
 		case reflect.Slice:
@@ -159,10 +162,11 @@ func (s *StructField) Setup() func(*StructField) {
 				}
 
 				if elemType.Kind() == reflect.Struct {
-					if value, ok := s.GetSetting("MANY2MANY"); ok {
+					if _, ok := s.GetSetting("MANY2MANY"); ok {
 						relationship.Kind = "many_to_many"
 
 						{ // Source
+							var foreignFields, foreignDBNames []string
 							mForeignKeys, foreignFields, foreignDBNames = relatedFieldDBNames(
 								m, s, "JOINTABLE_FOREIGNKEY", mForeignKeys,
 							)
@@ -172,6 +176,7 @@ func (s *StructField) Setup() func(*StructField) {
 						}
 
 						{ // Destination
+													var foreignFields, foreignDBNames []string
 							aForeignKeys, foreignFields, foreignDBNames = relatedFieldDBNames(
 								a, s, "ASSOCIATION_JOINTABLE_FOREIGNKEY", aForeignKeys,
 							)
@@ -180,14 +185,14 @@ func (s *StructField) Setup() func(*StructField) {
 							relationship.AssociationForeignDBNames    = foreignDBNames
 						}
 
-						s.Relationship = relationship
+						s.Relationship = *relationship
 					} else {
-						var associationType = m.Value.Type.Name()
+						//var associationType = m.Value.Type().Name()
 						relationship.Kind = "has_many"
 						
 						if value, ok := s.GetSetting("POLYMORPHIC"); ok {
-							if polyField := d.GetField(value + "Type"); polyType != nil {
-								associationType                = value
+							if polyField := m.GetField(value + "Type"); polyField != nil {
+								//associationType                = value
 								relationship.PolymorphicType   = polyField.Name
 								relationship.PolymorphicDBName = polyField.DBName
 								
@@ -259,7 +264,7 @@ func (s *StructField) Setup() func(*StructField) {
 						}
 						
 						if len(relationship.ForeignFieldNames) != 0 {
-							s.Relationship = relationship
+							s.Relationship = *relationship
 						}
 					}
 				} else {
@@ -271,6 +276,8 @@ func (s *StructField) Setup() func(*StructField) {
 			s.IsNormal = true
 		}
 	}
+	
+	return nil
 }
 
 func (s *StructField) dbSettings() {
@@ -292,32 +299,33 @@ func (s *StructField) dbSettings() {
 }
 
 type ModelStruct struct {
-	Value *reflect.Value
+	Value reflect.Value
 	Fields []*StructField
 }
 
 func LoadModelStruct(value interface{}) *ModelStruct {
 	return &ModelStruct{
-		Value: reflect.Indirect(reflect.ValueOf(value))
+		Value: reflect.Indirect(reflect.ValueOf(value)),
 	}
 }
 
-func (s *ModelStruct) Fields() []*StructField {
+func (s *ModelStruct) GetFields() (fields []*StructField) {
 	reflectType := s.Value.Type()
-	for reflectType.Kind() == reflect.Slice || reflectType.Kind() == relfect.Ptr {
+	for reflectType.Kind() == reflect.Slice || reflectType.Kind() == reflect.Ptr {
 		reflectType = reflectType.Elem()
 	}
-	
+
 	if reflectType.Kind() != reflect.Struct {
 		return
 	}
-	
-	for i := 0; i < reflectType.NumFields(); i++ {
+
+	for i := 0; i < reflectType.NumField(); i++ {
 		if fieldStruct := reflectType.Field(i); ast.IsExported(fieldStruct.Name) {
-			field := &StructField{ fieldStruct }
-			}
+			fields = append(fields, &StructField{ StructField: fieldStruct })
 		}
 	}
+
+	return
 }
 
 func (s *ModelStruct) PrimaryFields(
@@ -368,4 +376,8 @@ func (s *ModelStruct) GetField(name string) *StructField {
 	}
 	
 	return nil
+}
+
+func (s *ModelStruct) TableName() string {
+	return DBName(s.Value.Type().Name())
 }
