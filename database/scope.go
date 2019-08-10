@@ -1,6 +1,9 @@
 package database
 
 import (
+	"fmt"
+	"github.com/kr/pretty"
+
 	"time"
 	"reflect"
 	"strings"
@@ -71,6 +74,7 @@ type StructField struct {
 	
 	DBName string
 	
+	IsTime,
 	IsNormal,
 	IsScanner,
 	IsIgnored,
@@ -92,6 +96,8 @@ func DBName(name string) string {
 }
 
 func (s *StructField) Setup() func(*ModelStruct, *StructField) {
+	s.dbSettings()
+	
 	if value, ok := s.GetSetting("COLUMN"); ok {
 		s.DBName = value
 	} else {
@@ -125,23 +131,21 @@ func (s *StructField) Setup() func(*ModelStruct, *StructField) {
 	fieldValue := reflect.New(indirectType).Interface()
 	
 	//
-	if _, isScanner := fieldValue.(sql.Scanner); isScanner {
+	if indirectType.Implements(reflect.TypeOf((*sql.Scanner)(nil)).Elem()) {
 		s.IsScanner, s.IsNormal = true, true
-	} else if _, isTime := fieldValue.(*time.Time); isTime {
-		s.IsNormal = true
+	} else if indirectType.ConvertibleTo(reflect.TypeOf((*time.Time)(nil)).Elem()) {
+		s.IsTime, s.IsNormal = true, true
 	} else if _, ok := s.GetSetting("EMBEDDED"); ok || s.StructField.Anonymous {
-		for _, subField := range LoadModelStruct(fieldValue).GetFields() {
-			reflect.ValueOf(subField)
-			// Preloaded SubFields
+		subFields := LoadModelStruct(fieldValue).GetFields()
+		return func(m *ModelStruct, s *StructField) {
+			m.Fields = append(m.Fields, subFields...)
 		}
-		
-		return nil
 	} else {
 		switch indirectType.Kind() {
 		case reflect.Slice:
 			return func(m *ModelStruct, s *StructField) {
 				var a            *ModelStruct = s.DstModelStruct()
-				var relationship *Relationship
+				var relationship *Relationship = new(Relationship)
 				var mForeignKeys []string
 				var aForeignKeys []string
 				var elemType     reflect.Type = s.StructField.Type
@@ -176,7 +180,7 @@ func (s *StructField) Setup() func(*ModelStruct, *StructField) {
 						}
 
 						{ // Destination
-													var foreignFields, foreignDBNames []string
+							var foreignFields, foreignDBNames []string
 							aForeignKeys, foreignFields, foreignDBNames = relatedFieldDBNames(
 								a, s, "ASSOCIATION_JOINTABLE_FOREIGNKEY", aForeignKeys,
 							)
@@ -272,6 +276,9 @@ func (s *StructField) Setup() func(*ModelStruct, *StructField) {
 				}
 			} // (m, s)
 		case reflect.Struct:
+			return func(m *ModelStruct, s *StructField) {
+				//https://github.com/jinzhu/gorm/blob/master/model_struct.go#L442-L603
+			}
 		default:
 			s.IsNormal = true
 		}
@@ -281,12 +288,19 @@ func (s *StructField) Setup() func(*ModelStruct, *StructField) {
 }
 
 func (s *StructField) dbSettings() {
+	if s.Settings == nil {
+		s.Settings = make(map[string]string)
+	}
+	
 	for _, tagName := range []string{ "gorm", "database" } {
 		if tagData := s.Tag.Get(tagName); tagData != "" {
 			for _, subData := range strings.Split(tagData, ";") {
 				setting := strings.Split(subData, ":")
 
 				name := strings.TrimSpace(strings.ToUpper(setting[0]))
+				if name == "" {
+					continue
+				}
 
 				if len(setting) > 1 {
 					s.Settings[name] = strings.TrimSpace(strings.Join(setting[1:], ":"))
@@ -321,11 +335,16 @@ func (s *ModelStruct) GetFields() (fields []*StructField) {
 
 	for i := 0; i < reflectType.NumField(); i++ {
 		if fieldStruct := reflectType.Field(i); ast.IsExported(fieldStruct.Name) {
-			fields = append(fields, &StructField{ StructField: fieldStruct })
+			structField := &StructField{ StructField: fieldStruct }
+			if fn := structField.Setup(); fn != nil {
+				fn(s, structField)
+			}
+			
+			s.Fields = append(s.Fields, structField)
 		}
 	}
 
-	return
+	return s.Fields
 }
 
 func (s *ModelStruct) PrimaryFields(
