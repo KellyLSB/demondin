@@ -8,7 +8,7 @@ import { ApolloProvider } from '../utils/apolloClient';
 
 // Style and Elements
 import { Divider, Container, Grid, Segment } from 'semantic-ui-react';
-import '../../semantic/dist/semantic.min.css';
+import 'semantic-ui-css/semantic.min.css'
 
 import Items from './items';
 import Cart from './cart';
