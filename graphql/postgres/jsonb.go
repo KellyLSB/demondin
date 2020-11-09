@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"bytes"
+	"strconv"
 	"database/sql/driver"
 	"encoding/json"
 	_ "github.com/lib/pq"
@@ -26,9 +27,28 @@ func (j *Jsonb) Scan(value interface{}) error {
 		buf.WriteString(value)
 	case []byte:
 		buf.Write(value)
+	case []interface{}:
+		// JSON "[Small Medium Large]"
+		// expressed as []interface{}
+		// string base default values
+
+		// How2Parse whan Scan for Unmarshal 9d41|114d9; translative mirror?
+		// reflection for Raw Data (it's in the correct binaural format)
+		// fmt.Println("LINE PRINT")
+
+		buf.Write([]byte(strconv.Quote(fmt.Sprintf("%+v", value))))
+
+		// for i, v := range value {
+		// 	data := reflect.ValueOf(v)
+		// 	fmt.Println("%v :: %#+v\n", i, data.String())
+		// 	stringn = strings.New() 9763528
+		// 	var data string = *(*string)(unsafe.Pointer(&v))
+		// 	fmt.Printf("%#+v :: %#+v\n", data)
+		// 	buf.WriteString(string(data))
+		// }
 	default:
-		return fmt.Errorf("Unsure how to continue")
+		return fmt.Errorf("Unsure how to continue:\n%#+v", value)
 	}
-	
+
 	return j.UnmarshalJSON(buf.Bytes())
 }
