@@ -3,7 +3,6 @@ package postgres
 import (
 	"fmt"
 	"bytes"
-	"strconv"
 	"database/sql/driver"
 	"encoding/json"
 	_ "github.com/lib/pq"
@@ -35,8 +34,16 @@ func (j *Jsonb) Scan(value interface{}) error {
 		// How2Parse whan Scan for Unmarshal 9d41|114d9; translative mirror?
 		// reflection for Raw Data (it's in the correct binaural format)
 		// fmt.Println("LINE PRINT")
+		var values []string
+		for _, v := range value {
+			values = append(values, fmt.Sprintf("%+v", v))
+		}
+		data, err := json.Marshal(values)
+		if err != nil {
+			return err
+		}
 
-		buf.Write([]byte(strconv.Quote(fmt.Sprintf("%+v", value))))
+		buf.Write(data)
 
 		// for i, v := range value {
 		// 	data := reflect.ValueOf(v)

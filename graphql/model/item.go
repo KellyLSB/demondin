@@ -58,7 +58,7 @@ func (i *Item) CurrentPrice() *ItemPrice {
 		if now.Before(price.AfterDate) || now.After(price.BeforeDate) {
 			continue
 		}
-		
+
 		return &price
 	}
 
@@ -93,7 +93,7 @@ func MarshalJSON(v postgres.Jsonb) graphql.Marshaler {
 			w.Write(v.RawMessage)
 			return
 		}
-		
+
 		w.Write([]byte(strconv.Quote(string(v.RawMessage))))
 	})
 }
@@ -127,4 +127,3 @@ func UnmarshalStripeCharge(v interface{}) (out postgres.StripeCharge, err error)
   err = json.NewDecoder(strings.NewReader(v.(string))).Decode(&out)
   return
 }
-

@@ -7,8 +7,8 @@ mutation CreateItem {
 			{key: "T-Shirt Size", valueType: "select", values: ["S", "M", "L"]}
 		],
 		prices: [
-			{price: 2500, afterDate: "2010-10-10", beforeDate: "2020-10-10"},
-			{price: 5000, afterDate: "2015-10-10", beforeDate: "2020-10-10"}
+			{price: 2500, afterDate: "2010-10-10", beforeDate: "2040-10-10"},
+			{price: 5000, afterDate: "2015-10-10", beforeDate: "2040-10-10"}
 		]
 	}) {
 		id
@@ -25,6 +25,6 @@ mutation CreateItem {
 			price
 			afterDate
 			beforeDate
-		}			
+		}
 	}
 }
