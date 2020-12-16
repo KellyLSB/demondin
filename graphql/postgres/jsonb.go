@@ -39,6 +39,13 @@ func (j *Jsonb) Scan(value interface{}) error {
 		}
 
 		buf.Write(data)
+	case interface{}:
+		data, err := json.Marshal(value)
+		if err != nil {
+			return err
+		}
+
+		buf.Write(data)
 	default:
 		return fmt.Errorf("Unsure how to continue:\n%#+v", value)
 	}
