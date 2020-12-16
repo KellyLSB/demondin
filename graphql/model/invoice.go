@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
-	"github.com/kr/pretty"
-	"github.com/KellyLSB/demondin/graphql/utils"
-	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/token"
+	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/charge"
 	"github.com/KellyLSB/demondin/graphql/postgres"
+	"github.com/KellyLSB/demondin/graphql/utils"
 	"gopkg.in/yaml.v2"
+	"github.com/kr/pretty"
 )
 
 func init() {
 	stripe.Key = os.Getenv("STRIPE_PRIVATE_KEY")
 }
 
+
+// FetchInvoice returns an invoice from UUID or inheritance
 func FetchInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 	var invoice *Invoice = new(Invoice)
 	var invUUID uuid.UUID
@@ -46,11 +48,13 @@ func FetchInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 			fmt.Printf("%# v\n", pretty.Formatter(input))
 		}
 	}
-	
-	tx.Preload("Items").First(invoice, "id = ?", invUUID)	
+
+	tx.Preload("Items").First(invoice, "id = ?", invUUID)
 	return invoice
 }
 
+// FetchOrCreateInvoice returns an invoice from UUID or inheritance
+// even if the invoice had not yet been created.
 func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 	var invoice *Invoice = new(Invoice)
 	var invUUID uuid.UUID
@@ -71,7 +75,7 @@ func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 			if input == uuid.Nil {
 				goto CreateInvoice
 			}
-			
+
 			invUUID = input
 		case *uuid.UUID:
 			if input == nil {
@@ -91,7 +95,7 @@ func FetchOrCreateInvoice(tx *gorm.DB, inputs ...interface{}) *Invoice {
 	if invoice.ID == uuid.Nil {
 		goto CreateInvoice
 	}
-	
+
 	return invoice
 
 CreateInvoice:
@@ -116,21 +120,26 @@ func (i *Invoice) LoadItems(tx *gorm.DB) *Invoice {
 }
 
 func (i *Invoice) AddInvoiceItem(
-	tx *gorm.DB, invoiceItem *InvoiceItem, 
+	tx *gorm.DB, invoiceItem *InvoiceItem,
 ) *InvoiceItem {
 	tx.Model(i).Association("Items").Append(invoiceItem)
 	return invoiceItem
-} 
+}
 
 func (i *Invoice) AddItemWithPrice(
-	tx *gorm.DB, item *Item, 
+	tx *gorm.DB, item *Item,
 	itemPrice *ItemPrice,
 ) *InvoiceItem {
-	return i.AddInvoiceItem(tx, &InvoiceItem{
-		InvoiceID: i.ID, ItemID: item.ID,
-		ItemPriceID: itemPrice.ID,
-	})
-}	
+	invoiceItem := &InvoiceItem{
+		InvoiceID: utils.EnsureUUID(i.ID),
+		ItemID: utils.EnsureUUID(item.ID),
+		ItemPriceID: utils.EnsureUUID(itemPrice.ID),
+	}
+
+	invoiceItem.Save(tx)
+
+	return i.AddInvoiceItem(tx, invoiceItem)
+}
 
 func (i *Invoice) AddItem(
 	tx *gorm.DB, item *Item,
@@ -141,14 +150,14 @@ func (i *Invoice) AddItem(
 }
 
 func (i *Invoice) AddItemByUUID(
-	tx *gorm.DB, uuid uuid.UUID, 
+	tx *gorm.DB, uuid uuid.UUID,
 ) *InvoiceItem {
 	return i.AddItem(tx, FetchItem(tx, uuid))
 }
 
 func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 	var subTotal, taxable int
-	
+
 	if i.ID == uuid.Nil {
 		return
 	}
@@ -160,7 +169,7 @@ func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 
 	for _, item := range i.Items {
 		subTotal += item.ItemPrice.Price
-		
+
 		if item.ItemPrice.Taxable == true {
 			taxable += item.ItemPrice.Price
 		}
@@ -170,7 +179,7 @@ func (i *Invoice) Calculate(tx *gorm.DB, loadItems ...bool) {
 	i.SubTotal = subTotal
 	i.Taxes = int(float32(taxable) * 0.00)
 	i.DemonDin = int(float32(subTotal) * 0.03)
-	
+
 	 // Calculate the Totals (Ensure ApplicationFee accuracy)
 	// || \\ ^ [ i.Total = i.SubTotal + i.Taxes ]
 	i.Total = i.SubTotal + i.Taxes + i.DemonDin
@@ -180,20 +189,20 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 	if input == nil {
 		return
 	}
-	
+
 	// Attach an Account
 	if input.Account != nil {
 		if input.Account.Email != nil && *input.Account.Email != "" {
 			i.SetAccountByEmail(tx, *input.Account.Email)
 		}
 	}
-	
+
 	// Set Stripe Token
 	if input.StripeTokenID != nil && *input.StripeTokenID != "" {
 		i.SetStripeTokenID(tx, *input.StripeTokenID)
 	}
-	
-	
+
+
 	// Add Items to Cart
 	for _, _item := range input.Items {
 		var invoiceItem *InvoiceItem
@@ -203,14 +212,14 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 			invoiceItem = i.AddItemByUUID(tx, _item.ItemID)
 		} else {
 			invoiceItem = FetchInvoiceItem(tx, *_item.ID)
-			
+
 			// Remove from Cart
 			if _item.Remove != nil && *(_item.Remove) {
 				invoiceItem.Remove(tx)
 				continue
 			}
 		}
-		
+
 		// Add Options
 		invoiceItem.Input(tx, &_item)
 		i.AddInvoiceItem(tx, invoiceItem)
@@ -235,7 +244,7 @@ func (i *Invoice) SetStripeTokenID(tx *gorm.DB, id string) {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	i.SetStripeToken(tx, tkn)
 }
 
@@ -258,7 +267,7 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 		items[key] = opt
 	}
 
-	var description = map[string]interface{}{} 
+	var description = map[string]interface{}{}
 	description["subTotal"] = i.SubTotal
 	description["demonDin"] = i.DemonDin
 	description["taxes"] = i.Taxes
@@ -280,11 +289,11 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 		Description: stripe.String(string(_description_)),
 		ReceiptEmail: stripe.String(i.Account.Email),
 	}
-	
+
 	//chargeParams.SetStripeAccount(os.Getenv("STRIPE_CONNECT_ACT"))
 	chargeParams.SetSource(*(i.StripeTokenID)) // obtained with Stripe.js
 
-	// Charge the Source	
+	// Charge the Source
 	_charge_, err := charge.New(chargeParams)
 	if err != nil {
 		return err
@@ -292,10 +301,10 @@ func (i *Invoice) Submit(tx *gorm.DB) error {
 
 	i.StripeChargeID = stripe.String(_charge_.ID)
 	i.StripeCharge = &postgres.StripeCharge{ *_charge_ }
-	
+
 	// Update Stripe Token in DB
 	i.SetStripeTokenID(tx, *(i.StripeTokenID))
-	
+
 	fmt.Printf("%# v\n", pretty.Formatter(i))
 
 	return nil

@@ -49,35 +49,51 @@ func (i *InvoiceItem) LoadRelations(tx *gorm.DB) *InvoiceItem {
 }
 
 func (i *InvoiceItem) AddItemOption(tx *gorm.DB, io *ItemOption) *ItemOption {
+	i.Save(tx)
 	tx.Model(i).Association("Options").Append(io)
 	return io
 }
 
 func (i *InvoiceItem) Input(tx *gorm.DB, input *NewInvoiceItem) {
+	i.Save(tx)
+
 	for _, option := range input.Options {
-		i.AddItemOption(tx, &ItemOption{
+		itemOption := &ItemOption{
 			ID: utils.EnsureUUID(option.ID),
+			InvoiceItemID: utils.EnsureUUID(i.ID),
 			ItemOptionTypeID: option.ItemOptionTypeID,
 			// Get RawJSON from postgres.Jsonb object
-			Values: postgres.Jsonb{ option.Values.RawMessage },
-		})
+			Values: postgres.Jsonb( option.Values ),
+		}
+
+		tx.Create(itemOption)
+
+		i.AddItemOption(tx, itemOption)
+
+		tx.Save(itemOption)
+
+		fmt.Printf("###3\n%#+v\n", itemOption)
 	}
+}
+
+func (i *InvoiceItem) Save(tx *gorm.DB) {
+	tx.Save(i)
 }
 
 // Remove performs an Unsafe Delete, assuming cart is unchecked out.
 func (i *InvoiceItem) Remove(tx *gorm.DB) {
 	i.LoadOptions(tx)
-	
+
 	for _, option := range i.Options {
 		option.Remove(tx)
 	}
-	
+
 	tx.Unscoped().Delete(i)
 }
 
 
 func (i *InvoiceItem) Sample() string {
-	return fmt.Sprintf("%q (%f)", 
+	return fmt.Sprintf("%q (%f)",
 		i.Item.Name,
 		float32(i.ItemPrice.Price) / 100,
 	)
@@ -87,10 +103,10 @@ func (i *InvoiceItem) SampleOptions() []string {
 		var options = []string{}
 
 		for _, _option_ := range i.Options {
-			options = append(options, 
+			options = append(options,
 				_option_.Sample(),
 			)
-		} 
+		}
 
 		return options
 }

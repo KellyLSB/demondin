@@ -82,6 +82,7 @@ func main() {
 			m.Get("/", func(ctx *macaron.Context) {
 				// templates/default/shop/keeper/items.tmpl
 				ctx.HTML(200, "shop/keeper/items")
+				//ctx.JSON(202, )
 			})
 		})
 
@@ -95,7 +96,7 @@ func main() {
 
 	// Graphql
 	m.Get("/playground", handler.Playground("GraphQL playground", "/graphql"))
-	
+
 	m.Any("/graphql", func(s session.Store, w http.ResponseWriter, r *http.Request) {
 		handler.GraphQL(
 			graphql.NewExecutableSchema(graphql.Config{
@@ -116,7 +117,7 @@ func main() {
 	// Start our macaron daemon
 	log.Println("Server is running...")
 	log.Printf(
-		"Connect to http://%s/playground for GraphQL playground", 
+		"Connect to http://%s/playground for GraphQL playground",
 		os.Getenv("HOSTPORT"),
 	)
 	log.Println(http.ListenAndServe(os.Getenv("HOSTPORT"), m))

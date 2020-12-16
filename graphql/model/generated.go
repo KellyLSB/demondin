@@ -71,7 +71,7 @@ type ItemOption struct {
 	InvoiceItemID    uuid.UUID       `json:"invoiceItemID" gorm:"type:uuid;"`
 	ItemOptionType   *ItemOptionType `json:"itemOptionType" gorm:"save_associations:false;"`
 	ItemOptionTypeID uuid.UUID       `json:"itemOptionTypeID" gorm:"type:uuid;"`
-	Values           postgres.Jsonb  `json:"values"`
+	Values           postgres.Jsonb  `json:"values" gorm:"type:jsonb"`
 }
 
 func (ItemOption) IsPostgresql() {}

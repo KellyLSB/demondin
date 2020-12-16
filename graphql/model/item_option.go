@@ -7,6 +7,12 @@ import (
 	//"github.com/kr/pretty"
 )
 
+func CreateItemOption(xo *gorm.DB) *ItemOption {
+	var itemOption *ItemOption
+	xo.Create(itemOption)
+	return itemOption
+}
+
 func FetchItemOption(xo *gorm.DB, uuid uuid.UUID) *ItemOption {
 	var itemOption ItemOption
 	xo.Preload("Items").First(&itemOption, "id = ?", uuid)
@@ -24,8 +30,12 @@ func (o *ItemOption) Remove(tx *gorm.DB) {
 }
 
 func (o *ItemOption) Sample() string {
-	return fmt.Sprintf("[%s]: %s", 
-		o.ItemOptionType.Key, 
+	return fmt.Sprintf("[%s]: %s",
+		o.ItemOptionType.Key,
 		o.Values,
 	)
+}
+
+func (o *ItemOption) Save(tx *gorm.DB) {
+	tx.Save(o)
 }

@@ -17,28 +17,29 @@ export default class ItemForm extends FormHelper {
 
 	onSubmit(e, updateInvoice) {
 		e.preventDefault()
-		
+
 		if(this.props.hideForm) return;
-		
+
 		updateInvoice({ variables: {
-			input: { 
+			input: {
 				items: [{
 					itemID: this.props.item,
 					itemPriceID: this.props.price,
 					options: this.mapValues((name, value) => {
+						console.log(name, value);
 						return {
 							itemOptionTypeID: name,
-							values: value
+							values: {"field": value},
 						};
 					})
-				}] 
+				}]
 			}
 		} });
 	}
 
 	render() {
 		if(this.props.hideForm) return null;
-		 
+
 		return <Segment secondary attached='bottom'>
 			<Mutation mutation={gql`
 				mutation activeInvoice($input: NewInvoice!) {
@@ -61,7 +62,7 @@ export default class ItemForm extends FormHelper {
 				{(updateInvoice) => (
 					<Form onSubmit={(e) => this.onSubmit(e, updateInvoice)}>
 						<GridList columns={2}>
-							{this.props.options.map((option) => 
+							{this.props.options.map((option) =>
 								<ItemOption key={option.id} option={option}
 														getValue={this.getValue(option.id)}
 														onChange={this.onChange} />

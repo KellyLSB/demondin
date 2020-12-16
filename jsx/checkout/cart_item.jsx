@@ -20,15 +20,15 @@ mutation activeInvoice($input: NewInvoice!) {
 export default class CartItem extends StateErrors {
 	constructor(props) {
 		super(props)
-		
+
 		this.onRemove = this.onRemove.bind(this);
 	}
-		
+
 	onRemove(e, item, updateInvoice) {
 		e.preventDefault();
-		
+
 		if(this.props.charged) return;
-		
+
 		updateInvoice({ variables: {
 			input: {
 				items: [{
@@ -48,11 +48,11 @@ export default class CartItem extends StateErrors {
 		const item = this.props.item;
 		return <Segment key={item.id} attached>
 			<Header as='h4' dividing>
-				{ item.item ? 
+				{ item.item ?
 					item.item.name : "<Item>"
 				}
 			</Header>
-			
+
 			{ this.props.charged ? null : (
 				<Label attached='top right' size='mini'>
 					<Mutation mutation={MUTATE_ACTIVE_INVOICE_ID}>
@@ -71,15 +71,15 @@ export default class CartItem extends StateErrors {
 
 			<GridList columns={2}>
 				{ item.options.map((option, i) =>
-					<React.Fragment key={option.itemOptionType ? 
+					<React.Fragment key={option.itemOptionType ?
 						option.itemOptionType.id : `option-${i}`
 					}>
 						<Header>
-							{ option.itemOptionType ? 
+							{ option.itemOptionType ?
 								option.itemOptionType.key : "<Option>"
 							}
 						</Header>
-						{ option.values }
+						{ option.values.field }
 					</React.Fragment>
 				) }
 			</GridList>
@@ -88,7 +88,7 @@ export default class CartItem extends StateErrors {
 
 			<Label ribbon='right'>
 				<Icon name='dollar sign' />
-				{ item.itemPrice ? 
+				{ item.itemPrice ?
 					item.itemPrice.price.toDollars(false) : "-.-"
 				}
 			</Label>

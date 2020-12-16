@@ -28,7 +28,7 @@ func init() {
 	if err != nil {
 		panic("Error loading .env file")
 	}
-	
+
 	_db = InitDB(
 		os.Getenv("POSTGRES_HOSTPORT"), os.Getenv("POSTGRES_DATABASE"),
 		os.Getenv("POSTGRES_USERNAME"), os.Getenv("POSTGRES_PASSWORD"),
@@ -91,16 +91,16 @@ func (r *mutationResolver) CreateItem(
 	var err error
 
   	// Copy input into the item
-	err = utils.PipeInput(&input, &item)	
+	err = utils.PipeInput(&input, &item)
 	if err != nil {
     		return nil, err
  	}
-  
+
 	// Save the record in DB
 	dbh(func(db *gorm.DB) {
 		err = gormErrors(db.Create(&item))
 	})
-  
+
 	return &item, err
 }
 
@@ -120,28 +120,29 @@ func (r *mutationResolver) UpdateItem(
 	dbh(func(db *gorm.DB) {
 		err = gormErrors(db.First(&item, "id = ?", id))
 	})
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Copy input into the item
 	// @TODO: verify updating with\/out associations
 	err = utils.PipeInput(&input, &item)
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Save the resulting model
 	dbh(func(db *gorm.DB) {
 		err = gormErrors(db.Save(&item))
 	})
-	
+
 	return &item, err
 }
 
-
+// ActiveInvoice performs action with the *model.NewInvoice data
+// it-al-ic :: __it is a transformative function__
 func (r *mutationResolver) ActiveInvoice(
 	ctx context.Context,
 	input *model.NewInvoice,
@@ -162,7 +163,7 @@ func (r *mutationResolver) ActiveInvoice(
 		if input != nil && input.Submit != nil && *(input.Submit) {
 			session.Invoice.Submit(db)
 		}
-		
+
 		session.Invoice.Save(db)
 	})
 
@@ -177,10 +178,10 @@ func (r *mutationResolver) ActiveInvoice(
 
 
 func (r *mutationResolver) CreateInvoice(
-	ctx context.Context, 
+	ctx context.Context,
 	input model.NewInvoice,
 ) (
-	*model.Invoice, 
+	*model.Invoice,
 	error,
 ) {
 	var invoice model.Invoice
@@ -191,7 +192,7 @@ func (r *mutationResolver) CreateInvoice(
 	if err != nil {
 		return nil, err
 	}
-  
+
 	// Save the record in DB
 	dbh(func(db *gorm.DB) {
 		err = gormErrors(db.Create(&invoice))
@@ -202,36 +203,36 @@ func (r *mutationResolver) CreateInvoice(
 	for _, sub := range Subscriptions.Invoice[invoice.ID] {
 		sub <- &invoice
 	}
-  
+
 	return &invoice, err
 }
 
 
 func (r *mutationResolver) UpdateInvoice(
-	ctx context.Context, 
-	id uuid.UUID, 
+	ctx context.Context,
+	id uuid.UUID,
 	input model.NewInvoice,
 ) (
-	invoice *model.Invoice, 
+	invoice *model.Invoice,
 	err error,
 ) {
 	// Fetch first invoice by UUID
 	dbh(func(db *gorm.DB) {
 	  err = gormErrors(db.First(invoice, "id = ?", id))
 	})
-	
+
 	if err != nil {
 	  return
 	}
-	
+
 	// Copy input into the invoice
 	// @TODO: verify updating with\/out associations
 	err = utils.PipeInput(&input, invoice)
-	
+
 	if err != nil {
 	  return
 	}
-	
+
 	// Save the resulting model
 	dbh(func(db *gorm.DB) {
 	  err = gormErrors(db.Save(invoice))
@@ -242,16 +243,16 @@ func (r *mutationResolver) UpdateInvoice(
 	for _, sub := range Subscriptions.Invoice[invoice.ID] {
 		sub <- invoice
 	}
-	
+
 	return
 }
 
 func (r *mutationResolver) AddItemToInvoice(
-	ctx context.Context, 
-	invoiceUUID, itemUUID uuid.UUID, 
+	ctx context.Context,
+	invoiceUUID, itemUUID uuid.UUID,
 	input *postgres.Jsonb,
 ) (
-	invoice *model.Invoice, 
+	invoice *model.Invoice,
 	err error,
 ) {
 	dbh(func(db *gorm.DB) {
@@ -281,38 +282,38 @@ type queryResolver struct{ *Resolver }
 
 
 func (r *queryResolver) Items(
-	ctx context.Context, 
+	ctx context.Context,
 	paging *model.Paging,
 ) (
-	items []model.Item, 
+	items []model.Item,
 	err error,
 ) {
 	dbh(func(db *gorm.DB) {
 		query := gormPaging(db.Select("*").Table("items"), paging)
 		query = query.Preload("Options")
-    
+
    	// Admin Check
 		if false {
 			query = query.Preload("Prices")
 		} else {
-			query = query.Preload("Prices", 
+			query = query.Preload("Prices",
 				"item_prices.price > 0 AND " +
-				 "? BETWEEN item_prices.after_date" + 
+				 "? BETWEEN item_prices.after_date" +
 				 " AND item_prices.before_date", time.Now())
 		}
-                
+
 		err = gormErrors(query.Find(&items))
 	})
-	  
+
 	return
 }
 
 
 func (r *queryResolver) Invoices(
-	ctx context.Context, 
+	ctx context.Context,
 	paging *model.Paging,
 ) (
-	invoices []model.Invoice, 
+	invoices []model.Invoice,
 	err error,
 ) {
 	dbh(func(db *gorm.DB) {
@@ -320,17 +321,17 @@ func (r *queryResolver) Invoices(
 		query = query.Preload("Items").Preload("Items.Item").
 			Preload("Items.ItemPrice").Preload("Items.Options").
 			Preload("Items.Options.ItemOptionType")
-                
+
 		err = gormErrors(query.Find(&invoices))
 	})
-	  
+
 	return
 }
 
 type subscriptionResolver struct{ *Resolver }
 
 func (r *subscriptionResolver) InvoiceUpdated(
-	ctx context.Context, 
+	ctx context.Context,
 	id *uuid.UUID,
 ) (<-chan *model.Invoice, error) {
 	var session *model.Session
@@ -357,13 +358,13 @@ func (r *subscriptionResolver) InvoiceUpdated(
 			ch <- session.Invoice
 		})
 	}()
-	
+
 	// On Unsubscribe
 	go func() {
 		<-ctx.Done()
 		fmt.Println("Context for InvoiceUpdated Subscription is Done?!")
 	}()
-	
+
 	// @NOTES:
 	// => https://www.postgresql.org/docs/current/sql-createpublication.html
 	// => https://www.apollographql.com/docs/react/advanced/subscriptions.html
@@ -382,7 +383,7 @@ func gormErrors(db *gorm.DB) (err error) {
 	for _, e := range db.GetErrors() {
 		err = fmt.Errorf("%s\n%s", err, e)
 	}
-	
+
 	return
 }
 
@@ -394,9 +395,6 @@ func gormPaging(query *gorm.DB, paging *model.Paging) (*gorm.DB) {
   if paging.Offset > 0 {
     query = query.Offset(paging.Offset)
   }
-  
+
   return query
 }
-
-
-

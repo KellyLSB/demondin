@@ -22,7 +22,7 @@ export default class Item extends React.Component {
 		this.closeForm = this.closeForm.bind(this);
 		this.onToggleForm = this.onToggleForm.bind(this);
 	}
-	
+
 	closeForm() {
 		this.setState((state) => {
 			state.hideForm = true;
@@ -46,13 +46,13 @@ export default class Item extends React.Component {
 	}
 
 	currentPrice() {
-		return this.props.item.prices[0];
+		return this.props.item.prices[0] || {id: 0, price: 0};
 	}
 
 	printPrice() {
 		var price = this.currentPrice();
 
-		if (price) {		
+		if (price) {
 			if('taxable' in price && price.taxable) {
 				return this.toDollars(price.price) + " + Tax"
 			}
@@ -71,7 +71,7 @@ export default class Item extends React.Component {
 
 			<Segment attached>
 				{this.props.item.description}
-				
+
 				<Divider hidden />
 
 				<GridList columns={2}>
@@ -81,7 +81,7 @@ export default class Item extends React.Component {
 					</Label>
 
 					<InvoiceCharged not>
-						<Button onClick={this.onToggleForm} 
+						<Button onClick={this.onToggleForm}
 										primary icon labelPosition='left'>
 							<Icon name='shop' />
 							Customize
@@ -92,7 +92,7 @@ export default class Item extends React.Component {
 
 			<InvoiceCharged not>
 				<ItemForm item={this.props.item.id} hideForm={this.state.hideForm}
-									price={this.currentPrice().id} 
+									price={this.currentPrice().id}
 									options={this.props.item.options} />
 			</InvoiceCharged>
 		</React.Fragment>;
@@ -114,7 +114,7 @@ class InvoiceCharged extends React.Component {
 					if(!this.props.not) return this.props.children;
 					return null;
 				}
-				
+
 				if(this.props.not) return this.props.children;
 				return null;
 			} }
