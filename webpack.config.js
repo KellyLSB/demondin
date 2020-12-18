@@ -2,7 +2,7 @@ module.exports = {
   mode: 'development',
   entry: {
     checkout: `${__dirname}/jsx/checkout/main.jsx`,
-    //admin:    `${__dirname}/jsx/admin/main.jsx`
+    admin:    `${__dirname}/jsx/admin/main.jsx`,
   },
   output: { filename: '[name].js', path: `${__dirname}/public` },
   resolve: {
@@ -16,9 +16,9 @@ module.exports = {
         loader: 'babel-loader',
         options: {
           cacheDirectory: true,
-          presets: [ 
-            '@babel/preset-env', 
-            '@babel/preset-react', 
+          presets: [
+            '@babel/preset-env',
+            '@babel/preset-react',
             '@babel/preset-typescript',
             '@babel/preset-flow',
           ],

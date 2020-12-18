@@ -12,7 +12,7 @@ export default class Price extends React.Component {
     super(props);
 
     this.state = {
-      data: 'data' in props ? props.data : {}
+      price: 'price' in props ? props.price : {}
     };
 
     this.onSubmit = this.onSubmit.bind(this)
@@ -21,13 +21,13 @@ export default class Price extends React.Component {
     this.onChangeValidAfter = this.onChangeValidAfter.bind(this)
     this.onChangeValidBefore = this.onChangeValidBefore.bind(this)
   }
-    
+
   toDollars(cents) {
     return (cents / 100).toLocaleString("en-US", {
       style:"currency", currency:"USD"
     })
   }
-    
+
   toCents(dollars) {
     return Math.round(100 * parseFloat(
       `${dollars}`.replace(/[$,]/g, '')
@@ -37,15 +37,15 @@ export default class Price extends React.Component {
   onChangePrice(event) {
     var value = this.toCents(event.target.value)
     this.setState((state) => {
-      state.data.Price = value
+      state.price.price = value
       return state
     })
   }
-    
+
   onValueChangePrice(values) {
     const {formattedValue, value} = values
     this.setState((state) => {
-      state.data.Price = this.toCents(value)
+      state.price.price = this.toCents(value)
       return state
     })
   }
@@ -53,7 +53,7 @@ export default class Price extends React.Component {
   onChangeValidAfter(event) {
     var value = 'target' in event ? event.target.value: event
     this.setState((state) => {
-      state.data.ValidAfter = value
+      state.price.ValidAfter = value
       return state
     })
   }
@@ -61,22 +61,22 @@ export default class Price extends React.Component {
   onChangeValidBefore(event) {
     var value = 'target' in event ? event.target.value: event
     this.setState((state) => {
-      state.data.ValidBefore = value
+      state.price.ValidBefore = value
       return state
     })
   }
 
   onSubmit(event) {
     event.preventDefault()
-    
+
     if ('onSubmit' in this.props) {
-      this.props.onSubmit(this.state.data)
+      this.props.onSubmit(this.state.price)
       return
     }
-        
-    return this.onSubmitXHR(this.state.data)
+
+    return this.onSubmitXHR(this.state.price)
   }
-    
+
   onSubmitXHR(xhrData) {
     var page = 'ID' in xhrData ? `/${xhrData.ID}` : ''
     fetch(`/shop/keeper/items/${this.props.item}/prices${page}.json`, {
@@ -84,22 +84,22 @@ export default class Price extends React.Component {
       body: JSON.stringify(xhrData)
     }).then((response) => response.json()).then((data) => {
       this.setState((state) => {
-        state.data = data
+        state.price = data
         return state
       })
     })
   }
-  
-  validBefore() { return new Date(this.state.data.ValidBefore) }
-  validAfter()  { return new Date(this.state.data.ValidAfter)  }
+
+  validBefore() { return Date.parse(this.state.price.beforeDate) }
+  validAfter()  { return Date.parse(this.state.price.afterDate)  }
 
   render() {
     return (
       <form onSubmit={this.onSubmit}>
         <NumberFormat thousandSeparator={true} prefix={'$'} decimalScale={2}
-            value={this.toDollars(this.state.data.Price)}
+            value={this.toDollars(this.state.price.price)}
             onValueChange={this.onValueChangePrice} />
-        
+
         <DatePicker selectsStart
           customInput={<DatePickerInput />}
           selected={this.validAfter()}
@@ -113,7 +113,7 @@ export default class Price extends React.Component {
           startDate={this.validAfter()}
           endDate={this.validBefore()}
           onChange={this.onChangeValidBefore} />
-        
+
         <input type="submit" value="Save" />
       </form>
     )

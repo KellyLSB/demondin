@@ -5,11 +5,16 @@ export default class Prices extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      data: []
+      prices: [],
+      item: null,
     };
 
-    if ('data' in props) {
-      this.state.data = props.data;
+    if ('prices' in props) {
+      this.state.prices = props.prices;
+    }
+
+    if ('item' in props) {
+      this.state.item = props.item;
     }
 
     this.addPrice = this.addPrice.bind(this)
@@ -18,8 +23,8 @@ export default class Prices extends React.Component {
   addPrice() {
     console.log("POKEY")
     this.setState((state) => {
-      state.data.push({
-        ItemID: this.props.item
+      state.prices.push({
+        ItemID: this.props.item.id,
       })
 
       return state
@@ -29,12 +34,12 @@ export default class Prices extends React.Component {
   render() {
     return (
       <React.Fragment>
-        {this.state.data.map((price, altID) =>
-          <Price key={price.ID ? price.ID : altID}
-            item={this.props.item}
-            data={price} />
+        {this.state.prices.map((price, altID) =>
+          <Price key={price.id ? price.id : altID}
+            item={this.state.item}
+            price={price} />
         )}
-        
+
         <input type="button" value="Add Another Price"
           onClick={this.addPrice} />
       </React.Fragment>

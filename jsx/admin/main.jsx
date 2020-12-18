@@ -1,14 +1,14 @@
-import React              from 'react';
-import ReactDOM           from 'react-dom';
-import ApolloClient       from "apollo-boost";
-import { ApolloProvider } from "react-apollo";
+import '../utils/globalExtensions';
+
+// React
+import React from 'react';
+import ReactDOM from 'react-dom';
+// Apollo Client
+import { ApolloProvider, client } from '../utils/apolloClient';
+
 import Items              from './items';
 
 import 'semantic-ui-css/semantic.min.css';
-
-const client = new ApolloClient({
-  uri: "http://localhost:8080/"
-});
 
 const App = () => (
   <ApolloProvider client={client}>

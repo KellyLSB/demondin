@@ -1,4 +1,7 @@
 import React from 'react'
+import { Query } from "react-apollo";
+import gql from "graphql-tag";
+
 import Item from './item'
 
 import { Grid } from 'semantic-ui-react'
@@ -10,31 +13,41 @@ export default class Items extends React.Component {
     this.state = {
       data: []
     };
-
-    if ('data' in props) {
-      this.state.data = props.data;
-    } else {
-      this.fetchItems();
-    }
-  }
-
-  fetchItems() {
-    fetch("/shop/keeper/items.json", {
-      method: "GET"
-    }).then((response) => response.json()).then((data) => {
-      this.setState((state) => {
-        state.data = data
-        return state
-      })
-    })
   }
 
   render() {
     return (
       <Grid columns='two' divided>
-        {this.state.data.map((item) =>
-          <Item key={item.ID} data={item} />
-        )}
+        <Grid.Row>
+          <Query query={gql`{
+            items {
+              id
+              name
+              description
+              prices {
+                id
+                price
+                beforeDate
+                afterDate
+              }
+              options {
+                id
+                key
+                valueType
+                values
+              }
+            }
+          }`}>
+            {({ loading, error, data }) => {
+              if (loading) return <p>Loading...</p>;
+              if (error) return <p>Error :(</p>;
+
+              return data.items.map((item) =>
+                <Item key={item.id} item={item} />
+              );
+            }}
+          </Query>
+        </Grid.Row>
       </Grid>
     )
   }
