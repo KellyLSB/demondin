@@ -1,10 +1,14 @@
 import React from 'react'
+import { Mutation } from "react-apollo";
+import gql from "graphql-tag";
+
 import Prices from './prices'
 
-import { Grid } from 'semantic-ui-react'
+import { Grid, Form, Button } from 'semantic-ui-react'
+import FormHelper from '../utils/formHelper'
+import GridList from '../utils/gridList'
 
-
-export default class Item extends React.Component {
+export default class Item extends FormHelper {
   constructor(props) {
     super(props);
     this.state = {
@@ -15,57 +19,59 @@ export default class Item extends React.Component {
       this.state.item = props.item;
     }
 
-    this.onChangeName = this.onChangeName.bind(this);
-    this.onChangeDescription = this.onChangeDescription.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
   }
 
-  onChangeName(event) {
-    var value = event.target.value
-    this.setState((state) => {
-      state.item.Name = value
-      return state
-    })
-  }
+  onSubmit(e, updateItem) {
+    e.preventDefault();
 
-  onChangeDescription(event) {
-    var value = event.target.value
-    this.setState((state) => {
-      state.item.Description = value
-      return state
-    })
-  }
+    console.log(this.state.item);
 
-  onSubmit(event) {
-    event.preventDefault();
-    alert("submitted");
-    console.log(this.state.data);
-
-    fetch(`/shop/keeper/items/${this.state.item.ID}.json`, {
-      method: "ID" in this.state.item ? "PUT" : "POST",
-      body: JSON.stringify(this.state.item)
-    }).then((response) => response.json()).then((data) => {
-      this.setState((state) => {
-        state.data = data
-        return state
-      })
-    })
+    updateItem({ variables: {
+      input: JSON.stringify(this.state.item),
+    } });
   }
 
   render() {
     return (
       <Grid.Row>
         <Grid.Column>
-          <form onSubmit={this.onSubmit}>
-            <input placeholder="Badge Name"
-              value={this.state.item.name}
-              onChange={this.onChangeName} />
-            <textarea placeholder="Description"
-              value={this.state.item.description}
-              onChange={this.onChangeDescription}>
-            </textarea>
-            <input type="submit" value="Save" />
-          </form>
+          <Mutation mutation={gql`
+            mutation updateItem($id: ID!, $input: NewItem!) {
+              updateItem(id: $id, input: $input) {
+                id
+                name
+                description
+                prices {
+                  id
+                  price
+                  afterDate
+                  beforeDate
+                }
+                options {
+                  id
+                  itemOptionType {
+                    id
+                    key
+                  }
+                  values
+                }
+              }
+            }
+          `}>
+            {(updateItem) => (
+              <Form onSubmit={(e) => this.onSubmit(e, updateItem)}>
+                <Form.Input label="Name" placeholer="Name"
+                  name='name' value={this.state.item.name}
+                  onChange={this.onChange} />
+                <Form.Field label="Description" placeholder="Description"
+                  name='description' control='textarea' rows="3"
+                  value={this.state.item.description}
+                  onChange={this.onChange} />
+                <Button type='submit'>Save</Button>
+              </Form>
+            )}
+          </Mutation>
         </Grid.Column>
         <Grid.Column>
           <Prices item={this.state.item}
