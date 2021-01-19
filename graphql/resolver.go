@@ -141,6 +141,59 @@ func (r *mutationResolver) UpdateItem(
 	return &item, err
 }
 
+func(r *mutationResolver) CreateItemPrice(
+	ctx context.Context,
+	itemID uuid.UUID,
+	input model.NewItemPrice,
+) (
+	itemPrice *model.ItemPrice,
+	err error,
+) {
+	var item *model.Item
+
+	dbh(func(db *gorm.DB) {
+		item = model.FetchItem(db, itemID)
+	})
+
+	err = utils.PipeInput(&input, itemPrice)
+	if err != nil {
+		return nil, err
+	}
+
+	itemPrice.ItemID = item.ID
+	dbh(func(db *gorm.DB) {
+		err = gormErrors(db.Create(itemPrice))
+	})
+
+	return
+}
+
+func (r *mutationResolver) UpdateItemPrice(
+	ctx context.Context,
+	itemPriceID uuid.UUID,
+	input model.NewItemPrice,
+) (
+	itemPrice *model.ItemPrice,
+	err error,
+) {
+	dbh(func(db *gorm.DB) {
+		err = gormErrors(
+			db.First(itemPrice, "id = ?", itemPriceID),
+		)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = utils.PipeInput(&input, itemPrice)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 // ActiveInvoice performs action with the *model.NewInvoice data
 // it-al-ic :: __it is a transformative function__
 func (r *mutationResolver) ActiveInvoice(
@@ -285,7 +338,7 @@ func (r *queryResolver) Items(
 	ctx context.Context,
 	paging *model.Paging,
 ) (
-	items []model.Item,
+	items []*model.Item,
 	err error,
 ) {
 	dbh(func(db *gorm.DB) {
@@ -313,7 +366,7 @@ func (r *queryResolver) Invoices(
 	ctx context.Context,
 	paging *model.Paging,
 ) (
-	invoices []model.Invoice,
+	invoices []*model.Invoice,
 	err error,
 ) {
 	dbh(func(db *gorm.DB) {

@@ -1,7 +1,7 @@
 import React from 'react';
 import NumberFormat from 'react-number-format';
 import DatePicker from 'react-datepicker';
-import { Grid } from 'semantic-ui-react';
+import { Grid, Form, Button } from 'semantic-ui-react';
 
 import PropTypes from 'prop-types';
 
@@ -95,7 +95,7 @@ export default class Price extends React.Component {
 
   render() {
     return (
-      <form onSubmit={this.onSubmit}>
+      <Form onSubmit={this.onSubmit}>
         <NumberFormat thousandSeparator={true} prefix={'$'} decimalScale={2}
             value={this.toDollars(this.state.price.price)}
             onValueChange={this.onValueChangePrice} />
@@ -114,8 +114,8 @@ export default class Price extends React.Component {
           endDate={this.validBefore()}
           onChange={this.onChangeValidBefore} />
 
-        <input type="submit" value="Save" />
-      </form>
+        <Button type="submit">Save</Button>
+      </Form>
     )
   }
 }
@@ -123,11 +123,11 @@ export default class Price extends React.Component {
 class DatePickerInput extends React.Component {
   render () {
     return (
-      <button
+      <Button
         className="customInput"
         onClick={this.props.onClick}>
         {this.props.value}
-      </button>
+      </Button>
     )
   }
 }

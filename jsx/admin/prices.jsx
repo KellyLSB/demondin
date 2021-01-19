@@ -1,4 +1,5 @@
 import React from 'react'
+import { Button } from 'semantic-ui-react';
 import Price from './price'
 
 export default class Prices extends React.Component {
@@ -40,8 +41,9 @@ export default class Prices extends React.Component {
             price={price} />
         )}
 
-        <input type="button" value="Add Another Price"
-          onClick={this.addPrice} />
+        <Button onClick={this.addPrice}>
+          Add Another Price
+        </Button>
       </React.Fragment>
     )
   }

@@ -15,7 +15,7 @@ type Session implements Postgresql {
   createdAt:        DateTime!
   updatedAt:        DateTime!
   deletedAt:        DateTime
-  
+
   accountID:        ID
   account:          Account
   invoiceID:        ID
@@ -33,7 +33,7 @@ type Account implements Postgresql {
   createdAt:        DateTime!
   updatedAt:        DateTime!
   deletedAt:        DateTime
-  
+
   auth:             Int!
   name:             String
   email:            String!
@@ -50,7 +50,7 @@ type Item implements Postgresql {
   description:      String
   enabled:          Boolean!
   isBadge:          Boolean!
-  
+
   options:          [ItemOptionType]
   prices:           [ItemPrice]!
 }
@@ -60,7 +60,7 @@ type ItemOptionType implements Postgresql {
   createdAt:        DateTime!
   updatedAt:        DateTime!
   deletedAt:        DateTime
-  
+
   item:             Item
   itemID:           ID!
   key:              String!
@@ -86,7 +86,7 @@ type ItemPrice implements Postgresql {
   createdAt:        DateTime!
   updatedAt:        DateTime!
   deletedAt:        DateTime
-  
+
   item:             Item
   itemID:           ID!
   price:            Int!
@@ -100,7 +100,7 @@ type Invoice implements Postgresql {
   createdAt:        DateTime!
   updatedAt:        DateTime!
   deletedAt:        DateTime
-  
+
   accountID:        ID!
   account:          Account
 
@@ -172,7 +172,7 @@ input NewInvoice {
   account:          NewAccount
   stripeTokenID:    String
   items:            [NewInvoiceItem!]!
-  
+
   submit:           Boolean
 }
 
@@ -181,7 +181,7 @@ input NewInvoiceItem {
   itemID:           ID!
   itemPriceID:      ID!
   options:          [NewItemOption!]!
-  
+
   remove:           Boolean
 }
 
@@ -194,11 +194,14 @@ input NewItemOption {
 input Paging {
   limit:            Int!
   offset:           Int!
-} 
+}
 
 type Mutation {
   createItem(input: NewItem!)                              : Item!
   updateItem(id: ID!, input: NewItem!)                     : Item!
+
+  createItemPrice(itemID: ID!, input: NewItemPrice!)       : ItemPrice!
+  updateItemPrice(id: ID!, input: NewItemPrice!)           : ItemPrice!
 
   activeInvoice(input: NewInvoice)                         : Invoice!
   createInvoice(input: NewInvoice!)                        : Invoice!

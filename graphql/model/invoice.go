@@ -221,7 +221,7 @@ func (i *Invoice) Input(tx *gorm.DB, input *NewInvoice) {
 		}
 
 		// Add Options
-		invoiceItem.Input(tx, &_item)
+		invoiceItem.Input(tx, _item)
 		i.AddInvoiceItem(tx, invoiceItem)
 	}
 }

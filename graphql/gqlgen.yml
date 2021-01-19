@@ -7,12 +7,12 @@ schema:
 # for detailed .gqlgen.yml documentation.
 model:
   filename: model/generated.go
-  
+
 # Optional, turns on resolver stub generation
 resolver:
   filename: resolver.go # where to write them
   type: Resolver  # whats the resolver root implementation type called?
-  
+
 models:
   JSON:
     model: github.com/KellyLSB/demondin/graphql/model.JSON
