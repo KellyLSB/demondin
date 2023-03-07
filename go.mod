@@ -21,8 +21,7 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/vektah/gqlparser/v2 v2.1.0
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
-	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
+	golang.org/x/crypto v0.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/macaron.v1 v1.4.0
 	gopkg.in/yaml.v2 v2.4.0
